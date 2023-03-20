@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://c1r4djsndgyme"]
+
+[ext_resource type="Texture2D" uid="uid://nprr321ewwia" path="res://items/basic-armor-1.png" id="1_gwgdr"]
+
+[sub_resource type="GDScript" id="GDScript_6q75d"]
+script/source = "extends Node
+
+@export var adef = 10
+
+func equip(user_object: Object):
+  var current_adef = user_object.get_meta('adef')
+  var equipped = is_in_group('equipped')
+  if equipped:
+    remove_from_group('equipped')
+    Watch.set_object_meta(self, 'is_equipped', false)
+    Watch.set_object_meta(self, 'ui_cell_highlight', false)
+    Watch.set_object_meta(user_object, 'adef', current_adef - adef)
+  else:
+    var can_equip = Comp.call_method_or(user_object, 'can_equip', [self], true)
+    if not can_equip:
+      return
+    add_to_group('equipped')
+    Watch.set_object_meta(self, 'is_equipped', true)
+    Watch.set_object_meta(self, 'ui_cell_highlight', true)
+    Watch.set_object_meta(user_object, 'adef', current_adef + adef)
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="basicArmor" type="Node" groups=["gear"]]
+script = SubResource("GDScript_6q75d")
+metadata/ui_cell_left_click = "equip"
+metadata/ui_cell_display = ExtResource("1_gwgdr")
+metadata/equipment_classes = ["armor"]

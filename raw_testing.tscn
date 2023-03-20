@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbqubeqit7wdk"]
+
+[sub_resource type="GDScript" id="GDScript_qfyhl"]
+script/source = "extends Node
+
+
+func _ready():
+  prints('TYPE_NIL', TYPE_NIL)
+  prints('TYPE_ARRAY', TYPE_ARRAY)
+  prints('TYPE_OBJECT', TYPE_OBJECT)
+  prints('TYPE_CALLABLE', TYPE_CALLABLE)
+"
+
+[node name="raw_testing" type="Node2D"]
+
+[node name="Node" type="Node" parent="."]
+script = SubResource("GDScript_qfyhl")

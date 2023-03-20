@@ -1,0 +1,37 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://on8q1sp20o0w"]
+
+[sub_resource type="Shader" id="1"]
+code = "shader_type canvas_item;
+
+uniform float shift_amount = 0.5;
+uniform float outline_alpha : hint_range(0.0, 1.0) = 1.0;
+
+void fragment() {  
+  vec4 color = texture(TEXTURE, UV);
+  
+  float psx = TEXTURE_PIXEL_SIZE.x * shift_amount;
+  float psy = TEXTURE_PIXEL_SIZE.y * shift_amount;
+  vec2 OFFSET1 = vec2(-psx, 0.0);
+  vec2 OFFSET2 = vec2(0.0, psy);
+  vec2 OFFSET3 = vec2(psx, 0.0);
+  vec2 OFFSET4 = vec2(0.0, -psy);
+  
+  float alpha = color.a;
+  if(alpha != 0.0) {
+    COLOR = color;
+  } else {
+    vec4 offset1 = texture(TEXTURE, UV + OFFSET1);
+    vec4 offset2 = texture(TEXTURE, UV + OFFSET2);
+    vec4 offset3 = texture(TEXTURE, UV + OFFSET3);
+    vec4 offset4 = texture(TEXTURE, UV + OFFSET4);
+
+    COLOR = vec4(0.0, 0.0, 0.0, clamp(offset1.a + offset2.a + offset3.a + offset4.a, 0.0, outline_alpha));
+//    COLOR = vec4(0.0, 0.0, 0.0, clamp(offset1.a, 0.0, 1))
+
+  }
+}"
+
+[resource]
+shader = SubResource("1")
+shader_parameter/shift_amount = 1.0
+shader_parameter/outline_alpha = 1.0

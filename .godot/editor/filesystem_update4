@@ -1,0 +1,15 @@
+res://default_env.tres
+res://testingWorld.tscn
+res://abilities/shots/damageCollidingBodyOnCollision.gd
+res://ui/mirrorGearNodesToUi.gd
+res://basicWeaponAttackAbility.gd
+res://outlineMaterial.tres
+res://copyMetaToParent.tscn
+res://ui/uiGearCell.tscn
+res://Watch.gd
+res://abilities/shots/basicSwipe.tscn
+res://abilities/shots/basicSwipe2.tscn
+res://abilities/shots/castTowardAbility.gd
+res://Comp.gd
+res://raw_testing.tscn
+res://items/basicArmor1.tscn

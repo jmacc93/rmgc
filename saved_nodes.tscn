@@ -1,0 +1,1077 @@
+[gd_scene load_steps=62 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_mg3gl"]
+[ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="2_0f1mu"]
+[ext_resource type="Script" path="res://compositeNode.gd" id="3_akax0"]
+[ext_resource type="Script" path="res://characters/hpFlaskAbility.gd" id="4_toscw"]
+[ext_resource type="Script" path="res://characters/walkAbility.gd" id="5_4jc16"]
+[ext_resource type="Script" path="res://characters/playableCharacters/moveCharacterOnAction.gd" id="6_gwncv"]
+[ext_resource type="Script" path="res://characters/healthStats.gd" id="7_fj1jy"]
+[ext_resource type="Script" path="res://characters/dieOnZeroHp.gd" id="8_50eih"]
+[ext_resource type="Script" path="res://characters/inSingleFaction.gd" id="9_gbaly"]
+[ext_resource type="Script" path="res://characters/playableCharacters/mainAttackOnAction.gd" id="10_8sge6"]
+[ext_resource type="Script" path="res://characters/playableCharacters/setTargetPointToMouseLocation.gd" id="11_jx7sd"]
+[ext_resource type="Texture2D" uid="uid://b03kf4gmcmdm7" path="res://abilities/weapons/basicSword.png" id="12_42agh"]
+[ext_resource type="Script" path="res://basicWeaponAttackAbility.gd" id="13_o27i6"]
+[ext_resource type="PackedScene" uid="uid://cq7jkqg3pv2o8" path="res://abilities/shots/basicSwipe_old.tscn" id="14_6fypr"]
+[ext_resource type="Script" path="res://characters/makeBasicDamagePopups.gd" id="15_44pn0"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="16_6nese"]
+[ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/expander.png" id="17_c6xje"]
+[ext_resource type="Script" path="res://ui/syncRangeToCharacterStat.gd" id="18_5cse6"]
+[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="19_trqbl"]
+[ext_resource type="Script" path="res://ui/mirrorGearNodesToUi.gd" id="20_n61d3"]
+[ext_resource type="Script" path="res://produceShotAbility.gd" id="21_7cokh"]
+[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://abilities/shots/basicSwipe.png" id="22_b0cmj"]
+[ext_resource type="Texture2D" uid="uid://nprr321ewwia" path="res://items/basic-armor-1.png" id="23_05j5w"]
+[ext_resource type="PackedScene" uid="uid://bqtm2kgmesrsj" path="res://enemies/genericEnemy1.tscn" id="24_i2yh1"]
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="25_gh44a"]
+[ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://enemies/ash-mote-1.png" id="26_8fbmb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tsxmw"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_12e5e"]
+bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wcgdt"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="ImageTexture" id="ImageTexture_2i77b"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tjt43"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fhtwg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tnjyo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xrhdm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6iuja"]
+
+[sub_resource type="Theme" id="Theme_xtp7f"]
+HScrollBar/icons/decrement = SubResource("ImageTexture_2i77b")
+HScrollBar/icons/decrement_highlight = SubResource("ImageTexture_2i77b")
+HScrollBar/icons/decrement_pressed = SubResource("ImageTexture_2i77b")
+HScrollBar/icons/increment = SubResource("ImageTexture_2i77b")
+HScrollBar/icons/increment_highlight = SubResource("ImageTexture_2i77b")
+HScrollBar/icons/increment_pressed = SubResource("ImageTexture_2i77b")
+HScrollBar/styles/grabber = SubResource("StyleBoxEmpty_tjt43")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxEmpty_fhtwg")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxEmpty_tnjyo")
+HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_xrhdm")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_6iuja")
+
+[sub_resource type="GDScript" id="GDScript_6533p"]
+script/source = "extends Node
+
+var character_composite
+
+@export var repeatedly = true
+@export var action = 'shoot'
+
+func _enter_tree():
+  character_composite = Lib.get_parent_with_method(self, \"new_getter\")
+  if not character_composite:
+    push_error('No character_composite parent found')
+    queue_free()
+    return
+
+var pressed = false
+
+
+func find_main_attack_ability_and_attack():
+  var main_attack_node_list = Lib.get_children_in_group(character_composite, 'main_attack')
+  for attack_node in main_attack_node_list:
+    if attack_node.has_method('attack'):
+      attack_node.attack(character_composite)
+    elif attack_node.has_method('run_method'): #its a composite
+      attack_node.run_method('attack', [character_composite])
+
+
+func _unhandled_input(_event):
+  if Input.is_action_just_pressed(action):
+    pressed = true
+    find_main_attack_ability_and_attack()
+
+func _input(_event):
+  if Input.is_action_just_released(action):
+    pressed = false
+
+func _process(_delta):
+  if repeatedly and pressed:
+    find_main_attack_ability_and_attack()
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_61jkb"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wbpci"]
+bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_va6im"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="ImageTexture" id="ImageTexture_xc51v"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7cxuy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ur35y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3i6mk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dskxa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gjgd5"]
+
+[sub_resource type="Theme" id="Theme_6axxe"]
+HScrollBar/icons/decrement = SubResource("ImageTexture_xc51v")
+HScrollBar/icons/decrement_highlight = SubResource("ImageTexture_xc51v")
+HScrollBar/icons/decrement_pressed = SubResource("ImageTexture_xc51v")
+HScrollBar/icons/increment = SubResource("ImageTexture_xc51v")
+HScrollBar/icons/increment_highlight = SubResource("ImageTexture_xc51v")
+HScrollBar/icons/increment_pressed = SubResource("ImageTexture_xc51v")
+HScrollBar/styles/grabber = SubResource("StyleBoxEmpty_7cxuy")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxEmpty_ur35y")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxEmpty_3i6mk")
+HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_dskxa")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_gjgd5")
+
+[sub_resource type="GDScript" id="GDScript_o7ljt"]
+script/source = "extends Node
+
+var character_composite
+
+@export var repeatedly = true
+@export var action = 'shoot'
+
+func _enter_tree():
+  character_composite = Lib.get_parent_with_method(self, \"new_getter\")
+  if not character_composite:
+    push_error('No character_composite parent found')
+    queue_free()
+    return
+  
+  character_composite.new_method('equip_weapon', Callable(self, \"equip_weapon\"))
+  
+  #make sure main_attack group node is highlighted
+  var main_attack_node = Lib.get_children_in_group(character_composite, 'main_attack')
+  if main_attack_node.size() >= 1:
+    Watch.set_object_meta(main_attack_node[0], 'ui_cell_highlight', true)
+
+var pressed = false
+
+
+func equip_weapon(weapon_node: Node):
+  if weapon_node.is_in_group('main_attack'):
+    weapon_node.remove_from_group('main_attack')
+    Watch.set_object_meta(weapon_node, 'ui_cell_highlight', false)
+    return
+  #allow only one main_attack group node
+  var current_main_attack_nodes = Lib.get_children_in_group(character_composite, 'main_attack')
+  for node in current_main_attack_nodes:
+    node.remove_from_group('main_attack')
+    Watch.set_object_meta(weapon_node, 'ui_cell_highlight', false)
+  weapon_node.add_to_group('main_attack')
+  Watch.set_object_meta(weapon_node, 'ui_cell_highlight', true)
+
+
+func find_main_attack_abilities_and_attack():
+  var main_attack_node_list = Lib.get_children_in_group(character_composite, 'main_attack')
+  for attack_node in main_attack_node_list:
+    if attack_node.has_method('attack'):
+      attack_node.attack(character_composite)
+    elif attack_node.has_method('run_method'): #its a composite
+      attack_node.run_method('attack', [character_composite])
+
+
+func _unhandled_input(_event):
+  if Input.is_action_just_pressed(action):
+    pressed = true
+    find_main_attack_abilities_and_attack()
+
+func _input(_event):
+  if Input.is_action_just_released(action):
+    pressed = false
+
+func _process(_delta):
+  if repeatedly and pressed:
+    find_main_attack_abilities_and_attack()
+"
+
+[sub_resource type="GDScript" id="GDScript_hhs6h"]
+script/source = "extends Node
+
+@export var cast_speed = 5.0
+@export var damage_mod = 1.0
+
+@export var max_attack_rate = 20
+@onready var attack_delay = int(float(10000) / float(max_attack_rate))
+var next_attack_time = 0
+
+@export var shot_resource : PackedScene
+
+
+#shoot new shot toward target point / target object with shoot delay
+func attack(user_object: Object) -> void:
+  var current_time = Time.get_ticks_msec()
+  if shot_resource and (next_attack_time < current_time):
+    next_attack_time = current_time + attack_delay
+    var shot = shot_resource.instantiate()
+    
+    #set shot origin
+    var origin_position = user_object.get_prop('shot_origin')
+    if origin_position == null:
+      origin_position = user_object.global_position if ('global_position' in user_object) else null
+    if origin_position == null:
+      origin_position = Lib.get_parent_with_property(self, 'global_position').global_position
+    shot.global_position = origin_position
+    
+    get_viewport().add_child(shot)
+    
+    #set shot parent object (the shot's creator)
+    shot.set_prop('parent_object', user_object)
+    
+    var dmg = shot.get_first_prop_in(['dmg', 'damage'], 1.0)
+    shot.set_first_prop_in(['dmg', 'damage'], dmg * damage_mod)
+    
+    #try shooting toward target if it exists
+    var target_point = user_object.get_prop('target_point')
+    if target_point == null:
+      var target_object = user_object.get_prop('target_object')
+      if target_object != null:
+        target_point = target_object.global_position
+    
+    if target_point != null:
+      if shot.run_method('cast_toward', [target_point, cast_speed]):
+        return
+      elif shot.run_method('shoot_in_dir', [(target_point - origin_position).normalized(), cast_speed]):
+        return
+      var shot_velocity = shot.get_prop('velocity')
+      if shot_velocity != null:
+        shot.set_prop('velocity', (target_point - origin_position).normalized() * cast_speed)
+        return
+      else:
+        push_error('Shot has no way of being projected toward target point')
+        return
+      
+    #else, try shooting in a direction
+    var shoot_dir = user_object.get_prop('shoot_dir')
+    if shoot_dir != null:
+      shoot_dir = shoot_dir.normalized()
+      if shot.run_method('shoot_in_dir', [shoot_dir.normalized(), cast_speed]):
+        return
+      var shot_velocity = shot.get_prop('shot_velocity')
+      if shot_velocity != null:
+        shot.set_prop('velocity', [shoot_dir.normalized() * cast_speed])
+        return
+      else:
+        push_error('Shot has no way of being projected in shoot direction')
+        return
+
+
+func equip(user_object: Object) -> void:
+  if user_object.has_method('set_main_attack'):
+    user_object.set_main_attack(Callable(self, 'attack'))
+    return
+  
+  if user_object.has_method('equip'):
+    user_object.equip(self)
+    return
+  
+  if user_object.has_method('equip_weapon'):
+    user_object.equip_weapon(self)
+    return
+  
+  if not user_object.has_method('run_method'):
+    return
+  
+  if user_object.run_method('equip', [self]):
+    return
+  
+  if user_object.run_method('equip_weapon', [self]):
+    return
+  
+  if user_object.has_prop('main_attack'):
+    user_object.set_prop('main_attack', [Callable(self, 'attack')])
+    return
+  
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_y03ju"]
+script/source = "extends Node
+
+var use_count = 0
+
+func use_flask(user: Object):
+  var health = get_meta('health', 25)
+  var max_uses = get_meta('max_uses', 1)
+  
+  print('use_flask on ', user)
+  if user.has_method('call_method'): #is a composite
+    user.call_method('heal_by', [health])
+  elif user.has_method('heal_by'):
+    user.heal_by(health)
+  
+  use_count += 1
+  if (max_uses > -1) and (use_count >= max_uses):
+    print('freeing flask')
+    queue_free()
+"
+
+[sub_resource type="GDScript" id="GDScript_owfkt"]
+script/source = "extends Node
+
+
+func equip(user_object: Object):
+  
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d2d0h"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_estrh"]
+bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oo5oy"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="ImageTexture" id="ImageTexture_203qm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g1rv7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nqg2u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7s532"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vc3wa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4wyx3"]
+
+[sub_resource type="Theme" id="Theme_4deh5"]
+HScrollBar/icons/decrement = SubResource("ImageTexture_203qm")
+HScrollBar/icons/decrement_highlight = SubResource("ImageTexture_203qm")
+HScrollBar/icons/decrement_pressed = SubResource("ImageTexture_203qm")
+HScrollBar/icons/increment = SubResource("ImageTexture_203qm")
+HScrollBar/icons/increment_highlight = SubResource("ImageTexture_203qm")
+HScrollBar/icons/increment_pressed = SubResource("ImageTexture_203qm")
+HScrollBar/styles/grabber = SubResource("StyleBoxEmpty_g1rv7")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxEmpty_nqg2u")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxEmpty_7s532")
+HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_vc3wa")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_4wyx3")
+
+[node name="saved_nodes" type="Node"]
+
+[node name="genericAdventurer1" parent="." instance=ExtResource("1_mg3gl")]
+visible = false
+metadata/ui_gear_cells = 3
+
+[node name="hpPot" type="Sprite2D" parent="genericAdventurer1" groups=["gear"]]
+visible = false
+texture = ExtResource("2_0f1mu")
+script = ExtResource("3_akax0")
+metadata/ui_cell_display = ExtResource("2_0f1mu")
+metadata/ui_cell_left_click = "use_flask"
+
+[node name="hpFlaskAbility" type="Node" parent="genericAdventurer1/hpPot"]
+script = ExtResource("4_toscw")
+
+[node name="walkAbility" type="Node" parent="genericAdventurer1"]
+script = ExtResource("5_4jc16")
+
+[node name="moveCharacterOnAction" type="Node" parent="genericAdventurer1/walkAbility"]
+script = ExtResource("6_gwncv")
+
+[node name="healthStats" type="Node" parent="genericAdventurer1"]
+script = ExtResource("7_fj1jy")
+max_hp = 1000.0
+hp = 500.0
+
+[node name="dieOnZeroHp" type="Node" parent="genericAdventurer1/healthStats"]
+script = ExtResource("8_50eih")
+
+[node name="inSingleFaction" type="Node" parent="genericAdventurer1"]
+script = ExtResource("9_gbaly")
+faction = "players"
+
+[node name="shootOnAction" type="Node" parent="genericAdventurer1"]
+script = ExtResource("10_8sge6")
+
+[node name="setCharacterTargetToMouseLocation" type="Node" parent="genericAdventurer1"]
+script = ExtResource("11_jx7sd")
+
+[node name="basicSword" type="Sprite2D" parent="genericAdventurer1" groups=["gear", "main_attack"]]
+z_index = 1
+texture_filter = 1
+position = Vector2(4, 0)
+texture = ExtResource("12_42agh")
+script = ExtResource("3_akax0")
+metadata/ui_cell_display = ExtResource("12_42agh")
+
+[node name="basicWeaponAttackAbility" type="Node" parent="genericAdventurer1/basicSword" groups=["ability"]]
+script = ExtResource("13_o27i6")
+cast_speed = 80.0
+max_attack_rate = 40
+shot_resource = ExtResource("14_6fypr")
+
+[node name="makeBasicDamagePopups" type="Node2D" parent="genericAdventurer1"]
+position = Vector2(0, -8)
+script = ExtResource("15_44pn0")
+
+[node name="characterInventory" type="Node" parent="genericAdventurer1" groups=["inventory"]]
+metadata/size = 6
+
+[node name="testItem" type="Sprite2D" parent="genericAdventurer1/characterInventory"]
+visible = false
+texture_filter = 1
+texture = ExtResource("2_0f1mu")
+
+[node name="Camera2D" type="Camera2D" parent="genericAdventurer1"]
+zoom = Vector2(4, 4)
+
+[node name="uiControl" type="Control" parent="genericAdventurer1"]
+z_index = 1000
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -138.0
+offset_top = -76.0
+offset_right = 136.681
+offset_bottom = 74.486
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer1/uiControl"]
+custom_minimum_size = Vector2(0, 13)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -10.486
+offset_right = 2.00003
+offset_bottom = 1.51401
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 0
+theme_override_constants/separation = 0
+
+[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar"]
+texture_filter = 1
+custom_minimum_size = Vector2(82, 0)
+layout_mode = 2
+texture = ExtResource("16_6nese")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="expanderButton" type="TextureButton" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_vertical = 2
+toggle_mode = true
+texture_normal = ExtResource("17_c6xje")
+stretch_mode = 5
+
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 149.342
+offset_bottom = 41.965
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_tsxmw")
+theme_override_styles/fill = SubResource("StyleBoxFlat_12e5e")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" type="Node" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/hpBar"]
+script = ExtResource("18_5cse6")
+max_stat = "max_hp"
+
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 42.3419
+offset_bottom = 10.965
+texture = ExtResource("19_trqbl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="mpBar" type="Control" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+anchors_preset = 0
+offset_left = 43.0
+offset_top = 2.0
+offset_right = 79.0
+offset_bottom = 11.0
+
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_trqbl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar"]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 64.0
+scale = Vector2(0.143, 0.138)
+theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
+theme_override_font_sizes/font_size = 46
+theme_override_styles/background = SubResource("StyleBoxFlat_tsxmw")
+theme_override_styles/fill = SubResource("StyleBoxFlat_wcgdt")
+value = 100.0
+
+[node name="syncRangeToCharacterStat2" type="Node" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar/ProgressBar"]
+script = ExtResource("18_5cse6")
+stat = "mp"
+max_stat = "max_mp"
+
+[node name="gearBar" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("16_6nese")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer"]
+layout_mode = 2
+theme = SubResource("Theme_xtp7f")
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 2
+
+[node name="mirrorGearNodesToUi" type="Node" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer/HBoxContainer"]
+script = ExtResource("20_n61d3")
+
+[node name="genericAdventurer2" parent="." instance=ExtResource("1_mg3gl")]
+metadata/ui_gear_cells = 3
+
+[node name="Camera2D" type="Camera2D" parent="genericAdventurer2"]
+zoom = Vector2(4, 4)
+
+[node name="walkAbility" type="Node" parent="genericAdventurer2"]
+script = ExtResource("5_4jc16")
+
+[node name="moveCharacterOnAction" type="Node" parent="genericAdventurer2/walkAbility"]
+script = ExtResource("6_gwncv")
+
+[node name="healthStats" type="Node" parent="genericAdventurer2"]
+script = ExtResource("7_fj1jy")
+max_hp = 1000.0
+hp = 500.0
+
+[node name="dieOnZeroHp" type="Node" parent="genericAdventurer2/healthStats"]
+script = ExtResource("8_50eih")
+
+[node name="makeBasicDamagePopups" type="Node2D" parent="genericAdventurer2"]
+position = Vector2(0, -8)
+script = ExtResource("15_44pn0")
+
+[node name="inSingleFaction" type="Node" parent="genericAdventurer2"]
+script = ExtResource("9_gbaly")
+faction = "players"
+
+[node name="setCharacterTargetToMouseLocation" type="Node" parent="genericAdventurer2"]
+script = ExtResource("11_jx7sd")
+
+[node name="mainAttackOnAction" type="Node" parent="genericAdventurer2"]
+script = SubResource("GDScript_6533p")
+
+[node name="produceShotAbility" type="Node" parent="genericAdventurer2" groups=["ability", "gear", "main_attack"]]
+script = ExtResource("21_7cokh")
+cast_speed = 80.0
+max_attack_rate = 40
+metadata/ui_cell_display = ExtResource("22_b0cmj")
+metadata/use_ability = ""
+
+[node name="hpFlaskAbility" type="Node" parent="genericAdventurer2" groups=["ability", "gear"]]
+script = ExtResource("4_toscw")
+metadata/ui_cell_display = ExtResource("2_0f1mu")
+metadata/ui_cell_left_click = "use_flask"
+metadata/use_ability = "use_flask"
+
+[node name="hpPot" type="Sprite2D" parent="genericAdventurer2" groups=["gear"]]
+visible = false
+texture = ExtResource("2_0f1mu")
+script = ExtResource("3_akax0")
+metadata/ui_cell_display = ExtResource("2_0f1mu")
+metadata/ui_cell_left_click = "use_flask"
+
+[node name="uiControl" type="Control" parent="genericAdventurer2"]
+z_index = 1000
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -138.0
+offset_top = -76.0
+offset_right = 136.681
+offset_bottom = 74.486
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer2/uiControl"]
+custom_minimum_size = Vector2(0, 13)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -10.486
+offset_right = 2.00003
+offset_bottom = 1.51401
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 0
+theme_override_constants/separation = 0
+
+[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer2/uiControl/bottomBar"]
+texture_filter = 1
+custom_minimum_size = Vector2(82, 0)
+layout_mode = 2
+texture = ExtResource("16_6nese")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="expanderButton" type="TextureButton" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_vertical = 2
+toggle_mode = true
+texture_normal = ExtResource("17_c6xje")
+stretch_mode = 5
+
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 149.342
+offset_bottom = 41.965
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_61jkb")
+theme_override_styles/fill = SubResource("StyleBoxFlat_wbpci")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" type="Node" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar/hpBar"]
+script = ExtResource("18_5cse6")
+max_stat = "max_hp"
+
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 42.3419
+offset_bottom = 10.965
+texture = ExtResource("19_trqbl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="mpBar" type="Control" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar"]
+anchors_preset = 0
+offset_left = 43.0
+offset_top = 2.0
+offset_right = 79.0
+offset_bottom = 11.0
+
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar/mpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_trqbl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar/mpBar"]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 64.0
+scale = Vector2(0.143, 0.138)
+theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
+theme_override_font_sizes/font_size = 46
+theme_override_styles/background = SubResource("StyleBoxFlat_61jkb")
+theme_override_styles/fill = SubResource("StyleBoxFlat_va6im")
+value = 100.0
+
+[node name="syncRangeToCharacterStat2" type="Node" parent="genericAdventurer2/uiControl/bottomBar/hpMpBar/mpBar/ProgressBar"]
+script = ExtResource("18_5cse6")
+stat = "mp"
+max_stat = "max_mp"
+
+[node name="gearBar" type="NinePatchRect" parent="genericAdventurer2/uiControl/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("16_6nese")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer2/uiControl/bottomBar/gearBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer2/uiControl/bottomBar/gearBar/MarginContainer"]
+layout_mode = 2
+theme = SubResource("Theme_6axxe")
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="genericAdventurer2/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 2
+
+[node name="mirrorGearNodesToUi" type="Node" parent="genericAdventurer2/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer/HBoxContainer"]
+script = ExtResource("20_n61d3")
+
+[node name="genericAdventurer3" parent="." instance=ExtResource("1_mg3gl")]
+metadata/ui_gear_cells = 3
+
+[node name="Camera2D" type="Camera2D" parent="genericAdventurer3"]
+zoom = Vector2(4, 4)
+
+[node name="walkAbility" type="Node" parent="genericAdventurer3"]
+script = ExtResource("5_4jc16")
+
+[node name="moveCharacterOnAction" type="Node" parent="genericAdventurer3/walkAbility"]
+script = ExtResource("6_gwncv")
+
+[node name="healthStats" type="Node" parent="genericAdventurer3"]
+script = ExtResource("7_fj1jy")
+max_hp = 1000.0
+hp = 500.0
+
+[node name="dieOnZeroHp" type="Node" parent="genericAdventurer3/healthStats"]
+script = ExtResource("8_50eih")
+
+[node name="makeBasicDamagePopups" type="Node2D" parent="genericAdventurer3"]
+position = Vector2(0, -8)
+script = ExtResource("15_44pn0")
+
+[node name="inSingleFaction" type="Node" parent="genericAdventurer3"]
+script = ExtResource("9_gbaly")
+faction = "players"
+
+[node name="setCharacterTargetToMouseLocation" type="Node" parent="genericAdventurer3"]
+script = ExtResource("11_jx7sd")
+
+[node name="mainAttackOnAction" type="Node" parent="genericAdventurer3"]
+script = SubResource("GDScript_o7ljt")
+
+[node name="produceShotAbility" type="Node" parent="genericAdventurer3" groups=["ability", "gear", "main_attack"]]
+script = SubResource("GDScript_hhs6h")
+metadata/ui_cell_display = ExtResource("22_b0cmj")
+metadata/ui_cell_left_click = "equip"
+
+[node name="hpFlaskAbility" type="Node" parent="genericAdventurer3" groups=["ability", "gear"]]
+editor_description = "meta:
+  health: how much healed by; default 25
+  max_uses: -1 for infinite, >0 for that many uses; default 1
+  "
+script = SubResource("GDScript_y03ju")
+metadata/ui_cell_display = ExtResource("2_0f1mu")
+metadata/ui_cell_left_click = "use_flask"
+metadata/use_ability = "use_flask"
+
+[node name="basicArmor" type="Node" parent="genericAdventurer3"]
+script = SubResource("GDScript_owfkt")
+metadata/ui_cell_left_click = ""
+metadata/ui_cell_display = ExtResource("23_05j5w")
+
+[node name="uiControl" type="Control" parent="genericAdventurer3"]
+z_index = 1000
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -138.0
+offset_top = -76.0
+offset_right = 136.681
+offset_bottom = 74.486
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer3/uiControl"]
+custom_minimum_size = Vector2(0, 13)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -10.486
+offset_right = 2.00003
+offset_bottom = 1.51401
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 0
+theme_override_constants/separation = 0
+
+[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer3/uiControl/bottomBar"]
+texture_filter = 1
+custom_minimum_size = Vector2(82, 0)
+layout_mode = 2
+texture = ExtResource("16_6nese")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="expanderButton" type="TextureButton" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_vertical = 2
+toggle_mode = true
+texture_normal = ExtResource("17_c6xje")
+stretch_mode = 5
+
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 149.342
+offset_bottom = 41.965
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_d2d0h")
+theme_override_styles/fill = SubResource("StyleBoxFlat_estrh")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" type="Node" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar/hpBar"]
+script = ExtResource("18_5cse6")
+max_stat = "max_hp"
+
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 42.3419
+offset_bottom = 10.965
+texture = ExtResource("19_trqbl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="mpBar" type="Control" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar"]
+anchors_preset = 0
+offset_left = 43.0
+offset_top = 2.0
+offset_right = 79.0
+offset_bottom = 11.0
+
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar/mpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_trqbl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar/mpBar"]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 64.0
+scale = Vector2(0.143, 0.138)
+theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
+theme_override_font_sizes/font_size = 46
+theme_override_styles/background = SubResource("StyleBoxFlat_d2d0h")
+theme_override_styles/fill = SubResource("StyleBoxFlat_oo5oy")
+value = 100.0
+
+[node name="syncRangeToCharacterStat2" type="Node" parent="genericAdventurer3/uiControl/bottomBar/hpMpBar/mpBar/ProgressBar"]
+script = ExtResource("18_5cse6")
+stat = "mp"
+max_stat = "max_mp"
+
+[node name="gearBar" type="NinePatchRect" parent="genericAdventurer3/uiControl/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("16_6nese")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer3/uiControl/bottomBar/gearBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer3/uiControl/bottomBar/gearBar/MarginContainer"]
+layout_mode = 2
+theme = SubResource("Theme_4deh5")
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="genericAdventurer3/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 2
+
+[node name="mirrorGearNodesToUi" type="Node" parent="genericAdventurer3/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer/HBoxContainer"]
+editor_description = "This looks for all of parent composite's first children `gear` group members and creates a `ui_gear_cell.tscn` instance for each
+The `ui_gear_cell`s are clickable and call their corresponding `gear` node's method referenced in the gear node's `ui_cell_left_click` metadata property"
+script = ExtResource("20_n61d3")
+
+[node name="genericEnemy1" parent="." groups=["character"] instance=ExtResource("24_i2yh1")]
+position = Vector2(-71, 20)
+
+[node name="targetNearestNonfaction" parent="genericEnemy1" index="3"]
+visible = false
+
+[node name="Sprite2D" type="Sprite2D" parent="genericEnemy1"]
+texture_filter = 1
+material = ExtResource("25_gh44a")
+texture = ExtResource("26_8fbmb")
+region_rect = Rect2(0, 0, 10, 10)
+
+[node name="basicWeaponAttackAbility" type="Node" parent="genericEnemy1" groups=["ability", "main_attack"]]
+script = ExtResource("13_o27i6")
+cast_speed = 60.0
+shot_resource = ExtResource("14_6fypr")
+
+[editable path="genericEnemy1"]

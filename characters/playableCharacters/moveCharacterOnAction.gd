@@ -1,24 +1,32 @@
 extends Node
 
-onready var character : Character = Lib.get_parent_with_class(self, Character)
+var composite
 
-func _physics_process(delta):
+func _enter_tree():
+  composite = Lib.get_parent_with_method(self, "new_getter")
+  if not composite:
+    push_error('No composite parent found')
+    return
+
+func _physics_process(_delta):
+  if not composite:
+    return
   
   var movement_direction = Vector2(0, 0)
   var did_move = false
-  if character and Input.is_action_pressed("move_left"):
+  if Input.is_action_pressed("move_left"):
     movement_direction += Vector2(-1, 0)
     did_move = true
-  if character and Input.is_action_pressed("move_right"):
+  if Input.is_action_pressed("move_right"):
     movement_direction += Vector2(1, 0)
     did_move = true
-  if character and Input.is_action_pressed("move_up"):
+  if Input.is_action_pressed("move_up"):
     movement_direction += Vector2(0, -1)
     did_move = true
-  if character and Input.is_action_pressed("move_down"):
+  if Input.is_action_pressed("move_down"):
     movement_direction += Vector2(0, 1)
     did_move = true
   
   if did_move:
-    character.move_by(movement_direction.normalized())
+    composite.run_first_method_in(['walk_by', 'move_by'], [movement_direction.normalized()])
   

@@ -1,8 +1,9 @@
 extends Node
 
-onready var character : Character = Lib.get_parent_with_class(self, Character)
+@onready var target_point_parent = Lib.get_parent_with_method(self, "set_target_point")
+@onready var mouse_position_parent = Lib.get_parent_with_method(self, "get_global_mouse_position")
 
-func _process(delta):
-  if character:
-    var mouse_position = character.get_global_mouse_position()
-    character.set_target_point(mouse_position)
+func _process(_delta):
+  if target_point_parent and mouse_position_parent:
+    var mouse_position = target_point_parent.get_global_mouse_position()
+    mouse_position_parent.set_target_point(mouse_position)

@@ -1,0 +1,215 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_iqv0x"]
+[ext_resource type="Script" path="res://characters/dieOnZeroHp_old.gd" id="2_oajsk"]
+[ext_resource type="Script" path="res://characters/playableCharacters/moveCharacterOnAction.gd" id="3_rxun8"]
+[ext_resource type="Script" path="res://characters/playableCharacters/characterShootOnAction.gd" id="4_yxuav"]
+[ext_resource type="Script" path="res://characters/playableCharacters/setCharacterTargetToMouseLocation.gd" id="5_7wl11"]
+[ext_resource type="Texture2D" uid="uid://b03kf4gmcmdm7" path="res://abilities/weapons/basicSword.png" id="6_jhbxc"]
+[ext_resource type="Script" path="res://basicWeaponAttackAbility_old.gd" id="7_xn0q6"]
+[ext_resource type="PackedScene" uid="uid://cq7jkqg3pv2o8" path="res://abilities/shots/basicSwipe_old.tscn" id="8_3m2th"]
+[ext_resource type="Script" path="res://characters/makeBasicDamagePopups_old.gd" id="9_yhn1d"]
+[ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="10_yk2ub"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="11_fbcl6"]
+[ext_resource type="Script" path="res://ui/syncRangeToCharacterStat.gd" id="12_7u3vu"]
+[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="13_bxdqi"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i1h43"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oxr4r"]
+bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rsl26"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[node name="Node" type="Node"]
+
+[node name="genericAdventurer" parent="." groups=["ui_target"] instance=ExtResource("1_iqv0x")]
+position = Vector2(-19, -12)
+motion_mode = 1
+slide_on_ceiling = false
+max_hp = 500.0
+hp = 200.0
+faction_array = ["players"]
+
+[node name="dieOnZeroHp" type="Node" parent="genericAdventurer"]
+script = ExtResource("2_oajsk")
+
+[node name="Camera2D" type="Camera2D" parent="genericAdventurer"]
+zoom = Vector2(4, 4)
+
+[node name="moveCharacterOnAction" type="Node" parent="genericAdventurer"]
+script = ExtResource("3_rxun8")
+
+[node name="characterShootOnAction" type="Node" parent="genericAdventurer"]
+script = ExtResource("4_yxuav")
+
+[node name="setCharacterTargetToMouseLocation" type="Node" parent="genericAdventurer"]
+script = ExtResource("5_7wl11")
+
+[node name="basicSword" type="Sprite2D" parent="genericAdventurer" groups=["equipment", "inventory_item"]]
+position = Vector2(5, 0)
+texture = ExtResource("6_jhbxc")
+
+[node name="basicWeaponAttackAbility" type="Node" parent="genericAdventurer/basicSword" groups=["ability"]]
+script = ExtResource("7_xn0q6")
+shot_resource = ExtResource("8_3m2th")
+cast_speed = 60.0
+damage_mod = 2.0
+max_attack_rate = 60
+
+[node name="makeBasicDamagePopups" type="Node2D" parent="genericAdventurer"]
+position = Vector2(0, -7)
+script = ExtResource("9_yhn1d")
+
+[node name="characterInventory" type="Node" parent="genericAdventurer" groups=["inventory"]]
+metadata/size = 6
+
+[node name="testItem" type="Sprite2D" parent="genericAdventurer/characterInventory"]
+visible = false
+texture_filter = 1
+texture = ExtResource("10_yk2ub")
+
+[node name="makePlayerUI" type="Control" parent="genericAdventurer"]
+z_index = 1000
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = -137.0
+offset_top = -74.0
+offset_right = 137.0
+offset_bottom = 194.0
+scale = Vector2(1, 0.556)
+
+[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer/makePlayerUI"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 0
+
+[node name="statsBottomBar" type="NinePatchRect" parent="genericAdventurer/makePlayerUI/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("11_fbcl6")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer/makePlayerUI/bottomBar/statsBottomBar"]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 141.0
+offset_bottom = 43.0
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_i1h43")
+theme_override_styles/fill = SubResource("StyleBoxFlat_oxr4r")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" type="Node" parent="genericAdventurer/makePlayerUI/bottomBar/statsBottomBar/hpBar"]
+script = ExtResource("12_7u3vu")
+max_stat_name = "max_hp"
+
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer/makePlayerUI/bottomBar/statsBottomBar"]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 34.0
+offset_bottom = 12.0
+texture = ExtResource("13_bxdqi")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="mpBar" type="ProgressBar" parent="genericAdventurer/makePlayerUI/bottomBar/statsBottomBar"]
+layout_mode = 0
+offset_left = 35.0
+offset_top = 3.0
+offset_right = 173.0
+offset_bottom = 43.0
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_i1h43")
+theme_override_styles/fill = SubResource("StyleBoxFlat_rsl26")
+value = 100.0
+
+[node name="syncRangeToCharacterStat2" type="Node" parent="genericAdventurer/makePlayerUI/bottomBar/statsBottomBar/mpBar"]
+script = ExtResource("12_7u3vu")
+stat = "mp"
+max_stat_name = "max_mp"
+
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer/makePlayerUI/bottomBar/statsBottomBar"]
+layout_mode = 0
+offset_left = 35.0
+offset_top = 3.39568
+offset_right = 66.0
+offset_bottom = 12.3957
+texture = ExtResource("13_bxdqi")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="abilitiesBackground" type="NinePatchRect" parent="genericAdventurer/makePlayerUI/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("11_fbcl6")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="equipmentBar" type="HBoxContainer" parent="genericAdventurer/makePlayerUI/bottomBar/abilitiesBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="equipmentBackground" type="NinePatchRect" parent="genericAdventurer/makePlayerUI/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("11_fbcl6")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="equipmentBar" type="HBoxContainer" parent="genericAdventurer/makePlayerUI/bottomBar/equipmentBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[editable path="genericAdventurer"]

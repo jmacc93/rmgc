@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4w5idye15i38"]
+
+[sub_resource type="GDScript" id="GDScript_qwhlc"]
+script/source = "extends Node
+
+func _enter_tree():
+  var parent = get_parent()
+  Watch.call_on_set_meta(parent, 'hp', func():
+    var hp = parent.get_meta('hp')
+    if hp <= 0:
+      Watch.notify(parent, 'die')
+  )
+"
+
+[node name="dieOnZeroHp" type="Node"]
+script = SubResource("GDScript_qwhlc")

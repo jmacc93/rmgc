@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3 uid="uid://dn8ekob6hhfv4"]
+
+[sub_resource type="GDScript" id="GDScript_v288j"]
+script/source = "extends Node
+
+#The hp / mp / etc of the closest parent in the character group is synced to the closest Range / ProgressBar / TexturedProgressBar / etc parent
+
+var range_parent : Range
+
+var character_parent : Node
+
+@export var stat = 'hp'
+@export var max_stat = ''
+
+
+func _enter_tree():
+  character_parent = Lib.get_parent_in_group(self, 'character')
+  if character_parent == null:
+    push_error(\"No parent character found\")
+    queue_free()
+    return
+  
+  range_parent = Lib.get_parent_with_class(self, 'Range')
+  if range_parent == null:
+    push_error('No Range, ProgressBar, etc parent found')
+    queue_free()
+    return
+  
+  Watch.call_on_set_meta(character_parent, stat, Callable(self, 'on_stat_change'))
+  if max_stat != '':
+    Watch.call_on_set_meta(character_parent, max_stat, Callable(self, 'on_max_stat_change'))
+
+
+func _ready():
+  #set initial values on next idle  
+  (func():
+    on_stat_change(character_parent.get_meta(stat))
+    if max_stat != '':
+      on_max_stat_change(character_parent.get_meta(max_stat))
+  ).call_deferred()
+
+
+func on_stat_change(new_stat_value):
+  if new_stat_value is float:
+    range_parent.set_value(new_stat_value)
+
+func on_max_stat_change(new_max_stat_value):
+  if new_max_stat_value is float:
+    range_parent.set_max(new_max_stat_value)
+
+"
+
+[node name="syncRangeToCharacterStat" type="Node"]
+script = SubResource("GDScript_v288j")

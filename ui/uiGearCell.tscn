@@ -1,0 +1,137 @@
+[gd_scene load_steps=2 format=3 uid="uid://bjlqydebmrist"]
+
+[sub_resource type="GDScript" id="GDScript_64v8g"]
+script/source = "extends Control
+
+var parent_character
+
+@export var gear_node : Node
+
+@export var highlighted_color : Color
+@export var non_highlighted_color : Color
+
+func _enter_tree():
+  self.connect('gui_input', Callable(self, 'on_gui_input'))
+
+
+func find_ui_display_texture(node: Node) -> Texture2D:
+  var resource = node.get_meta('ui_cell_display')
+  if (resource != null) and (resource is Texture2D):
+    return resource
+  else:
+    return null
+
+
+func on_gui_input(input: InputEvent):
+  if (gear_node == null) or (parent_character == null):
+    return
+  
+  if not ((input is InputEventMouseButton) and input.pressed):
+    return
+  prints('pressed')
+  
+  var mouse_button_name = ''
+  match input.button_index:
+    MOUSE_BUTTON_LEFT: mouse_button_name = 'left_click'
+    MOUSE_BUTTON_RIGHT: mouse_button_name = 'right_click'
+    MOUSE_BUTTON_MIDDLE: mouse_button_name = 'middle_click'
+  
+  var metadata_prop_name = 'ui_cell_' + mouse_button_name
+  var use_method = gear_node.get_meta(metadata_prop_name)
+  if use_method == null:
+    return
+  
+  if use_method is Callable:
+    use_method.call(parent_character)
+  elif gear_node.has_method(use_method):
+    gear_node.call(use_method, parent_character)
+  elif gear_node.has_method('run_method') and gear_node.run_method(use_method, [parent_character]):
+    return
+  else:
+    push_error('ability method ', use_method,' uncallable')
+    return #not method called
+
+
+func is_empty():
+  return (gear_node == null)
+
+
+func mirror_highlighting():
+  var gear_highlighted = Comp.get_object_meta(gear_node, 'ui_cell_highlight')
+  $background.color = highlighted_color if gear_highlighted else non_highlighted_color
+
+
+func set_gear_node(new_gear_node: Node):
+  gear_node = new_gear_node
+  if gear_node == null:
+    return
+  
+  parent_character = Lib.get_parent_in_group(gear_node, 'character')
+  if parent_character == null:
+    push_error('No character parent node for given node')
+    queue_free()
+    return
+  
+  gear_node.connect('tree_exiting', func():
+    Watch.stop_calling_on_set_meta(gear_node, 'ui_cell_highlight', Callable(self, 'mirror_highlighting'))
+    $TextureRect.texture = null
+    set_gear_node(null)
+  , CONNECT_ONE_SHOT)
+  
+  mirror_highlighting()
+  Watch.call_on_set_meta(gear_node, 'ui_cell_highlight', Callable(self, 'mirror_highlighting') )
+  
+  var display_texture = find_ui_display_texture(gear_node)
+  $TextureRect.texture = display_texture
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="uiGearCell" type="TextureButton" node_paths=PackedStringArray("gear_node")]
+editor_description = "It requires a composite object parent. This composite is what its `gear_node`'s methods are called on when the cell is clicked
+
+`gear_node` property must be set, and is a `gear` node in `gear` group
+
+This cell is highlighted if `gear_node`  has meta `ui_cell_highlighted`
+
+It uses `gear_node`'s meta `ui_cell_display` texture resource to display an image
+
+When clicked it calls `gear_node`'s meta `ui_cell_left_click`, `ui_cell_right_click` etc as a method on `gear_node`. ie: `gear_node.call(gear_node.get_meta('ui_cell_left_click'), [composite])
+
+"
+custom_minimum_size = Vector2(10, 10)
+script = SubResource("GDScript_64v8g")
+gear_node = NodePath("")
+highlighted_color = Color(0.644911, 0.786938, 0.712107, 1)
+non_highlighted_color = Color(0.905882, 0.690196, 0.619608, 1)
+
+[node name="background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.905882, 0.690196, 0.619608, 1)
+metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6

@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://gc6pi05kuktp"]
+
+[sub_resource type="GDScript" id="GDScript_cfiei"]
+script/source = "extends Node
+
+@export var remove_on_exit_tree = false
+
+func _enter_tree():
+  var parent = get_parent()
+  for metaname in get_meta_list():
+    Watch.set_object_meta(parent, metaname, get_meta(metaname))
+
+func _exit_tree():
+  if not remove_on_exit_tree:
+    return
+  var parent = get_parent()
+  for metaname in get_meta_list():
+    Watch.set_object_meta(parent, metaname, null)
+"
+
+[node name="copyMetaToParent" type="Node"]
+script = SubResource("GDScript_cfiei")

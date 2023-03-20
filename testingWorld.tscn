@@ -1,0 +1,1223 @@
+[gd_scene load_steps=51 format=3 uid="uid://hhs58d72uxws"]
+
+[ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://cq7jkqg3pv2o8" path="res://abilities/shots/basicSwipe_old.tscn" id="7_lsa8w"]
+[ext_resource type="Texture2D" uid="uid://c3g1asnhn1qqp" path="res://environment/backgrounds/grass-2.png" id="8"]
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="9"]
+[ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://copyMetaToParent.tscn" id="9_5j7tr"]
+[ext_resource type="Script" path="res://basicWeaponAttackAbility.gd" id="10"]
+[ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="11_3edqv"]
+[ext_resource type="PackedScene" uid="uid://bqtm2kgmesrsj" path="res://enemies/genericEnemy1.tscn" id="12"]
+[ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://enemies/ash-mote-1.png" id="13"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="13_3jrfy"]
+[ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="13_42vnk"]
+[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="13_67e61"]
+[ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="14"]
+[ext_resource type="PackedScene" uid="uid://dn8ekob6hhfv4" path="res://ui/syncRangeToCharacterStat.tscn" id="15_fbiw8"]
+[ext_resource type="PackedScene" uid="uid://bc4u5p3urh3h6" path="res://abilities/shots/basicSwipe2.tscn" id="18_3lt0f"]
+[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://abilities/shots/basicSwipe.png" id="18_7yq6c"]
+[ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/dieOnZeroHp.tscn" id="19_svapg"]
+[ext_resource type="PackedScene" path="res://items/basicLootBag.tscn" id="20_0vsro"]
+[ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/expander.png" id="20_k863q"]
+[ext_resource type="Texture2D" uid="uid://btel35amx7ar0" path="res://white_point.png" id="24_0mrmr"]
+
+[sub_resource type="GDScript" id="GDScript_a6mdq"]
+script/source = "extends Node
+
+@export var initial_spd = 10.0
+
+@export var disabled = false
+
+var last_velocity : Vector2
+
+
+func _enter_tree():
+  var parent = get_parent()
+  if not ('velocity' in parent):
+    push_error('No velocity in parent')
+    return
+  if not parent.has_method('move_and_slide'):
+    push_error('No move_and_slide in parent')
+    return
+  
+  Watch.set_object_meta(parent, 'spd', initial_spd)
+  Watch.set_object_meta(parent, 'walk_by', Callable(self, 'walk_by'))
+
+
+#move in a particular direction, with collisions
+func walk_by(vec: Vector2):
+  if disabled:
+    return
+
+  if (vec.x == 0) and (vec.y == 0):
+    return
+  
+  var parent = get_parent()
+  var spd = parent.get_meta('spd')
+  parent.velocity += vec * 6.0 * spd
+  last_velocity = parent.velocity
+
+
+func _physics_process(_delta):
+  var parent = get_parent()
+  if parent.velocity.x == 0 and parent.velocity.y == 0:
+    return
+  
+  parent.move_and_slide()
+  parent.velocity = Vector2(0, 0)
+"
+
+[sub_resource type="GDScript" id="GDScript_lfij1"]
+script/source = "extends Node
+
+func _physics_process(_delta):
+  var parent = get_parent()
+  
+  var movement_direction = Vector2(0, 0)
+  var did_move = false
+  if Input.is_action_pressed(\"move_left\"):
+    movement_direction += Vector2(-1, 0)
+    did_move = true
+  if Input.is_action_pressed(\"move_right\"):
+    movement_direction += Vector2(1, 0)
+    did_move = true
+  if Input.is_action_pressed(\"move_up\"):
+    movement_direction += Vector2(0, -1)
+    did_move = true
+  if Input.is_action_pressed(\"move_down\"):
+    movement_direction += Vector2(0, 1)
+    did_move = true
+  
+  if did_move:
+    Comp.run_method(parent, 'walk_by', [movement_direction.normalized()])
+  
+"
+
+[sub_resource type="GDScript" id="GDScript_ukxk7"]
+script/source = "extends Node
+
+@export var initial_max_hp = 100.0
+@export var initial_hp = 100.0
+@export var initial_hp_regen = 1.0 #hp / second
+
+@export var initial_mdef = 1.0 #multiplicative defence, divides damage taken
+@export var initial_adef = 0.0 #additive defence, subtracts from damage taken up to 0
+
+@export var always_overheal = false
+@export var can_overheal = false
+
+
+func _enter_tree():
+  var parent = get_parent()
+  
+  Watch.set_object_meta(parent, 'hp', initial_hp)
+  Watch.set_object_meta(parent, 'max_hp', initial_max_hp)
+  Watch.set_object_meta(parent, 'hp_regen', initial_hp_regen)
+  Watch.set_object_meta(parent, 'mdef', initial_mdef)
+  Watch.set_object_meta(parent, 'adef', initial_adef)
+  
+  Watch.set_object_meta(parent, 'heal_by', Callable(self, 'heal_by'))
+  Watch.set_object_meta(parent, 'overheal_by', Callable(self, 'overheal_by'))
+  Watch.set_object_meta(parent, 'hurt_by', Callable(self, 'hurt_by'))
+
+
+func hurt_by(dmg: float, _dmger: Object):
+  var parent = get_parent()
+  var hp = parent.get_meta('hp')
+  var mdef = parent.get_meta('mdef')
+  var adef = parent.get_meta('adef')
+  var new_hp = hp - max(0, dmg * mdef - adef)
+  Watch.set_object_meta(parent, 'hp', new_hp)
+
+
+func heal_by(change: float):
+  var parent = get_parent()
+  var hp = parent.get_meta('hp')
+  var max_hp = parent.get_meta('max_hp')
+  var new_hp = (hp + change) if always_overheal else min(max_hp, hp + change)
+  Watch.set_object_meta(parent, 'hp', new_hp)
+
+
+func overheal_by(change: float):
+  if not can_overheal:
+    heal_by(change)
+    return
+  var parent = get_parent()
+  var hp = parent.get_meta('hp')
+  var new_hp = hp + change
+  Watch.set_object_meta(parent, 'hp', new_hp)
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_jiatt"]
+script/source = "extends Node
+
+
+func _enter_tree():
+  Watch.set_object_meta(get_parent(), 'can_equip', func(equipment_object):
+    var equipment_classes = Comp.get_object_meta(equipment_object, 'equipment_classes')
+    if equipment_classes == null:
+      return
+    for metaname in get_meta_list():
+      var index = equipment_classes.find(metaname)
+      if index == -1:
+        continue
+      var count = count_in_class(metaname)
+      var max_count = get_meta(metaname)
+      prints('equipmentRestrictions', count, max_count)
+      return count < max_count
+    return true
+  )
+
+func _exit_tree():
+  Watch.set_object_meta(get_parent(), 'can_equip', null)
+
+
+func count_in_class(classname: String) -> int:
+  var gear_children = Lib.get_children_in_group(get_parent(), 'gear')
+  var count = 0
+  for gear_child in gear_children:
+    var is_equipped = Comp.get_object_meta(gear_child, 'is_equipped', false)
+    if not is_equipped:
+      continue
+    var equipment_classes = Comp.get_object_meta(gear_child, 'equipment_classes')
+    if equipment_classes == null:
+      continue
+    var index = equipment_classes.find(classname) #eg ['armor', 'weapon'].find('armor') != -1
+    if index != -1: #classname in equipment_classes
+      count += 1
+    
+  return count
+
+"
+
+[sub_resource type="GDScript" id="GDScript_lnhq2"]
+script/source = "extends Node
+
+func _enter_tree():
+  var parent = get_parent()
+  Watch.call_on_set_meta(parent, 'hp', func():
+    var hp = parent.get_meta('hp')
+    if hp <= 0:
+      if Comp.run_method(parent, 'die', []):
+        return
+      else:
+        parent.queue_free()
+  )
+
+"
+
+[sub_resource type="GDScript" id="GDScript_67g1a"]
+script/source = "extends Node2D
+
+var composite
+
+var damage_popup_resource : PackedScene = preload(\"res://damagePopup.tscn\")
+
+var last_hp = 0
+
+func _enter_tree():
+  var parent = get_parent()
+  Watch.call_on_set_meta(parent, 'hp', func():
+    var hp = parent.get_meta('hp')
+    var change = hp - last_hp
+    if change == 0:
+      return
+    var damage_popup = damage_popup_resource.instantiate()
+    damage_popup.set_damage(change)
+    call_deferred('add_child', damage_popup)
+    last_hp = hp
+  )
+
+
+func _ready():
+  last_hp = get_parent().get_meta('hp')
+"
+
+[sub_resource type="GDScript" id="GDScript_wvoty"]
+script/source = "extends Node
+
+var mouse_position_source
+
+func _enter_tree():
+  var parent = get_parent()
+  if has_method('get_global_mouse_position'):
+    mouse_position_source = self
+  elif parent.has_method('get_global_mouse_position'):
+    mouse_position_source = parent
+  else:
+    mouse_position_source = Lib.get_parent_with_method(self, 'get_global_mouse_position')
+  if not mouse_position_source:
+    push_error('No get_global_mouse_position parent found')
+    queue_free()
+    return
+  
+  Watch.set_object_meta(parent, 'target_point', Vector2(0, 0))
+
+
+func _process(_delta):
+  Watch.set_object_meta(get_parent(), 'target_point', mouse_position_source.get_global_mouse_position())
+"
+
+[sub_resource type="GDScript" id="GDScript_14qsd"]
+script/source = "extends Node
+
+var character_composite
+
+@export var repeatedly = true
+@export var action = 'shoot'
+
+var pressed = false
+
+
+func _enter_tree():
+  var parent = get_parent()
+  
+  Watch.set_object_meta(parent, 'equip_weapon', Callable(self, \"equip_weapon\"))
+  Watch.set_object_meta(parent, 'toggle_weapon_equip', Callable(self, \"equip_weapon\"))
+  
+  #make sure main_attack group node is highlighted
+  var main_attack_node = Lib.get_children_in_group(parent, 'main_attack')
+  if main_attack_node.size() >= 1:
+    Watch.set_object_meta(main_attack_node[0], 'ui_cell_highlight', true)
+
+
+func equip_weapon(weapon_node: Node):
+  var parent = get_parent()
+  
+  if weapon_node.is_in_group('main_attack'):
+    weapon_node.remove_from_group('main_attack')
+    Watch.set_object_meta(weapon_node, 'ui_cell_highlight', false)
+    return
+  
+  #allow only one main_attack group node
+  var current_main_attack_nodes = Lib.get_children_in_group(parent, 'main_attack')
+  for node in current_main_attack_nodes:
+    Watch.remove_child_from_group(parent, node, 'main_attack')
+    Watch.set_object_meta(weapon_node, 'ui_cell_highlight', false)
+  Watch.add_child_to_group(parent, weapon_node, 'main_attack')
+  Watch.set_object_meta(weapon_node, 'ui_cell_highlight', true)
+
+
+func find_main_attack_abilities_and_attack():
+  var parent = get_parent()
+  var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
+  for attack_node in main_attack_node_list:
+    if attack_node.has_method('attack'):
+      attack_node.attack(parent)
+    elif attack_node.has_method('run_method'): #its a classic composite object
+      attack_node.run_method('attack', [parent])
+    elif Comp.run_method(parent, 'attack', []): #its a metadata composite object
+      return
+
+
+func _unhandled_input(_event):
+  if Input.is_action_just_pressed(action):
+    pressed = true
+    find_main_attack_abilities_and_attack()
+
+
+func _input(_event):
+  if Input.is_action_just_released(action):
+    pressed = false
+
+
+func _process(_delta):
+  if repeatedly and pressed:
+    find_main_attack_abilities_and_attack()
+"
+
+[sub_resource type="GDScript" id="GDScript_jbbkt"]
+script/source = "extends Node
+
+var use_count = 0
+
+func _enter_tree():
+  print('AAAAAAA')
+  set_meta('ui_cell_left_click', Callable(self, 'use_flask'))
+
+
+func use_flask(user: Object):  
+  var health = get_meta('health', 25)
+  var max_uses = get_meta('max_uses', 1)
+  
+  print('use_flask on ', user)
+  if user.has_method('call_method'): #is a composite
+    user.call_method('heal_by', [health])
+  elif user.has_method('heal_by'):
+    user.heal_by(health)
+  
+  use_count += 1
+  if (max_uses > -1) and (use_count >= max_uses):
+    print('freeing flask')
+    queue_free()
+"
+
+[sub_resource type="GDScript" id="GDScript_48n0u"]
+script/source = "extends Node
+
+@export var cast_speed = 5.0
+@export var damage_mod = 1.0
+
+@export var max_attack_rate = 20
+@onready var attack_delay = int(float(10000) / float(max_attack_rate))
+var next_attack_time = 0
+
+@export var shot_resource : PackedScene
+
+
+#shoot new shot toward target point / target object with shoot delay
+func attack(user_object: Object) -> void:
+  var current_time = Time.get_ticks_msec()
+  if shot_resource and (next_attack_time < current_time):
+    next_attack_time = current_time + attack_delay
+    var shot = shot_resource.instantiate()
+    
+    #set shot origin
+    var origin_position = Comp.get_object_meta(user_object, 'shot_origin', null)
+    if origin_position == null:
+      origin_position = user_object.get_prop('shot_origin') if user_object.has_method('get_prop') else null
+    if origin_position == null:
+      origin_position = user_object.global_position if ('global_position' in user_object) else null
+    if origin_position == null:
+      origin_position = Lib.get_parent_with_property(self, 'global_position').global_position
+    shot.global_position = origin_position
+    
+    get_viewport().add_child(shot)
+    
+    #set shot parent object (the shot's creator)
+    Watch.set_object_meta(shot, 'source_object', user_object)
+    
+    var dmg = shot.get_meta('dmg', 1.0)
+    Watch.set_object_meta(shot, 'dmg', dmg * damage_mod)
+    
+    #try shooting toward target if it exists
+    var target_point = Comp.get_object_meta(user_object, 'target_point', null)
+    if origin_position == null:
+      origin_position = Comp.get_object_meta(user_object, 'target_point') 
+    if target_point == null:
+      var target_object = Comp.get_object_meta(user_object, 'target_object')
+      if target_object != null:
+        target_point = target_object.global_position
+    
+    if target_point != null:
+      if Comp.run_method(shot, 'cast_toward', [target_point, cast_speed]):
+        return
+      elif Comp.run_method(shot, 'shoot_in_dir', [(target_point - origin_position).normalized(), cast_speed]):
+        return
+      var shot_velocity = shot.get('velocity')
+      if (shot_velocity != null) and ('velocity' in shot):
+        shot.velocity = (target_point - origin_position).normalized() * cast_speed
+        return
+      else:
+        push_error('Shot has no way of being projected toward target point')
+        return
+      
+    #else, try shooting in a direction
+    var shoot_dir = Comp.get_object_meta(user_object, 'shoot_dir')
+    if shoot_dir != null:
+      shoot_dir = shoot_dir.normalized()
+      if Comp.run_method(shot, 'shoot_in_dir', [shoot_dir.normalized(), cast_speed]):
+        return
+      var shot_velocity = Comp.get_prop(shot, 'shot_velocity')
+      if (shot_velocity != null) and ('velocity' in shot):
+        shot.velocity = [shoot_dir.normalized() * cast_speed]
+        return
+      else:
+        push_error('Shot has no way of being projected in shoot direction')
+        return
+
+
+func equip(user_object: Object) -> void:
+  #direct method calls
+  if user_object.has_method('set_main_attack'):
+    user_object.set_main_attack(Callable(self, 'attack'))
+    return
+  
+  if user_object.has_method('equip'):
+    user_object.equip(self)
+    return
+  
+  if user_object.has_method('equip_weapon'):
+    user_object.equip_weapon(self)
+    return
+  
+  #meta composite object
+  if Comp.run_method(user_object, 'equip', [self]):
+    return
+  
+  if Comp.run_method(user_object, 'equip_weapon', [self]):
+    return
+  
+  if user_object.has_meta('main_attack'):
+    Watch.set_object_meta(user_object, 'main_attack', Callable(self, 'attack'))
+    return
+  
+  #class-based composite object
+  if not user_object.has_method('run_method'):
+    return #not a classic composite object
+  
+  if user_object.run_method('equip', [self]):
+    return
+  
+  if user_object.run_method('equip_weapon', [self]):
+    return
+  
+  if user_object.has_prop('main_attack'):
+    user_object.set_prop('main_attack', [Callable(self, 'attack')])
+    return
+  
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8yqf6"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kexke"]
+bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dk5r0"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="ImageTexture" id="ImageTexture_732q5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jwqyk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n52om"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nosgv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o4e32"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_q43u3"]
+
+[sub_resource type="Theme" id="Theme_nk3tk"]
+HScrollBar/icons/decrement = SubResource("ImageTexture_732q5")
+HScrollBar/icons/decrement_highlight = SubResource("ImageTexture_732q5")
+HScrollBar/icons/decrement_pressed = SubResource("ImageTexture_732q5")
+HScrollBar/icons/increment = SubResource("ImageTexture_732q5")
+HScrollBar/icons/increment_highlight = SubResource("ImageTexture_732q5")
+HScrollBar/icons/increment_pressed = SubResource("ImageTexture_732q5")
+HScrollBar/styles/grabber = SubResource("StyleBoxEmpty_jwqyk")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxEmpty_n52om")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxEmpty_nosgv")
+HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_o4e32")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_q43u3")
+
+[sub_resource type="GDScript" id="GDScript_cxxq4"]
+script/source = "extends Node
+
+var gear_cell_resource : PackedScene = preload(\"res://ui/uiGearCell.tscn\")
+
+var parent_character
+
+func _enter_tree():
+  parent_character = Lib.get_parent_in_group(self, \"character\")
+  if parent_character == null:
+    push_error('No character parent found')
+    return
+  
+  parent_character.connect('child_entered_tree', Callable(self, 'on_new_character_child'))
+
+
+func _ready():
+  #make some empty cells on idle
+  (func():
+    var max_cell_count = Comp.get_object_meta(parent_character, 'ui_gear_cells', 24)
+    for i in range(0, max_cell_count):
+      var new_gear_cell = gear_cell_resource.instantiate()
+#      call_deferred('add_sibling', new_gear_cell)
+      add_sibling(new_gear_cell)
+    
+    #add existing children to cells
+    for char_child in parent_character.get_children():
+      if not char_child.is_in_group('gear'):
+        continue
+      on_new_character_child(char_child)
+  ).call_deferred()
+
+
+func on_new_character_child(char_child: Node):
+  if not char_child.is_in_group('gear'):
+    return
+  var first_empty_cell = find_first_empty_cell()
+  if first_empty_cell != null:
+    first_empty_cell.set_gear_node(char_child)
+
+
+func find_first_empty_cell():
+  for sibling_or_self in get_parent().get_children():
+    print(sibling_or_self)
+    if not sibling_or_self.has_method('is_empty'):
+      continue #sibling_or_self == self
+    if sibling_or_self.is_empty():
+      return sibling_or_self
+  return null
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lhxg7"]
+size = Vector2(8, 8)
+
+[sub_resource type="GDScript" id="GDScript_mc3c8"]
+script/source = "extends Node
+
+var global_position_parent
+    
+@export var disabled = false
+
+@export var stay_distance = 50.0
+
+
+func _enter_tree():
+  global_position_parent = self if ('global_position' in self) else null
+  if global_position_parent == null:
+    global_position_parent = Lib.get_parent_with_property(self, 'global_position')
+  if not global_position_parent:
+    push_error('No global position parent found')
+    queue_free()    
+    return
+
+
+func _process(_delta):
+  if disabled:
+    return
+  
+  var parent = get_parent()
+  
+  #is there a target?
+  var target_object = Comp.get_object_meta(parent, 'target_object')
+  if (target_object == null) or (not is_instance_valid(target_object)) or (not ('global_position' in target_object)):
+    return
+  
+  var targets_position = target_object.global_position
+  var vec_to_target = global_position_parent.global_position - targets_position
+  if vec_to_target.length() >= stay_distance:
+    var adjusted_target_point = targets_position + vec_to_target.normalized() * stay_distance
+    var move_vec = (adjusted_target_point - global_position_parent.global_position).normalized()
+    Comp.call_method(parent, 'walk_by', [move_vec])
+  
+
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_r3k68"]
+script/source = "extends Node
+
+var global_position_parent
+
+@onready var debug_point : Node2D = get_node_or_null(\"debugPoint\")
+
+@export var disabled = false
+
+@export var movement_rate = 20.0
+
+@export var move_to_radius = 20.0
+var move_to_point = Vector2(0.0, 0.0)
+var next_move_to_time = 0.0
+var next_move_point_delay_ms = 1000
+
+
+func _enter_tree():
+  global_position_parent = self if ('global_position' in self) else null
+  if global_position_parent == null:
+    global_position_parent = Lib.get_parent_with_property(self, 'global_position')
+  if not global_position_parent:
+    push_error('No global position parent found')
+    queue_free()    
+    return
+ 
+
+func _process(delta):
+  if disabled:
+    return
+  
+  var parent = get_parent()
+  
+  #find a new point to move to if close or old point is old
+  var current_time = Time.get_ticks_msec()
+  var move_to_vec = move_to_point - global_position_parent.global_position
+  if (current_time > next_move_to_time) or (move_to_vec.length() < 1.0):
+    move_to_point = global_position_parent.global_position + Lib.cs_vec(randf_range(0.0, 2*PI)) * move_to_radius
+    next_move_to_time = current_time + next_move_point_delay_ms
+    move_to_vec = move_to_point - global_position_parent.global_position
+  
+  #move toward that point
+  Comp.call_method(parent, 'walk_by', [move_to_vec.normalized() * movement_rate * delta])
+  
+  if debug_point:
+    debug_point.global_position = move_to_point
+
+"
+
+[sub_resource type="GDScript" id="GDScript_lg7e8"]
+script/source = "extends Area2D
+
+@export var hates_everyone = false
+
+#does character love or hate obj?
+func is_hostile_faction_array(my_faction_array, obj_faction_array):
+  for my_faction in my_faction_array:
+    #if any of parent my factions are in obj's faction_array then they're best buds
+    var my_faction_in_object = (obj_faction_array.find(my_faction) != -1)
+    if my_faction_in_object:
+      return false #loves
+  return true #hates
+
+
+#is body an enemy? then target. Return true if targeted something
+func test_and_switch_target_to_body(body):
+  var parent = get_parent()
+    
+  #does body have a faction?
+  if not body.has_meta('faction_array'):
+    if hates_everyone and body.is_in_group('character'):
+      Watch.set_object_meta(parent, 'target_object', body)
+      return true
+    else:
+      return false
+  var body_faction_array = body.get_meta('faction_array')
+  
+  #do I have a faction?
+  var my_faction_array = Comp.get_object_meta(parent, 'faction_array')
+  if my_faction_array == null:
+    return false
+  
+  #compare faction arrays
+  var obj_is_enemy = is_hostile_faction_array(my_faction_array, body_faction_array)
+  if obj_is_enemy:
+    Watch.set_object_meta(parent, 'target_object', body)
+    return true
+  
+  #no action taken
+  return false
+  
+
+#target characters and factioned objects that enter
+func _on_targetNearestNonfaction_body_entered(body):
+  var parent = get_parent()
+  #dont do anything if already have target
+  var target_object = Comp.get_object_meta(parent, 'target_object')
+  if target_object != null:
+    return
+  
+  #set new target if body is hostile faction
+  test_and_switch_target_to_body(body)
+
+
+#untarget active target if its far away, and then get a new target if there are any
+func _on_targetNearestNonfaction_body_exited(body):
+  var parent = get_parent()
+  #dont untarget current target if it didnt just leave
+  var target_object = Comp.get_object_meta(parent, 'target_object')
+  if body != target_object:
+    return
+  
+  #get a new target, if there is one still in this area
+#  Watch.set_object_meta(parent, 'target_object', null)
+  parent.set_meta('target_object', null)
+  for overlapping_body in get_overlapping_bodies():
+    var has_new_target = test_and_switch_target_to_body(overlapping_body)
+    if has_new_target:
+      return
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fsmxm"]
+size = Vector2(100, 100)
+
+[sub_resource type="GDScript" id="GDScript_p77ub"]
+script/source = "extends Node
+
+@onready var debug_point = $DebugPoint
+
+var mirrored_target_object
+
+func _enter_tree():
+  var parent = get_parent()
+  Watch.call_on_set_meta(parent, 'target_object', func():
+    mirrored_target_object =  parent.get_meta('target_object')
+  )
+
+
+func _process(_delta):
+  if (mirrored_target_object != null) and ('global_position' in mirrored_target_object):
+    var target_point = mirrored_target_object.global_position
+    Watch.set_object_meta(get_parent(), 'target_point', target_point)
+    if debug_point != null:
+      debug_point.global_position = target_point
+
+"
+
+[sub_resource type="GDScript" id="GDScript_gsacq"]
+script/source = "extends Node
+
+@export var disabled = false
+
+@export var msecs_between_attacks = 200
+var next_attack_time = 0
+
+
+func find_main_attack_ability_and_attack():
+  var parent = get_parent()
+  var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
+  for attack_node in main_attack_node_list:
+    if attack_node.has_method('attack'):
+      attack_node.attack(parent)
+    elif Comp.run_method(parent, 'attack', [parent]):
+      return
+
+
+func _process(_delta):
+  if disabled:
+    return
+  
+  var current_time = Time.get_ticks_msec()
+  if next_attack_time > current_time:
+    return
+  
+  #shoot if character has target
+  var parent = get_parent()
+  var target_object = Comp.get_object_meta(parent, 'target_object')
+  if (target_object == null) or (not is_instance_valid(target_object)):
+    return
+  
+  next_attack_time = current_time + msecs_between_attacks
+  find_main_attack_ability_and_attack()
+  
+"
+
+[sub_resource type="GDScript" id="GDScript_m1ony"]
+script/source = "extends Node
+
+@export var bag_scene: PackedScene
+
+@export var guaranteed_loot_scenes: Array
+@export var random_loot_scenes: Array
+@export var random_drop_count = 0
+
+func _enter_tree():
+  var parent = get_parent()
+  Watch.call_on_notify(parent, 'die', func():
+    pass
+  )
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_u32rb"]
+script/source = "extends Node
+
+func _enter_tree():
+  var parent = get_parent()
+  Watch.call_on_notify(parent, 'die', func():
+    parent.queue_free()
+  )
+"
+
+[node name="testWorld" type="Node2D"]
+
+[node name="testingEnvironmentRocks" type="Node" parent="."]
+
+[node name="smallRock1" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-59.5686, -55.1942)
+
+[node name="smallRock2" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(19.2739, -64.033)
+
+[node name="smallRock3" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(64.8822, 8.799)
+
+[node name="smallRock4" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(57.4576, -39.9914)
+
+[node name="smallRock5" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-85.378, -27.2635)
+
+[node name="smallRock6" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(52.8615, 42.7401)
+
+[node name="smallRock8" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(24.9307, 62.5391)
+
+[node name="smallRock9" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-4.06067, 74.5599)
+
+[node name="smallRock10" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-42.2444, 63.5998)
+
+[node name="smallRock11" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-75.1249, 40.2652)
+
+[node name="smallRock12" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-91.3884, 5.97055)
+
+[node name="smallRock13" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-30.5772, -0.039856)
+
+[node name="smallRock7" parent="testingEnvironmentRocks" instance=ExtResource("14")]
+position = Vector2(-27.7488, -69.6899)
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_mirroring = Vector2(512, 512)
+
+[node name="background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+texture = ExtResource("8")
+
+[node name="genericEnemy1" parent="." groups=["character"] instance=ExtResource("12")]
+position = Vector2(-71, 20)
+
+[node name="targetNearestNonfaction" parent="genericEnemy1" index="3"]
+visible = false
+
+[node name="Sprite2D" type="Sprite2D" parent="genericEnemy1"]
+texture_filter = 1
+material = ExtResource("9")
+texture = ExtResource("13")
+region_rect = Rect2(0, 0, 10, 10)
+
+[node name="basicWeaponAttackAbility" type="Node" parent="genericEnemy1" groups=["ability", "main_attack"]]
+script = ExtResource("10")
+cast_speed = 60.0
+shot_resource = ExtResource("7_lsa8w")
+
+[node name="genericAdventurer1" parent="." instance=ExtResource("1")]
+script = null
+metadata/ui_gear_cells = 6
+
+[node name="Camera2D" type="Camera2D" parent="genericAdventurer1"]
+zoom = Vector2(4, 4)
+
+[node name="walkAbility" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_a6mdq")
+
+[node name="moveCharacterOnAction" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_lfij1")
+
+[node name="healthStats" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_ukxk7")
+initial_max_hp = 1000.0
+initial_hp = 1000.0
+
+[node name="equipmentRestrictions" type="Node" parent="genericAdventurer1"]
+editor_description = "meta are like `equipment_class = max_equipped_gear_in_that_class`"
+script = SubResource("GDScript_jiatt")
+metadata/armor = 1
+metadata/weapon = 1
+
+[node name="dieOnZeroHp" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_lnhq2")
+
+[node name="makeBasicDamagePopups4" type="Node2D" parent="genericAdventurer1"]
+position = Vector2(0, -8)
+script = SubResource("GDScript_67g1a")
+
+[node name="inFaction" parent="genericAdventurer1" instance=ExtResource("9_5j7tr")]
+metadata/faction_array = ["players"]
+
+[node name="setTargetToMouseLocation" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_wvoty")
+
+[node name="mainAttackOnAction" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_14qsd")
+
+[node name="hpFlaskAbility" type="Node" parent="genericAdventurer1" groups=["ability", "gear"]]
+editor_description = "meta:
+  health: how much healed by; default 25
+  max_uses: -1 for infinite, >0 for that many uses; default 1
+  "
+script = SubResource("GDScript_jbbkt")
+metadata/ui_cell_display = ExtResource("11_3edqv")
+metadata/use_ability = "use_flask"
+
+[node name="produceShotAbility" type="Node" parent="genericAdventurer1" groups=["ability", "gear", "main_attack"]]
+script = SubResource("GDScript_48n0u")
+cast_speed = 80.0
+max_attack_rate = 40
+shot_resource = ExtResource("18_3lt0f")
+metadata/ui_cell_display = ExtResource("18_7yq6c")
+metadata/ui_cell_left_click = "equip"
+
+[node name="basicArmor" parent="genericAdventurer1" instance=ExtResource("13_42vnk")]
+
+[node name="uiControl" type="Control" parent="genericAdventurer1"]
+z_index = 1000
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -138.0
+offset_top = -76.0
+offset_right = 136.681
+offset_bottom = 74.486
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer1/uiControl"]
+custom_minimum_size = Vector2(0, 13)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -10.486
+offset_right = 2.00003
+offset_bottom = 1.51401
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 0
+theme_override_constants/separation = 0
+
+[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar"]
+texture_filter = 1
+custom_minimum_size = Vector2(82, 0)
+layout_mode = 2
+texture = ExtResource("13_3jrfy")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="expanderButton" type="TextureButton" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_vertical = 2
+toggle_mode = true
+texture_normal = ExtResource("20_k863q")
+stretch_mode = 5
+
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 149.342
+offset_bottom = 41.965
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
+theme_override_styles/fill = SubResource("StyleBoxFlat_kexke")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/hpBar" instance=ExtResource("15_fbiw8")]
+
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 42.3419
+offset_bottom = 10.965
+texture = ExtResource("13_67e61")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="mpBar" type="Control" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+anchors_preset = 0
+offset_left = 43.0
+offset_top = 2.0
+offset_right = 79.0
+offset_bottom = 11.0
+
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("13_67e61")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar"]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 64.0
+scale = Vector2(0.143, 0.138)
+theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
+theme_override_font_sizes/font_size = 46
+theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
+theme_override_styles/fill = SubResource("StyleBoxFlat_dk5r0")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar/ProgressBar" instance=ExtResource("15_fbiw8")]
+
+[node name="gearBar" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("13_3jrfy")
+region_rect = Rect2(1, 1, 6, 6)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer"]
+layout_mode = 2
+theme = SubResource("Theme_nk3tk")
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 2
+
+[node name="mirrorGearNodesToUi" type="Node" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer/HBoxContainer"]
+editor_description = "This looks for all of parent composite's first children `gear` group members and creates a `ui_gear_cell.tscn` instance for each
+The `ui_gear_cell`s are clickable and call their corresponding `gear` node's method referenced in the gear node's `ui_cell_left_click` metadata property"
+script = SubResource("GDScript_cxxq4")
+
+[node name="genericEnemy3" parent="." instance=ExtResource("12")]
+position = Vector2(81.7771, 24.386)
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="genericEnemy3"]
+visible = false
+shape = SubResource("RectangleShape2D_lhxg7")
+
+[node name="inFaction" parent="genericEnemy3" instance=ExtResource("9_5j7tr")]
+metadata/faction_array = ["enemies"]
+
+[node name="healthStats2" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_ukxk7")
+
+[node name="walkAbility2" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_a6mdq")
+
+[node name="walkTowardTargetedObject" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_mc3c8")
+
+[node name="randomlyWalk" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_r3k68")
+
+[node name="targetNearestNonfaction2" type="Area2D" parent="genericEnemy3"]
+collision_layer = 0
+collision_mask = 2
+script = SubResource("GDScript_lg7e8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="genericEnemy3/targetNearestNonfaction2"]
+visible = false
+shape = SubResource("RectangleShape2D_fsmxm")
+
+[node name="setTargetPointToTargetObject2" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_p77ub")
+
+[node name="DebugPoint" type="Sprite2D" parent="genericEnemy3/setTargetPointToTargetObject2"]
+modulate = Color(0.87451, 0, 0.133333, 1)
+texture_filter = 1
+position = Vector2(18.5, 20)
+texture = ExtResource("24_0mrmr")
+
+[node name="shootConstantlyAtTargetObject" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_gsacq")
+
+[node name="makeBasicDamagePopups3" type="Node2D" parent="genericEnemy3"]
+position = Vector2(0, -8)
+script = SubResource("GDScript_67g1a")
+
+[node name="dieOnZeroHp" parent="genericEnemy3" instance=ExtResource("19_svapg")]
+
+[node name="dropLootOnDie" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_m1ony")
+bag_scene = ExtResource("20_0vsro")
+guaranteed_loot_scenes = [ExtResource("13_42vnk")]
+
+[node name="freeOnDie" type="Node" parent="genericEnemy3"]
+script = SubResource("GDScript_u32rb")
+
+[node name="Sprite2D" type="Sprite2D" parent="genericEnemy3"]
+texture_filter = 1
+material = ExtResource("9")
+texture = ExtResource("13")
+region_rect = Rect2(0, 0, 10, 10)
+
+[node name="produceShotAbility" type="Node" parent="genericEnemy3" groups=["ability", "gear", "main_attack"]]
+script = SubResource("GDScript_48n0u")
+cast_speed = 80.0
+max_attack_rate = 40
+shot_resource = ExtResource("18_3lt0f")
+metadata/ui_cell_display = ExtResource("18_7yq6c")
+metadata/ui_cell_left_click = "equip"
+
+[connection signal="body_entered" from="genericEnemy3/targetNearestNonfaction2" to="genericEnemy3/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_entered"]
+[connection signal="body_exited" from="genericEnemy3/targetNearestNonfaction2" to="genericEnemy3/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_exited"]
+
+[editable path="genericEnemy1"]

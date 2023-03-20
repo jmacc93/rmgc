@@ -1,0 +1,39 @@
+
+Mine:
+* Adventurer: sword, dagger, etc user and light armor user, relatively high stat maxes
+* Elf: bow user, chance to dodge damage
+* Necromancer: staff user, enemy deaths have chance to raise allied zombie follower
+* Charmer: enemies have chance to be briefly allied on damage
+* Knight: high def max, armor and sword user, can make shield shot in front to block shots
+* Wizard: higher max mp, lower mp regen, staff user
+* Mage: lower max mp, higher mp regen, wand user
+* Stone Guardian: high defs, low speeds, can paralyze itself for increased damage resistance
+* Bard: instrument user
+* Guitarist: instrument user, guitar user
+
+From GPT:
+    Shape-shifter: a character that can transform into different animals, each with their own unique abilities. (Special that allows briefly turning into targeted enemy)
+
+    ~~Time traveler: a character that can manipulate time, either slowing down or speeding up enemies or even rewinding time to undo mistakes.~~
+    (* Temporomage: starts with low def robe that slows enemy shots in region around character, special slows down targeted enemies)
+
+    Elemental mage: a character that can control the elements (fire, ice, earth, etc.) to deal damage and manipulate the battlefield.
+    (
+    * Pyromage: fire weapon user, wand user, special shoots flames that damage and increase fire damage
+    * Cryomage: cold weapon user, wand user, special flash freezes an area that does DOT and increases cold damage
+    * Fulgomage: lightning wand user, special rejuvinates any electrical shots in area around target point 
+    )
+
+    Gunslinger: a character that uses a variety of guns and explosives to deal ranged damage. (Handgun user, higher attspd)
+
+    Vampire: a character that feeds on the blood of enemies to restore health and gain new abilities. (Higher spd, contact paralyzes enemies and heals character)
+
+    Cyborg: a character that has been enhanced with cybernetic implants, granting increased strength, speed, and durability. (Weak against lightning damage, weak against water damage, higher stat maxes)
+
+    Samurai: a character skilled in the ways of the sword, able to take on multiple enemies at once.
+
+    Fairy: a small, nimble character that can fly and use magic to confuse and misdirect enemies.
+
+    Paladin: a holy warrior that can heal allies and smite enemies with the power of divine light.
+
+    Pirate: a character that uses pistols and cutlasses to deal damage, and can board enemy ships to plunder their treasures.

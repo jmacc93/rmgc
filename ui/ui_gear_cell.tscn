@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://kgykbyabtsff"]
+
+[ext_resource type="Script" path="res://ui/uiGearCell_old.gd" id="1_myvqw"]
+
+[node name="uiGearCell" type="TextureButton" node_paths=PackedStringArray("gear_node")]
+editor_description = "It requires a composite object parent. This composite is what its `gear_node`'s methods are called on when the cell is clicked
+
+`gear_node` property must be set, and is a `gear` node in `gear` group
+
+This cell is highlighted if `gear_node`  has meta `ui_cell_highlighted`
+
+It uses `gear_node`'s meta `ui_cell_display` texture resource to display an image
+
+When clicked it calls `gear_node`'s meta `ui_cell_left_click`, `ui_cell_right_click` etc as a method on `gear_node`. ie: `gear_node.call(gear_node.get_meta('ui_cell_left_click'), [composite])
+
+"
+custom_minimum_size = Vector2(10, 10)
+script = ExtResource("1_myvqw")
+gear_node = NodePath("")
+highlighted_color = Color(0.644911, 0.786938, 0.712107, 1)
+non_highlighted_color = Color(0.905882, 0.690196, 0.619608, 1)
+
+[node name="background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.905882, 0.690196, 0.619608, 1)
+metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6

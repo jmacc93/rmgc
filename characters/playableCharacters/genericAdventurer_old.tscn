@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://boqtn58xuiudo"]
+
+[ext_resource type="Script" path="res://characters/Character.gd" id="1_t68vp"]
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="2_4247w"]
+[ext_resource type="Texture2D" uid="uid://cj1g06b45yc1h" path="res://characters/playableCharacters/assets/generic-adventurer-1.png" id="3_rv8yv"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(8, 8)
+
+[node name="genericAdventurer1" type="CharacterBody2D" groups=["character"]]
+collision_layer = 2
+script = ExtResource("1_t68vp")
+metadata/shot_source = true
+metadata/is_character = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
+shape = SubResource("1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+material = ExtResource("2_4247w")
+texture = ExtResource("3_rv8yv")
+region_rect = Rect2(0, 0, 10, 10)

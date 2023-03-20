@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://e4k5ypuc6qbg"
+path="res://.godot/imported/grass.png-1cdfa1adea8bb6222f37a93feb703a5c.image"
+
+[deps]
+
+source_file="res://environment/backgrounds/grass.png"
+dest_files=["res://.godot/imported/grass.png-1cdfa1adea8bb6222f37a93feb703a5c.image"]
+
+[params]
+

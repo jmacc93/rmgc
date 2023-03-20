@@ -1,0 +1,87 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://basicWeaponAttackAbility_old.gd" id="1"]
+[ext_resource type="Script" path="res://characters/playableCharacters/moveCharacterOnAction.gd" id="2"]
+[ext_resource type="Script" path="res://characters/playableCharacters/setCharacterTargetToMouseLocation.gd" id="3"]
+[ext_resource type="Script" path="res://characters/playableCharacters/characterShootOnAction.gd" id="4"]
+[ext_resource type="PackedScene" uid="uid://cq7jkqg3pv2o8" path="res://abilities/shots/basicSwipe_old.tscn" id="5"]
+[ext_resource type="Script" path="res://characters/makeBasicDamagePopups_old.gd" id="6"]
+[ext_resource type="Texture2D" uid="uid://b03kf4gmcmdm7" path="res://abilities/weapons/basicSword.png" id="7"]
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="8"]
+[ext_resource type="Texture2D" uid="uid://c3g1asnhn1qqp" path="res://environment/backgrounds/grass-2.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://enemies/ash-mote-1.png" id="10"]
+[ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="11"]
+[ext_resource type="PackedScene" uid="uid://bqtm2kgmesrsj" path="res://enemies/genericEnemy1.tscn" id="12"]
+[ext_resource type="Script" path="res://environment/generators/objectPlacer.gd" id="13"]
+[ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="14"]
+
+[node name="grassyPlainsWorld" type="Node2D"]
+
+[node name="grassyPlainWorldGenerator" type="Node" parent="."]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_mirroring = Vector2(512, 512)
+
+[node name="background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture = ExtResource("9")
+
+[node name="genericAdventurer" parent="." instance=ExtResource("11")]
+position = Vector2(-19, -12)
+max_hp = 10000.0
+hp = 10000.0
+faction_array = ["players"]
+
+[node name="Camera2D" type="Camera2D" parent="genericAdventurer"]
+zoom = Vector2(0.25, 0.25)
+
+[node name="moveCharacterOnAction" type="Node" parent="genericAdventurer"]
+script = ExtResource("2")
+
+[node name="characterShootOnAction" type="Node" parent="genericAdventurer"]
+script = ExtResource("4")
+
+[node name="setCharacterTargetToMouseLocation" type="Node" parent="genericAdventurer"]
+script = ExtResource("3")
+
+[node name="basicSword" type="Sprite2D" parent="genericAdventurer"]
+position = Vector2(5, 0)
+texture = ExtResource("7")
+
+[node name="basicWeaponAttackAbility" type="Node" parent="genericAdventurer/basicSword"]
+script = ExtResource("1")
+shot_resource = ExtResource("5")
+cast_speed = 60.0
+damage_mod = 10.0
+max_attack_rate = 60
+
+[node name="makeBasicDamagePopups" type="Node2D" parent="genericAdventurer"]
+position = Vector2(0, -7)
+script = ExtResource("6")
+
+[node name="genericEnemy1" parent="." instance=ExtResource("12")]
+disabled = true
+max_hp = 20.0
+
+[node name="Sprite2D" type="Sprite2D" parent="genericEnemy1"]
+material = ExtResource("8")
+texture = ExtResource("10")
+region_rect = Rect2(0, 0, 10, 10)
+
+[node name="basicWeaponAttackAbility" type="Node" parent="genericEnemy1"]
+script = ExtResource("1")
+shot_resource = ExtResource("5")
+cast_speed = 60.0
+damage_mod = 5.0
+
+[node name="objectPlacer" type="Node2D" parent="."]
+position = Vector2(-48, -7)
+script = ExtResource("13")
+choice_set = [ExtResource("14")]
+count = 50
+spread = 100.0
+
+[node name="smallRock1" parent="." instance=ExtResource("14")]
