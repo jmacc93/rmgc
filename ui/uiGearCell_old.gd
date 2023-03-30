@@ -9,7 +9,6 @@ var composite
 var highlighted = false
 
 func _enter_tree():
-  print('gear_node set', gear_node)
   if gear_node == null:
     push_error('Invalid Node ', gear_node)
     queue_free()
@@ -49,7 +48,6 @@ func find_ui_display_texture(node: Node) -> Texture2D:
 func on_gui_input(input: InputEvent):
   if not ((input is InputEventMouseButton) and input.pressed):
     return
-  prints('pressed')
   
   var mouse_button_name = ''
   match input.button_index:

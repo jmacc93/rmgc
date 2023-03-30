@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3 uid="uid://7rctdalryyyp"]
+
+[sub_resource type="GDScript" id="GDScript_bp5rc"]
+script/source = "extends Node
+
+func _enter_tree():
+  Comp.set_prop(get_parent(), 'toggle', toggle)
+  
+func _exit_tree():
+  Comp.set_prop(get_parent(), 'toggle', null)
+
+
+func toggle(state: bool):
+  var parent = get_parent()
+  if parent.active_gear_cell == null:
+    return
+  
+  var on_state_node = parent.active_gear_cell.get_node_or_null('toggledOn')
+  var off_state_node = parent.active_gear_cell.get_node_or_null('toggledOff')
+  if on_state_node != null:
+    on_state_node.visible = state
+  if off_state_node != null:
+    off_state_node.visible = (not state)
+"
+
+[node name="allowTogglingUiCell" type="Node"]
+editor_description = "Should be a child of a makeGearUiCell
+Gives makeGearUiCell parent a `toggle` method
+Toggle method alternates the visibility of templateGearCell's toggledOn and toggledOff children"
+script = SubResource("GDScript_bp5rc")

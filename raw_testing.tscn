@@ -1,17 +1,20 @@
 [gd_scene load_steps=2 format=3 uid="uid://dbqubeqit7wdk"]
 
-[sub_resource type="GDScript" id="GDScript_qfyhl"]
+[sub_resource type="GDScript" id="GDScript_3g4ia"]
 script/source = "extends Node
 
-
 func _ready():
-  prints('TYPE_NIL', TYPE_NIL)
-  prints('TYPE_ARRAY', TYPE_ARRAY)
-  prints('TYPE_OBJECT', TYPE_OBJECT)
-  prints('TYPE_CALLABLE', TYPE_CALLABLE)
+  var child = get_node('testNode')
+  for i in range(0, 10):
+    var new_child = child.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+    Comp.set_prop(new_child, 'i', i)
+    add_child.call_deferred(new_child)
 "
 
 [node name="raw_testing" type="Node2D"]
 
 [node name="Node" type="Node" parent="."]
-script = SubResource("GDScript_qfyhl")
+script = SubResource("GDScript_3g4ia")
+
+[node name="testNode" type="Node" parent="Node"]
+metadata/asdf = "Something bla bla"

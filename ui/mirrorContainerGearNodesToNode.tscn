@@ -1,0 +1,189 @@
+[gd_scene load_steps=2 format=3 uid="uid://dq74ovxo7ghob"]
+
+[sub_resource type="GDScript" id="GDScript_bcx52"]
+script/source = "extends Node
+
+var parent_container
+
+@onready var empty_holder_child_count = $templateCellHolder.get_child_count()
+
+@export var cell_container : Node
+
+func _enter_tree():
+  parent_container = Lib.get_parent_in_group(self, 'gear_container')
+  if parent_container == null:
+    push_error('No parent found in group gear_container')
+    return
+  
+  if cell_container == null:
+    push_error('No cell container export variable given')
+    return
+  
+  #for future gear nodes:
+  parent_container.child_entered_tree.connect(on_added_container_node)
+  
+  (func(): 
+    #add cell holders to hboxcontainer
+    var cell_holder_template = get_node('templateCellHolder')
+    var cell_count = Comp.get_prop(parent_container, 'ui_gear_cells', 6)
+    for i in range(0, cell_count):
+      var new_cell_holder = cell_holder_template.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+      new_cell_holder.visible = true
+      new_cell_holder.process_mode = Node.PROCESS_MODE_INHERIT
+      new_cell_holder.add_to_group('ui_cell_holder')
+      Comp.set_prop(new_cell_holder, 'get_parent_container', func(): return parent_container)
+      var click_area = new_cell_holder.get_node('Area2D')
+      Comp.set_prop(click_area, 'on_direct_mouse_event', holder_on_direct_mouse_event.bind(new_cell_holder))
+      Comp.set_prop(click_area, 'own_dragging_started', holder_own_dragging_started.bind(new_cell_holder))
+      Comp.set_prop(click_area, 'own_dragging_ended', holder_own_dragging_ended.bind(new_cell_holder))
+      cell_container.add_child(new_cell_holder)
+    
+    #add current gear ndoes:
+    for possible_gear_node in parent_container.get_children():
+      if not possible_gear_node.is_in_group('gear'):
+        continue
+      on_added_container_node(possible_gear_node)
+  ).call_deferred()
+
+
+func _exit_tree():
+  Comp.set_prop(parent_container, 'add_gear_ui_cell', null)
+  parent_container.child_entered_tree.disconnect(on_added_container_node)
+
+
+func on_added_container_node(new_node: Node):
+  if not new_node.is_in_group('gear'):
+    return
+  
+  if not Comp.has_prop(new_node, 'make_ui_cell'):
+    return
+  
+  #check node hasn't been added already
+  for cell_holder in cell_container.get_children():
+    var gear_cell_node = Lib.get_first_immediate_child_in_group(cell_holder, 'ui_gear_cell')
+    if gear_cell_node == null:
+      continue
+    var cells_gear_node = Comp.call_method_or(gear_cell_node, 'get_gear_node', [], null)
+    if cells_gear_node == new_node:
+      return #new node is already present
+  
+  #add to first empty holder
+  for cell_holder in cell_container.get_children():
+    if cell_holder.get_child_count() == empty_holder_child_count: #only add to empty cell holders
+      var gear_cell_node = Comp.call_method(new_node, 'make_ui_cell')
+      gear_cell_node.add_to_group('ui_gear_cell')
+      cell_holder.add_child(gear_cell_node)
+      return
+
+
+func get_gear_cell_drag_texture(gear_cell: Node):
+  var cell_drag_texture = Comp.call_method_or(gear_cell, 'get_drag_texture', [], null)
+  if cell_drag_texture != null:
+    return cell_drag_texture
+  
+  cell_drag_texture = Comp.get_prop(gear_cell, 'dragging_display_texture')
+  if cell_drag_texture != null:
+    return cell_drag_texture
+  
+  cell_drag_texture = gear_cell.texture if ('texture' in gear_cell) else null
+  if cell_drag_texture != null:
+    return cell_drag_texture
+  
+  cell_drag_texture = Lib.get_first_immediate_child_texture(gear_cell)
+  if cell_drag_texture != null:
+    return cell_drag_texture
+  
+  return null
+
+
+func holder_on_direct_mouse_event(event: InputEventMouse, holder_node: Node):
+  if (event is InputEventMouseButton) and (not event.pressed) and (not Lib.is_dragging):
+    var gear_cell_node = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
+    if gear_cell_node != null:
+      match event.button_index:
+        MOUSE_BUTTON_LEFT: Comp.run_method(gear_cell_node, 'handle_left_clicked', [event])
+        MOUSE_BUTTON_RIGHT: Comp.run_method(gear_cell_node, 'handle_right_clicked', [event])
+  get_viewport().set_input_as_handled()
+
+
+func holder_own_dragging_started(holder_node: Node):
+  var gear_cell = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
+  if gear_cell == null:
+    return
+  var cell_drag_texture = get_gear_cell_drag_texture(gear_cell)
+  Lib.dragging_display.texture = cell_drag_texture if (cell_drag_texture != null) else null
+
+
+func holder_own_dragging_ended(_max_z_collider, holder_node: Node):
+  if holder_node.get_child_count() == empty_holder_child_count:
+    return
+  
+  var ordered_collider_query = Lib.get_z_ordered_collider_query_at(Lib.player_character.get_global_mouse_position())
+  
+  var first_cell_holder_location = Lib.get_first_index_satisfying(ordered_collider_query, func(collider_result):
+    var collider = collider_result.collider
+    var holder_parent = Lib.get_parent_in_group(collider, 'ui_cell_holder')
+    return (holder_parent != null)
+  )
+  if first_cell_holder_location != -1:
+    var other_cell_holder_collider = ordered_collider_query[first_cell_holder_location].collider
+    var other_cell_holder = Lib.get_parent_in_group(other_cell_holder_collider, 'ui_cell_holder')
+    if Lib.is_child_of(parent_container, other_cell_holder):
+      swap_sibling_holders_cells(holder_node, other_cell_holder)
+    else: #is other container's cell holder
+      swap_foreign_holders_cells(holder_node, other_cell_holder)
+    return
+
+
+func swap_sibling_holders_cells(holder_node_1: Node, holder_node_2: Node):
+  var gear_cell_1 = Lib.get_first_immediate_child_in_group(holder_node_1, 'ui_gear_cell')
+  var gear_cell_2 = Lib.get_first_immediate_child_in_group(holder_node_2, 'ui_gear_cell')
+  if gear_cell_1 != null:
+    gear_cell_1.reparent(holder_node_2, false)
+  if gear_cell_2 != null:
+    gear_cell_2.reparent(holder_node_1, false)
+
+
+func swap_foreign_holders_cells(holder_node_1: Node, holder_node_2: Node):
+  var gear_cell_1 = Lib.get_first_immediate_child_in_group(holder_node_1, 'ui_gear_cell')
+  var gear_cell_2 = Lib.get_first_immediate_child_in_group(holder_node_2, 'ui_gear_cell')
+  if gear_cell_1 != null:
+    var parent_container_2 = Comp.call_method_or(holder_node_2, 'get_parent_container', [], null)
+    var gear_node_1 = Comp.call_method_or(gear_cell_1, 'get_gear_node', [], null)
+    Comp.run_method(gear_cell_1, 'retain_on_reparent_once')
+    gear_cell_1.reparent(holder_node_2, false)
+    gear_node_1.reparent(parent_container_2, false)
+  if gear_cell_2 != null:
+    var parent_container_1 = Comp.call_method_or(holder_node_1, 'get_parent_container', [], null)
+    var gear_node_2 = Comp.call_method_or(gear_cell_2, 'get_gear_node', [], null)
+    Comp.run_method(gear_cell_2, 'retain_on_reparent_once')
+    gear_cell_2.reparent(holder_node_1, false)
+    gear_node_2.reparent(parent_container_1, false)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="mirrorContainerGearNodesToNode" type="Node"]
+script = SubResource("GDScript_bcx52")

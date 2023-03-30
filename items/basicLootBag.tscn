@@ -1,3 +1,111 @@
-[gd_scene format=3 uid="uid://12kirj0vogpu"]
+[gd_scene load_steps=7 format=3 uid="uid://dt0l2qsjnfbnb"]
 
-[node name="emptyScene" type="Node2D"]
+[ext_resource type="Texture2D" uid="uid://2ik0r18qqcdc" path="res://items/basic-loot-bag.png" id="1_dnb7g"]
+[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="2_53xwh"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="2_u828d"]
+
+[sub_resource type="GDScript" id="GDScript_nqnks"]
+script/source = "extends Area2D
+
+func on_direct_mouse_event(event: InputEventMouse):
+  if not (event is InputEventMouseButton):
+    return
+  Watch.notify(Watch.ui_notifier, 'container_body_input', [self, event])
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5qv4g"]
+size = Vector2(6, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qymxh"]
+size = Vector2(10, 10)
+
+[node name="basicLootBag" type="Node2D" groups=["container", "gear_container"]]
+z_index = -1
+metadata/ui_gear_cells = 10
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("1_dnb7g")
+
+[node name="notifyOnInput" type="Area2D" parent="."]
+script = SubResource("GDScript_nqnks")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="notifyOnInput"]
+shape = SubResource("RectangleShape2D_5qv4g")
+
+[node name="inventoryDisplay" type="Control" parent="."]
+z_index = 800
+layout_mode = 3
+anchors_preset = 0
+offset_left = -37.7788
+offset_top = -46.0
+offset_right = 37.2212
+offset_bottom = -6.0
+mouse_filter = 2
+
+[node name="mirrorContainerGearNodesToNode" parent="inventoryDisplay" node_paths=PackedStringArray("cell_container") instance=ExtResource("2_53xwh")]
+cell_container = NodePath("../MarginContainer/ScrollContainer/FlowContainer")
+
+[node name="templateCellHolder" type="Control" parent="inventoryDisplay/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
+process_mode = 4
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 2
+
+[node name="background" type="ColorRect" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.905882, 0.690196, 0.619608, 1)
+metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
+
+[node name="Area2D" type="Area2D" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
+position = Vector2(5, 5)
+shape = SubResource("RectangleShape2D_qymxh")
+
+[node name="NinePatchRect" type="NinePatchRect" parent="inventoryDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_u828d")
+patch_margin_left = 3
+patch_margin_top = 3
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="inventoryDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="inventoryDisplay/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_scroll_mode = 0
+
+[node name="FlowContainer" type="FlowContainer" parent="inventoryDisplay/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2

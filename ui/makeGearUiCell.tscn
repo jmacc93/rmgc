@@ -1,0 +1,68 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxq2rdalfohtw"]
+
+[sub_resource type="GDScript" id="GDScript_d5dnm"]
+script/source = "extends Node
+
+var gear_node_parent #should be parent
+var container_parent #should be grandparent
+
+var retain_active_gear_cell = false
+
+var active_gear_cell : Control = null
+func _enter_tree():
+  gear_node_parent = get_parent()
+  if gear_node_parent == null:
+    push_error('No gear node parent')
+    return
+  
+  container_parent = gear_node_parent.get_parent()
+  if container_parent == null:
+    push_error('No container or character grandparent')
+    return
+  
+  Comp.set_prop(gear_node_parent, 'make_ui_cell', make_ui_cell)
+  
+  gear_node_parent.tree_exited.connect(on_exit_tree)
+
+
+func on_exit_tree():
+  if retain_active_gear_cell:
+    retain_active_gear_cell = false
+    return
+  if active_gear_cell != null:
+    active_gear_cell.queue_free()
+
+
+func make_ui_cell():
+  var cell = $templateGearCell.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+  cell.process_mode = Node.PROCESS_MODE_INHERIT
+  cell.visible = true
+  Comp.set_prop(cell, 'handle_left_clicked', handle_left_clicked)
+  Comp.set_prop(cell, 'get_gear_node', get_gear_node)
+  Comp.set_prop(cell, 'retain_on_reparent_once', retain_on_reparent_once)
+  active_gear_cell = cell
+  return cell
+
+
+func get_gear_node():
+  return gear_node_parent
+
+
+func handle_left_clicked(event: InputEventMouse):
+  Comp.run_method(gear_node_parent, 'handle_left_clicked', [event])
+
+
+func retain_on_reparent_once():
+  retain_active_gear_cell = true
+"
+
+[node name="makeGearUiCell" type="Node"]
+editor_description = "Needs:
+  * Gear node as parent
+  * Character / container node as grandparent (parent gear node's parent)
+  * Needs templateGearCell child which is process deactivated and not visible
+
+The templateGearCell child will be duplicated and inserted into the gear cell
+
+Grandparent container / character must have an add_gear_ui_cell method or metadata method"
+script = SubResource("GDScript_d5dnm")

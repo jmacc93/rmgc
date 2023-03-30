@@ -1,0 +1,55 @@
+[gd_scene load_steps=2 format=3 uid="uid://yn2hfhus4y1p"]
+
+[sub_resource type="GDScript" id="GDScript_y8wjl"]
+script/source = "extends Node
+
+var gear_cell_resource : PackedScene = preload(\"res://ui/uiGearCell.tscn\")
+@export var target_parent_group : String = 'container'
+
+var parent_target
+
+func _enter_tree():
+  parent_target = Lib.get_parent_in_group(self, target_parent_group)
+  if parent_target == null:
+    push_error('No parent in group ', target_parent_group, ' found')
+    return
+  
+  parent_target.connect('child_entered_tree', Callable(self, 'on_new_target_parent_child'))
+
+
+func _ready():
+  #make some empty cells on idle
+  (func():
+    var max_cell_count = Comp.get_object_meta(parent_target, 'ui_gear_cells', 24)
+    for i in range(0, max_cell_count):
+      var new_gear_cell = gear_cell_resource.instantiate()
+      new_gear_cell.target_parent_group = target_parent_group
+      add_sibling(new_gear_cell)
+    
+    #add existing children to cells
+    for target_parent_child in parent_target.get_children():
+      if not target_parent_child.is_in_group('gear'):
+        continue
+      on_new_target_parent_child(target_parent_child)
+  ).call_deferred()
+
+
+func on_new_target_parent_child(target_parent_child: Node):
+  if not target_parent_child.is_in_group('gear'):
+    return
+  var first_empty_cell = find_first_empty_cell()
+  if first_empty_cell != null:
+    first_empty_cell.set_gear_node(target_parent_child)
+
+
+func find_first_empty_cell():
+  for sibling_or_self in get_parent().get_children():
+    if not sibling_or_self.has_method('is_empty'):
+      continue #sibling_or_self == self
+    if sibling_or_self.is_empty():
+      return sibling_or_self
+  return null
+"
+
+[node name="mirrorParentGearNodesHere" type="Node"]
+script = SubResource("GDScript_y8wjl")

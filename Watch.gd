@@ -1,8 +1,20 @@
 extends Node
 
-#Stores dictionaries like watch_call_on_set_meta = {nameString = callable, ...} in object metadata
-#Use set_object_prop(obj, prop, ...) instead of obj.prop = ... to trigger other object's callables watching that prop
-#Use call_on_set(obj, prop, fn) to call fn when obj.prop changes
+
+var ui_notifier: Node = Node.new()
+
+
+func callables_are_equals(callable1: Callable, callable2: Callable) -> bool:
+  if callable1.get_object() != callable2.get_object():
+    return false
+  if callable1.get_method() != callable2.get_method():
+    return false
+  if callable1.get_bound_arguments_count() != callable2.get_bound_arguments_count():
+    return false
+  if callable1.get_bound_arguments() != callable2.get_bound_arguments():
+    return false
+  return true
+
 
 func add_callable_to_dict(dict: Dictionary, key: String, value: Callable) -> bool:
   var existing_callable_array = dict.get(key)
@@ -20,7 +32,11 @@ func add_callable_to_dict(dict: Dictionary, key: String, value: Callable) -> boo
 func remove_callable_from_dict(dict: Dictionary, key: String, value: Callable) -> bool:
   var existing_callable_array: Array = dict.get(key)
   if existing_callable_array:
-    existing_callable_array.erase(value)
+    for i in range(0, existing_callable_array.size()):
+      var existing_callable = existing_callable_array[i]
+      if callables_are_equals(value, existing_callable):
+        existing_callable_array.remove_at(i)
+        break
     return true
   else:
     return false
@@ -29,8 +45,11 @@ func call_callable(dict: Dictionary, signalers_name: String, args: Array):
   var callable_array = dict.get(signalers_name)
   if callable_array == null:
     return
-  for callable in callable_array:
+  var i = callable_array.size()-1
+  while i >= 0: #reverse interation so can delete elements
+    var callable = callable_array[i]
     callable.callv(args)
+    i -= 1
 
 
 func call_on_set_meta(obj: Object, key: String, fn: Callable):
@@ -56,6 +75,24 @@ func set_object_meta(obj: Object, key: String, value: Variant):
   call_callable(callable_array, key, [])
 
 
+
+func satisfy_call_when_has_meta(obj: Object, key: String, fn: Callable):
+  fn.call()
+  stop_calling_on_set_meta(obj, key, satisfy_call_when_has_meta.bind(obj, key, fn))
+
+func call_when_has_meta(obj: Object, key: String, fn: Callable):
+  #already has meta:
+  if obj.has_meta(key):
+    fn.call()
+    return
+  #doesn't have meta yet:
+  call_on_set_meta(obj, key, satisfy_call_when_has_meta.bind(obj, key, fn))
+  
+func stop_calling_when_has_meta(obj: Object, key: String, fn: Callable):
+  stop_calling_on_set_meta(obj, key, satisfy_call_when_has_meta.bind(obj, key, fn))
+
+
+
 func call_on_set_prop(obj: Object, prop: String, fn: Callable):
   var callable_array
   if not obj.has_meta('watch_call_on_set_prop'):
@@ -77,6 +114,23 @@ func set_object_prop(obj: Object, prop: String, value: Variant):
     return
   var callable_array = obj.get_meta('watch_call_on_set_prop')
   call_callable(callable_array, prop, [])
+
+
+
+func satisfy_call_when_has_prop(obj: Object, prop: String, fn: Callable):
+  fn.call()
+  stop_calling_on_set_prop(obj, prop, satisfy_call_when_has_prop.bind(obj, prop, fn))
+
+func call_when_has_prop(obj: Object, prop: String, fn: Callable):
+  #already has meta:
+  if prop in obj:
+    fn.call()
+    return
+  #doesn't have meta yet:
+  call_on_set_prop(obj, prop, satisfy_call_when_has_prop.bind(obj, prop, fn))
+  
+func stop_calling_when_has_prop(obj: Object, prop: String, fn: Callable):
+  stop_calling_on_set_prop(obj, prop, satisfy_call_when_has_prop.bind(obj, prop, fn))
 
 
 

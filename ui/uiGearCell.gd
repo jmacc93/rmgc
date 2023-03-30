@@ -9,7 +9,6 @@ var parent_character
 var highlighted = false
 
 func _enter_tree():
-  print('gear_node set', gear_node)
   if gear_node == null:
     push_error('Invalid Node ', gear_node)
     queue_free()
