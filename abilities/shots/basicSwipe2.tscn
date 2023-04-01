@@ -20,23 +20,19 @@ func on_collision(collision):
   var parent = get_parent()
   
   #hurt source?
-  var source_object = Comp.get_object_meta(parent, 'source_object')
+  var source_object = Comp.get_prop(parent, 'source_object')
   if source_object and (source_object == body) and except_source_object:
     return #dont hurt source object
   
   #damage by method
-  var dmg = parent.get_meta('dmg', 1)
-  if body.has_method('hurt_by') and body.hurt_by(dmg):
-    return
-  
-  #damage by meta method
+  var dmg = Comp.get_prop(parent, 'dmg', 1)
   if Comp.run_method(body, \"hurt_by\", [dmg, parent]):
     return
   
   #damage by directly changing health
-  var hp = Comp.get_object_meta(body, 'hp')
+  var hp = Comp.get_prop(body, 'hp')
   if hp != null:
-    Watch.set_object_meta(body, 'hp', hp - dmg)
+    Comp.set_prop(body, 'hp', hp - dmg)
 "
 
 [sub_resource type="GDScript" id="GDScript_vtxd2"]

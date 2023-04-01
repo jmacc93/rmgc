@@ -144,6 +144,8 @@ func getprop(obj: Object, prop: String, def):
 
 var meta_notifier : Node
 func _init():
+  process_priority = -2048
+
   meta_notifier = Node.new()
   meta_notifier.add_user_signal('set')
 
@@ -165,6 +167,14 @@ func get_first_index_satisfying(array: Array, predicate: Callable) -> Variant:
     if predicate.call(value):
       return i
   return -1
+  
+func get_first_nonnull_return(array: Array, fn: Callable) -> Variant:
+  for i in range(0, array.size()):
+    var value = array[i]
+    var res = fn.call(value)
+    if res != null:
+      return res
+  return null
 
 
 #the total z_index of an object, accounting for parent z_index and z_as_relative status
@@ -291,7 +301,7 @@ func _process(_delta: float):
 
 
 
-
+var default_loot_bag: PackedScene = preload("res://items/basicLootBag.tscn")
 
 
 

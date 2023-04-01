@@ -9,6 +9,9 @@ var parent_container
 
 @export var cell_container : Node
 
+@export var loot_bag_scene: PackedScene
+
+
 func _enter_tree():
   parent_container = Lib.get_parent_in_group(self, 'gear_container')
   if parent_container == null:
@@ -97,13 +100,51 @@ func get_gear_cell_drag_texture(gear_cell: Node):
 
 
 func holder_on_direct_mouse_event(event: InputEventMouse, holder_node: Node):
-  if (event is InputEventMouseButton) and (not event.pressed) and (not Lib.is_dragging):
-    var gear_cell_node = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
-    if gear_cell_node != null:
-      match event.button_index:
-        MOUSE_BUTTON_LEFT: Comp.run_method(gear_cell_node, 'handle_left_clicked', [event])
-        MOUSE_BUTTON_RIGHT: Comp.run_method(gear_cell_node, 'handle_right_clicked', [event])
   get_viewport().set_input_as_handled()
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if Lib.is_dragging:
+    return
+  
+  var gear_cell_node = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
+  if gear_cell_node == null:
+    return #no gear cell in this holder, ie: its empty
+  
+  if event.shift_pressed:
+    var gear_node = Comp.call_method_or(gear_cell_node, 'get_gear_node', [], null)
+    if gear_node == null:
+      return #probably no get_gear_node method on cell, otherwise cell's gear node shouldnt be null (an error)
+    
+    if not Lib.is_child_of(Lib.player_character, gear_node):
+      #move gear node to character
+      gear_node.reparent(Lib.player_character)
+      return
+    #else: gear_node not a child of player
+    
+    #trying moving to first open loot bag
+    var loot_display = null
+    for possible_open_loot_display in get_viewport().get_tree().get_nodes_in_group('loot_bag_display_popup'):
+      if possible_open_loot_display.visible == true:
+        loot_display = possible_open_loot_display
+        break
+    if loot_display == null:
+      return #no open loot display found
+    
+    var loot_container = Lib.get_parent_in_group(loot_display, 'gear_container')
+    if loot_container == null:
+      push_error('Loot container popup has no container parent')
+      return
+    
+    gear_node.reparent(loot_container)
+    return
+  #
+  
+  #shift not pressed, just a regular mouse button release
+  match event.button_index:
+    MOUSE_BUTTON_LEFT: Comp.run_method(gear_cell_node, 'handle_left_clicked', [event])
+    MOUSE_BUTTON_RIGHT: Comp.run_method(gear_cell_node, 'handle_right_clicked', [event])
 
 
 func holder_own_dragging_started(holder_node: Node):
@@ -115,25 +156,49 @@ func holder_own_dragging_started(holder_node: Node):
 
 
 func holder_own_dragging_ended(_max_z_collider, holder_node: Node):
-  if holder_node.get_child_count() == empty_holder_child_count:
-    return
+  var gear_cell = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
+  if gear_cell == null:
+    return #holder_node is an empty holder
   
+  #query colliders at the mouse
   var ordered_collider_query = Lib.get_z_ordered_collider_query_at(Lib.player_character.get_global_mouse_position())
   
-  var first_cell_holder_location = Lib.get_first_index_satisfying(ordered_collider_query, func(collider_result):
+  #see if query results contains a ui_cell_holder
+  var other_cell_holder = Lib.get_first_nonnull_return(ordered_collider_query, func(collider_result):
     var collider = collider_result.collider
-    var holder_parent = Lib.get_parent_in_group(collider, 'ui_cell_holder')
-    return (holder_parent != null)
+    return Lib.get_parent_in_group(collider, 'ui_cell_holder')
   )
-  if first_cell_holder_location != -1:
-    var other_cell_holder_collider = ordered_collider_query[first_cell_holder_location].collider
-    var other_cell_holder = Lib.get_parent_in_group(other_cell_holder_collider, 'ui_cell_holder')
+  if other_cell_holder != null:
+    #swap clicked holder cell's and this cell's contents
     if Lib.is_child_of(parent_container, other_cell_holder):
       swap_sibling_holders_cells(holder_node, other_cell_holder)
     else: #is other container's cell holder
       swap_foreign_holders_cells(holder_node, other_cell_holder)
     return
+  
+  var gear_node = Comp.call_method_or(gear_cell, 'get_gear_node', [], null)
+  if gear_node == null:
+    return #probably no get_gear_node method on gear_cell
 
+  #see if query was over a container body (eg: a loot bag)
+  var gear_container = Lib.get_first_nonnull_return(ordered_collider_query, func(collider_result):
+    var collider = collider_result.collider
+    return Lib.get_parent_in_group(collider, 'gear_container')
+  )
+  if (gear_container != null) and Comp.get_prop(gear_container, 'accepts_gear_drops', false):
+    gear_node.reparent(gear_container)
+    return
+
+  #otherwise, dropped over nothing, so spawn a loot bag
+  var game_world = Lib.get_parent_in_group(self, 'game_world')
+  if game_world == null:
+    push_error('No game_world group parent to place loot bag droo')
+    return
+  var new_loot_bag = (loot_bag_scene if loot_bag_scene else Lib.default_loot_bag).instantiate()
+  new_loot_bag.global_position = Lib.player_character.get_global_mouse_position()
+  gear_node.reparent(new_loot_bag)
+  game_world.add_child(new_loot_bag)
+  
 
 func swap_sibling_holders_cells(holder_node_1: Node, holder_node_2: Node):
   var gear_cell_1 = Lib.get_first_immediate_child_in_group(holder_node_1, 'ui_gear_cell')

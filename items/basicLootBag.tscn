@@ -1,39 +1,95 @@
-[gd_scene load_steps=7 format=3 uid="uid://dt0l2qsjnfbnb"]
+[gd_scene load_steps=8 format=3 uid="uid://dt0l2qsjnfbnb"]
 
 [ext_resource type="Texture2D" uid="uid://2ik0r18qqcdc" path="res://items/basic-loot-bag.png" id="1_dnb7g"]
-[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="2_53xwh"]
+[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="2_kdupq"]
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="2_u828d"]
+
+[sub_resource type="GDScript" id="GDScript_t348g"]
+script/source = "extends Node
+
+
+func _enter_tree():
+  if count_gear_nodes() == 0:
+    destroy_parent.call_deferred()
+  get_parent().child_exiting_tree.connect(on_child_exiting)
+
+
+func _exit_tree():
+  get_parent().child_exiting_tree.disconnect(on_child_exiting)
+
+
+func count_gear_nodes():
+  var count = 0
+  for child in get_parent().get_children():
+    if child.is_in_group('gear'):
+      count += 1
+  return count
+
+
+func destroy_parent():
+  if count_gear_nodes() == 0:
+    get_parent().queue_free()
+
+
+func on_child_exiting(child: Node):
+  if count_gear_nodes() == 1:
+    destroy_parent.call_deferred()
+"
 
 [sub_resource type="GDScript" id="GDScript_nqnks"]
 script/source = "extends Area2D
 
+@export var target_node : Node
+
 func on_direct_mouse_event(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  if not target_node:
+    return
   if not (event is InputEventMouseButton):
     return
-  Watch.notify(Watch.ui_notifier, 'container_body_input', [self, event])
+  if event.pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  
+  #only left mouse click released
+  target_node.visible = not target_node.visible
+  target_node.process_mode = Node.PROCESS_MODE_INHERIT if target_node.visible else Node.PROCESS_MODE_DISABLED
+  if target_node.visible:
+    for loot_popup in get_viewport().get_tree().get_nodes_in_group('loot_bag_display_popup'):
+      if loot_popup != target_node:
+        loot_popup.visible = false
+        loot_popup.process_mode = Node.PROCESS_MODE_DISABLED
 "
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5qv4g"]
 size = Vector2(6, 6)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_qymxh"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2d47m"]
 size = Vector2(10, 10)
 
 [node name="basicLootBag" type="Node2D" groups=["container", "gear_container"]]
 z_index = -1
 metadata/ui_gear_cells = 10
+metadata/accepts_gear_drops = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("1_dnb7g")
 
-[node name="notifyOnInput" type="Area2D" parent="."]
-script = SubResource("GDScript_nqnks")
+[node name="containerDestroyOnEmpty" type="Node" parent="."]
+script = SubResource("GDScript_t348g")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="notifyOnInput"]
+[node name="toggleLootDisplayVisibilityOnClick" type="Area2D" parent="." node_paths=PackedStringArray("target_node")]
+script = SubResource("GDScript_nqnks")
+target_node = NodePath("../inventoryDisplay")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="toggleLootDisplayVisibilityOnClick"]
 shape = SubResource("RectangleShape2D_5qv4g")
 
-[node name="inventoryDisplay" type="Control" parent="."]
+[node name="inventoryDisplay" type="Control" parent="." groups=["loot_bag_display_popup"]]
+process_mode = 4
+visible = false
 z_index = 800
 layout_mode = 3
 anchors_preset = 0
@@ -43,7 +99,7 @@ offset_right = 37.2212
 offset_bottom = -6.0
 mouse_filter = 2
 
-[node name="mirrorContainerGearNodesToNode" parent="inventoryDisplay" node_paths=PackedStringArray("cell_container") instance=ExtResource("2_53xwh")]
+[node name="mirrorContainerGearNodesToNode" parent="inventoryDisplay" node_paths=PackedStringArray("cell_container") instance=ExtResource("2_kdupq")]
 cell_container = NodePath("../MarginContainer/ScrollContainer/FlowContainer")
 
 [node name="templateCellHolder" type="Control" parent="inventoryDisplay/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
@@ -71,7 +127,7 @@ metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
 position = Vector2(5, 5)
-shape = SubResource("RectangleShape2D_qymxh")
+shape = SubResource("RectangleShape2D_2d47m")
 
 [node name="NinePatchRect" type="NinePatchRect" parent="inventoryDisplay"]
 layout_mode = 1

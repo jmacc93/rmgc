@@ -22,7 +22,8 @@ func _enter_tree():
   
   Comp.set_prop(gear_node_parent, 'make_ui_cell', make_ui_cell)
   
-  gear_node_parent.tree_exited.connect(on_exit_tree)
+  if not gear_node_parent.tree_exited.is_connected(on_exit_tree):
+    gear_node_parent.tree_exited.connect(on_exit_tree)
 
 
 func on_exit_tree():

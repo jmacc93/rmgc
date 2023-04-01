@@ -1,8 +1,5 @@
 extends Node2D
 
-@onready var label : Label = get_node("Label")
-@onready var initial_label_position = label.position
-
 var damage_amount : int = 0
 
 @export var lifespan_msec = 750
@@ -11,16 +8,15 @@ var damage_amount : int = 0
 @export var float_distance = 5.0
 @onready var float_speed : float = 1000 * float_distance / lifespan_msec
 
-func _ready():
-  label = get_node("Label")
-  assert(label)
-
 func set_damage(new_damage):
-  if not label:
-    label = get_node("Label")
-    assert(label)
+  var label = $Label
   damage_amount = int(ceil(new_damage))
-  label.text = str(damage_amount)
+  if new_damage > 0:
+    label.text = '+' + str(damage_amount)
+    label.modulate = Color.LIGHT_GREEN
+  else:
+    label.text = str(damage_amount)
+    label.modulate = Color.LIGHT_CORAL
 
 func _process(delta):
   var current_time = Time.get_ticks_msec()
@@ -28,4 +24,4 @@ func _process(delta):
     queue_free()
     return
   
-  label.position += Vector2(0, - float_speed * delta)
+  $Label.position += Vector2(0, - float_speed * delta)

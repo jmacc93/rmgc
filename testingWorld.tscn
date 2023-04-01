@@ -1,11 +1,10 @@
-[gd_scene load_steps=57 format=3 uid="uid://hhs58d72uxws"]
+[gd_scene load_steps=59 format=3 uid="uid://hhs58d72uxws"]
 
 [ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="5_l30hf"]
 [ext_resource type="PackedScene" uid="uid://cq7jkqg3pv2o8" path="res://abilities/shots/basicSwipe_old.tscn" id="7_lsa8w"]
+[ext_resource type="PackedScene" uid="uid://2dl7owj1fh7" path="res://abilities/basicShotProducer.tscn" id="7_pxipu"]
 [ext_resource type="Texture2D" uid="uid://c3g1asnhn1qqp" path="res://environment/backgrounds/grass-2.png" id="8"]
-[ext_resource type="PackedScene" uid="uid://7rctdalryyyp" path="res://ui/allowTogglingUiCell.tscn" id="8_0sa1u"]
-[ext_resource type="Texture2D" uid="uid://nprr321ewwia" path="res://items/basic-armor-1.png" id="8_gqx2d"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="9"]
 [ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://copyMetaToParent.tscn" id="9_5j7tr"]
 [ext_resource type="Script" path="res://basicWeaponAttackAbility.gd" id="10"]
@@ -122,19 +121,22 @@ script/source = "extends Node
 @export var always_overheal = false
 @export var can_overheal = false
 
+var next_hp_regen_time = 0
+var hp_regen_delay = 1000
+
 
 func _enter_tree():
   var parent = get_parent()
   
-  Watch.set_object_meta(parent, 'hp', initial_hp)
-  Watch.set_object_meta(parent, 'max_hp', initial_max_hp)
-  Watch.set_object_meta(parent, 'hp_regen', initial_hp_regen)
-  Watch.set_object_meta(parent, 'mdef', initial_mdef)
-  Watch.set_object_meta(parent, 'adef', initial_adef)
+  Comp.set_prop(parent, 'hp', initial_hp)
+  Comp.set_prop(parent, 'max_hp', initial_max_hp)
+  Comp.set_prop(parent, 'hp_regen', initial_hp_regen)
+  Comp.set_prop(parent, 'mdef', initial_mdef)
+  Comp.set_prop(parent, 'adef', initial_adef)
   
-  Watch.set_object_meta(parent, 'heal_by', Callable(self, 'heal_by'))
-  Watch.set_object_meta(parent, 'overheal_by', Callable(self, 'overheal_by'))
-  Watch.set_object_meta(parent, 'hurt_by', Callable(self, 'hurt_by'))
+  Comp.set_prop(parent, 'heal_by', Callable(self, 'heal_by'))
+  Comp.set_prop(parent, 'overheal_by', Callable(self, 'overheal_by'))
+  Comp.set_prop(parent, 'hurt_by', Callable(self, 'hurt_by'))
 
 
 func hurt_by(dmg: float, _dmger: Object):
@@ -143,7 +145,7 @@ func hurt_by(dmg: float, _dmger: Object):
   var mdef = parent.get_meta('mdef')
   var adef = parent.get_meta('adef')
   var new_hp = hp - max(0, dmg * mdef - adef)
-  Watch.set_object_meta(parent, 'hp', new_hp)
+  Comp.set_prop(parent, 'hp', new_hp)
 
 
 func heal_by(change: float):
@@ -151,7 +153,7 @@ func heal_by(change: float):
   var hp = parent.get_meta('hp')
   var max_hp = parent.get_meta('max_hp')
   var new_hp = (hp + change) if always_overheal else min(max_hp, hp + change)
-  Watch.set_object_meta(parent, 'hp', new_hp)
+  Comp.set_prop(parent, 'hp', new_hp)
 
 
 func overheal_by(change: float):
@@ -161,12 +163,84 @@ func overheal_by(change: float):
   var parent = get_parent()
   var hp = parent.get_meta('hp')
   var new_hp = hp + change
-  Watch.set_object_meta(parent, 'hp', new_hp)
+  Comp.set_prop(parent, 'hp', new_hp)
 
 
+var active_ui_display_element: Control = null
+func make_stat_display_element():
+  var template_node = $templateUiStatDisplayElement
+  if template_node == null:
+    push_error('No template node for healthStats make_ui_display_element')
+    return
+  
+  if active_ui_display_element != null:
+    #remove already-present element
+    active_ui_display_element.queue_free()
+  
+  var element = template_node.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+  element.visible = true
+  element.process_mode = Node.PROCESS_MODE_INHERIT
+  
+  var parent = get_parent()
+  
+  var hp_label = element.get_node('hpHBox/currentHpValueLabel')
+  Comp.call_on_set_prop_and_now(parent, 'hp', func():
+    var hp = Comp.get_prop(parent, 'hp')
+    hp_label.text = str(hp)
+  )
+  
+  var max_hp_label = element.get_node('hpHBox/maxHpValueLabel')
+  Comp.call_on_set_prop_and_now(parent, 'max_hp', func():
+    var max_hp = Comp.get_prop(parent, 'max_hp')
+    max_hp_label.text = str(max_hp)
+    prints(max_hp)
+  )
+  
+  var hp_regen_label = element.get_node('regenHBox/hpRegenLabel')
+  Comp.call_on_set_prop_and_now(parent, 'hp_regen', func():
+    var hp_regen = Comp.get_prop(parent, 'hp_regen')
+    hp_regen_label.text = str(hp_regen)
+  )
+  
+  var adef_label = element.get_node('adefHBox/adefValueLabel')
+  Comp.call_on_set_prop_and_now(parent, 'adef', func():
+    var adef = Comp.get_prop(parent, 'adef')
+    if adef != 0:
+      adef_label.text = str(adef)
+      element.get_node('adefLabel').visible = true
+      element.get_node('adefHBox').visible = true
+    else:
+      element.get_node('adefLabel').visible = false
+      element.get_node('adefHBox').visible = false
+  )
+  
+  var mdef_label = element.get_node('mdefHBox/mdefValueLabel')
+  Comp.call_on_set_prop_and_now(parent, 'mdef', func():
+    var mdef = Comp.get_prop(parent, 'mdef')
+    if mdef != 1.0:
+      mdef_label.text = str(mdef)
+      element.get_node('mdefLabel').visible = true
+      element.get_node('mdefHBox').visible = true
+    else:
+      element.get_node('mdefLabel').visible = false
+      element.get_node('mdefHBox').visible = false
+  )
+  
+  active_ui_display_element = element
+  return element
 
 
-
+func _process(_delta):
+  var current_time = Time.get_ticks_msec()
+  if current_time >= next_hp_regen_time:
+    next_hp_regen_time = current_time + hp_regen_delay
+    var parent = get_parent()
+    var hp = Comp.get_prop(parent, 'hp')
+    var hp_regen = Comp.get_prop(parent, 'hp_regen')
+    var max_hp = Comp.get_prop(parent, 'max_hp')
+    if hp >= max_hp:
+      return
+    Comp.set_prop(parent, 'hp', min(hp + hp_regen, max_hp))
 
 
 
@@ -181,30 +255,33 @@ script/source = "extends Node
 
 
 func _enter_tree():
-  Watch.set_object_meta(get_parent(), 'can_equip', func(equipment_object):
-    var equipment_classes = Comp.get_object_meta(equipment_object, 'equipment_classes')
-    if equipment_classes == null:
-      return
-    for metaname in get_meta_list():
-      var index = equipment_classes.find(metaname)
-      if index == -1:
-        continue
-      var count = count_in_class(metaname)
-      var max_count = get_meta(metaname)
-      prints('equipmentRestrictions', count, max_count)
-      return count < max_count
-    return true
-  )
+  Watch.set_object_meta(get_parent(), 'can_equip', can_equip)
 
 func _exit_tree():
   Watch.set_object_meta(get_parent(), 'can_equip', null)
+
+
+func can_equip(equipment_object):
+  var equipment_classes = Comp.get_prop(equipment_object, 'equipment_classes')
+  if equipment_classes == null:
+    return
+  
+  for metaname in get_meta_list():
+    var index = equipment_classes.find(metaname)
+    if index == -1:
+      continue
+    var count = count_in_class(metaname)
+    var max_count = get_meta(metaname)
+    prints('equipmentRestrictions', count, max_count)
+    return count < max_count
+  return true
 
 
 func count_in_class(classname: String) -> int:
   var gear_children = Lib.get_children_in_group(get_parent(), 'gear')
   var count = 0
   for gear_child in gear_children:
-    var is_equipped = Comp.get_object_meta(gear_child, 'is_equipped', false)
+    var is_equipped = gear_child.is_in_group('equipped')
     if not is_equipped:
       continue
     var equipment_classes = Comp.get_object_meta(gear_child, 'equipment_classes')
@@ -241,24 +318,24 @@ var composite
 
 var damage_popup_resource : PackedScene = preload(\"res://damagePopup.tscn\")
 
-var last_hp = 0
+var prev_hp = 0
 
 func _enter_tree():
   var parent = get_parent()
-  Watch.call_on_set_meta(parent, 'hp', func():
-    var hp = parent.get_meta('hp')
-    var change = hp - last_hp
+  Comp.call_on_set_prop(parent, 'hp', func():
+    var hp = Comp.get_prop(parent, 'hp')
+    var change = hp - prev_hp
     if change == 0:
       return
     var damage_popup = damage_popup_resource.instantiate()
     damage_popup.set_damage(change)
     call_deferred('add_child', damage_popup)
-    last_hp = hp
+    prev_hp = hp
   )
 
 
 func _ready():
-  last_hp = get_parent().get_meta('hp')
+  prev_hp = Comp.get_prop(get_parent(), 'hp')
 "
 
 [sub_resource type="GDScript" id="GDScript_wvoty"]
@@ -405,109 +482,62 @@ func handle_left_clicked(event: InputEventMouse):
 
 "
 
-[sub_resource type="GDScript" id="GDScript_48n0u"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8yqf6"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kexke"]
+bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dk5r0"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="GDScript" id="GDScript_rmng7"]
 script/source = "extends Node
 
-@export var cast_speed = 5.0
-@export var damage_mod = 1.0
+var parent_character
 
-@export var max_attack_rate = 20
-@onready var attack_delay = int(float(10000) / float(max_attack_rate))
-var next_attack_time = 0
+var ui_element_container
 
-@export var shot_resource: PackedScene
+func _enter_tree():
+  parent_character = Lib.get_parent_in_group(self, 'character')
+  if parent_character == null:
+    push_error('No parent found in group character')
+    return
+  
+  ui_element_container = $\"../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer\"
+  if ui_element_container == null:
+    push_error('No container at ../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer found')
+    return
+  
+  #for future gear nodes:
+  parent_character.child_entered_tree.connect(on_added_character_node)
+  for child in parent_character.get_children():
+    on_added_character_node(child)
+
 
 func _exit_tree():
-  self.remove_from_group('main_attack')
+  parent_character.child_entered_tree.disconnect(on_added_character_node)
 
 
-#shoot new shot toward target point / target object with shoot delay
-func attack(user_object: Object) -> void:
-  var current_time = Time.get_ticks_msec()
-  if shot_resource and (next_attack_time < current_time):
-    next_attack_time = current_time + attack_delay
-    var shot = shot_resource.instantiate()
-    
-    #set shot origin
-    var origin_position = Comp.get_object_meta(user_object, 'shot_origin', null)
-    if origin_position == null:
-      origin_position = user_object.get_prop('shot_origin') if user_object.has_method('get_prop') else null
-    if origin_position == null:
-      origin_position = user_object.global_position if ('global_position' in user_object) else null
-    if origin_position == null:
-      origin_position = Lib.get_parent_with_property(self, 'global_position').global_position
-    shot.global_position = origin_position
-    
-    get_viewport().add_child(shot)
-    
-    #set shot parent object (the shot's creator)
-    Watch.set_object_meta(shot, 'source_object', user_object)
-    
-    var dmg = shot.get_meta('dmg', 1.0)
-    Watch.set_object_meta(shot, 'dmg', dmg * damage_mod)
-    
-    #try shooting toward target if it exists
-    var target_point = Comp.get_object_meta(user_object, 'target_point', null)
-    if origin_position == null:
-      origin_position = Comp.get_object_meta(user_object, 'target_point') 
-    if target_point == null:
-      var target_object = Comp.get_object_meta(user_object, 'target_object')
-      if target_object != null:
-        target_point = target_object.global_position
-    
-    if target_point != null:
-      if Comp.run_method(shot, 'cast_toward', [target_point, cast_speed]):
-        return
-      elif Comp.run_method(shot, 'shoot_in_dir', [(target_point - origin_position).normalized(), cast_speed]):
-        return
-      var shot_velocity = shot.get('velocity')
-      if (shot_velocity != null) and ('velocity' in shot):
-        shot.velocity = (target_point - origin_position).normalized() * cast_speed
-        return
-      else:
-        push_error('Shot has no way of being projected toward target point')
-        return
-      
-    #else, try shooting in a direction
-    var shoot_dir = Comp.get_object_meta(user_object, 'shoot_dir')
-    if shoot_dir != null:
-      shoot_dir = shoot_dir.normalized()
-      if Comp.run_method(shot, 'shoot_in_dir', [shoot_dir.normalized(), cast_speed]):
-        return
-      var shot_velocity = Comp.get_prop(shot, 'shot_velocity')
-      if (shot_velocity != null) and ('velocity' in shot):
-        shot.velocity = [shoot_dir.normalized() * cast_speed]
-        return
-      else:
-        push_error('Shot has no way of being projected in shoot direction')
-        return
-
-
-func toggle_equipped(user_object: Object) -> void:
-  var group_status = is_in_group('main_attack')
-  if group_status:  
-    remove_from_group('main_attack')
-  else:
-    add_to_group('main_attack')
-  var toggleable_gear_cell_maker = $makeGearUiCell
-  if toggleable_gear_cell_maker != null:
-    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [not group_status])
+func on_added_character_node(new_node: Node):
+  var stat_ui_element = Comp.call_method_or(new_node, 'make_stat_display_element', [], null)
+  if not stat_ui_element:
+    return
   
+  ui_element_container.add_child(stat_ui_element)
 
-func handle_left_clicked(event: InputEventMouse):
-  get_viewport().set_input_as_handled()
-  if Lib.is_dragging:
-    return
-  if not (event is InputEventMouseButton):
-    return
-  if event.pressed:
-    return
-  if event.button_index != MOUSE_BUTTON_LEFT:
-    return
-  if get_parent() != Lib.player_character:
-    return
-  #only when not dragging, as child of player character, and left button just released:
-  toggle_equipped(Lib.player_character)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -522,14 +552,42 @@ func handle_left_clicked(event: InputEventMouse):
 
 "
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8yqf6"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jif51"]
+size = Vector2(7.51268, 8.12184)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kexke"]
-bg_color = Color(1, 0, 0, 1)
+[sub_resource type="GDScript" id="GDScript_slqfr"]
+script/source = "extends Node
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dk5r0"]
-bg_color = Color(0.831373, 0, 0.937255, 1)
+@export var node : Node
+
+@export var and_process = true
+
+func _ready():
+  var parent = get_parent()
+  if node == null:
+    node = parent.get_parent()
+  
+  Comp.set_prop(parent, 'on_direct_mouse_event', on_direct_mouse_event)
+
+
+func on_direct_mouse_event(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  if node == null:
+    return
+  
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  
+  node.visible = not node.visible
+  node.process_mode = Node.PROCESS_MODE_INHERIT if node.visible else Node.PROCESS_MODE_DISABLED
+  
+  
+
+"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ssi3t"]
 size = Vector2(10, 10)
@@ -854,7 +912,124 @@ func _enter_tree():
   )
 "
 
-[node name="testWorld" type="Node2D"]
+[sub_resource type="GDScript" id="GDScript_48n0u"]
+script/source = "extends Node
+
+@export var cast_speed = 5.0
+@export var damage_mod = 1.0
+
+@export var max_attack_rate = 20
+@onready var attack_delay = int(float(10000) / float(max_attack_rate))
+var next_attack_time = 0
+
+@export var shot_resource: PackedScene
+
+func _exit_tree():
+  self.remove_from_group('main_attack')
+
+
+#shoot new shot toward target point / target object with shoot delay
+func attack(user_object: Object) -> void:
+  var current_time = Time.get_ticks_msec()
+  if shot_resource and (next_attack_time < current_time):
+    next_attack_time = current_time + attack_delay
+    var shot = shot_resource.instantiate()
+    
+    #set shot origin
+    var origin_position = Comp.get_object_meta(user_object, 'shot_origin', null)
+    if origin_position == null:
+      origin_position = user_object.get_prop('shot_origin') if user_object.has_method('get_prop') else null
+    if origin_position == null:
+      origin_position = user_object.global_position if ('global_position' in user_object) else null
+    if origin_position == null:
+      origin_position = Lib.get_parent_with_property(self, 'global_position').global_position
+    shot.global_position = origin_position
+    
+    get_viewport().add_child(shot)
+    
+    #set shot parent object (the shot's creator)
+    Watch.set_object_meta(shot, 'source_object', user_object)
+    
+    var dmg = shot.get_meta('dmg', 1.0)
+    Watch.set_object_meta(shot, 'dmg', dmg * damage_mod)
+    
+    #try shooting toward target if it exists
+    var target_point = Comp.get_object_meta(user_object, 'target_point', null)
+    if origin_position == null:
+      origin_position = Comp.get_object_meta(user_object, 'target_point') 
+    if target_point == null:
+      var target_object = Comp.get_object_meta(user_object, 'target_object')
+      if target_object != null:
+        target_point = target_object.global_position
+    
+    if target_point != null:
+      if Comp.run_method(shot, 'cast_toward', [target_point, cast_speed]):
+        return
+      elif Comp.run_method(shot, 'shoot_in_dir', [(target_point - origin_position).normalized(), cast_speed]):
+        return
+      var shot_velocity = shot.get('velocity')
+      if (shot_velocity != null) and ('velocity' in shot):
+        shot.velocity = (target_point - origin_position).normalized() * cast_speed
+        return
+      else:
+        push_error('Shot has no way of being projected toward target point')
+        return
+      
+    #else, try shooting in a direction
+    var shoot_dir = Comp.get_object_meta(user_object, 'shoot_dir')
+    if shoot_dir != null:
+      shoot_dir = shoot_dir.normalized()
+      if Comp.run_method(shot, 'shoot_in_dir', [shoot_dir.normalized(), cast_speed]):
+        return
+      var shot_velocity = Comp.get_prop(shot, 'shot_velocity')
+      if (shot_velocity != null) and ('velocity' in shot):
+        shot.velocity = [shoot_dir.normalized() * cast_speed]
+        return
+      else:
+        push_error('Shot has no way of being projected in shoot direction')
+        return
+
+
+func toggle_equipped(_user_object: Object) -> void:
+  var group_status = is_in_group('main_attack')
+  if group_status:  
+    remove_from_group('main_attack')
+  else:
+    add_to_group('main_attack')
+  var toggleable_gear_cell_maker = $makeGearUiCell
+  if toggleable_gear_cell_maker != null:
+    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [not group_status])
+  
+
+func handle_left_clicked(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  if Lib.is_dragging:
+    return
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  if get_parent() != Lib.player_character:
+    return
+  #only when not dragging, as child of player character, and left button just released:
+  toggle_equipped(Lib.player_character)
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="testWorld" type="Node2D" groups=["game_world"]]
 
 [node name="testingEnvironmentRocks" type="Node" parent="."]
 
@@ -926,8 +1101,135 @@ script = SubResource("GDScript_lfij1")
 
 [node name="healthStats" type="Node" parent="genericAdventurer1"]
 script = SubResource("GDScript_ukxk7")
-initial_max_hp = 100000.0
-initial_hp = 100000.0
+initial_max_hp = 1000.0
+initial_hp = 1000.0
+initial_hp_regen = 10.0
+
+[node name="templateUiStatDisplayElement" type="Control" parent="genericAdventurer1/healthStats"]
+visible = false
+custom_minimum_size = Vector2(59.135, 32)
+layout_mode = 3
+anchors_preset = 0
+offset_bottom = 32.0
+
+[node name="background" type="NinePatchRect" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("13_3jrfy")
+patch_margin_left = 3
+patch_margin_top = 3
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="hpLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 2
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 30.0
+offset_bottom = 29.0
+scale = Vector2(0.25, 0.25)
+text = "hp:"
+
+[node name="hpHBox" type="HBoxContainer" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 0
+offset_left = 15.9685
+offset_top = 2.93813
+offset_right = 86.9685
+offset_bottom = 28.9381
+scale = Vector2(0.25, 0.25)
+
+[node name="currentHpValueLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/hpHBox"]
+layout_mode = 2
+text = "500"
+
+[node name="hpSeparatorLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/hpHBox"]
+layout_mode = 2
+text = "/"
+
+[node name="maxHpValueLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/hpHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "500"
+
+[node name="hpRegenLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 2
+offset_left = 3.0
+offset_top = 8.4731
+offset_right = 35.0
+offset_bottom = 34.4731
+scale = Vector2(0.25, 0.25)
+text = "hpr:
+"
+
+[node name="regenHBox" type="HBoxContainer" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 0
+offset_left = 15.9685
+offset_top = 8.51768
+offset_right = 86.9685
+offset_bottom = 34.5177
+scale = Vector2(0.25, 0.25)
+
+[node name="hpRegenLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/regenHBox"]
+layout_mode = 2
+text = "500"
+
+[node name="hpPerSecLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/regenHBox"]
+layout_mode = 2
+text = "hp/s"
+
+[node name="adefLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 2
+offset_left = 3.0
+offset_top = 13.4731
+offset_right = 42.0
+offset_bottom = 39.4731
+scale = Vector2(0.25, 0.25)
+text = "adef:"
+
+[node name="adefHBox" type="HBoxContainer" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 0
+offset_left = 15.9685
+offset_top = 13.5177
+offset_right = 86.9685
+offset_bottom = 39.5177
+scale = Vector2(0.25, 0.25)
+
+[node name="adefValueLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/adefHBox"]
+layout_mode = 2
+text = "500"
+
+[node name="adefUnitsLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/adefHBox"]
+layout_mode = 2
+text = "hp"
+
+[node name="mdefLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 2
+offset_left = 3.0
+offset_top = 18.4731
+offset_right = 42.0
+offset_bottom = 44.4731
+scale = Vector2(0.25, 0.25)
+text = "mdef:"
+
+[node name="mdefHBox" type="HBoxContainer" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement"]
+layout_mode = 0
+offset_left = 15.9685
+offset_top = 18.5177
+offset_right = 86.9685
+offset_bottom = 44.5177
+scale = Vector2(0.25, 0.25)
+
+[node name="mdefValueLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/mdefHBox"]
+layout_mode = 2
+text = "500"
+
+[node name="mdefUnitsLabel" type="Label" parent="genericAdventurer1/healthStats/templateUiStatDisplayElement/mdefHBox"]
+layout_mode = 2
+text = "xhp"
 
 [node name="equipmentRestrictions" type="Node" parent="genericAdventurer1"]
 editor_description = "meta are like `equipment_class = max_equipped_gear_in_that_class`"
@@ -975,108 +1277,25 @@ texture = ExtResource("11_3edqv")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="produceShotGear" type="Node" parent="genericAdventurer1" groups=["ability", "gear", "main_attack"]]
-script = SubResource("GDScript_48n0u")
-cast_speed = 80.0
-max_attack_rate = 40
-shot_resource = ExtResource("18_3lt0f")
-
-[node name="makeGearUiCell" parent="genericAdventurer1/produceShotGear" instance=ExtResource("5_l30hf")]
-
-[node name="allowTogglingUiCell" parent="genericAdventurer1/produceShotGear/makeGearUiCell" instance=ExtResource("8_0sa1u")]
-
-[node name="templateGearCell" type="Control" parent="genericAdventurer1/produceShotGear/makeGearUiCell"]
-process_mode = 4
-visible = false
-z_index = 10
-custom_minimum_size = Vector2(10, 10)
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="textureRect" type="TextureRect" parent="genericAdventurer1/produceShotGear/makeGearUiCell/templateGearCell"]
-process_mode = 4
-z_index = 10
-custom_minimum_size = Vector2(10, 10)
-layout_mode = 1
-offset_right = 10.0
-offset_bottom = 10.0
-mouse_filter = 2
-texture = ExtResource("18_7yq6c")
-expand_mode = 1
-stretch_mode = 6
-
-[node name="toggledOn" type="ColorRect" parent="genericAdventurer1/produceShotGear/makeGearUiCell/templateGearCell"]
-z_index = -1
-layout_mode = 0
-offset_left = 1.0
-offset_top = -1.0
-offset_right = 9.0
-offset_bottom = 11.0
-color = Color(0.478431, 0.541176, 1, 0.592157)
+[node name="basicShotProducer" parent="genericAdventurer1" instance=ExtResource("7_pxipu")]
 
 [node name="basicArmor" parent="genericAdventurer1" instance=ExtResource("13_42vnk")]
 
-[node name="makeGearUiCell" parent="genericAdventurer1/basicArmor" instance=ExtResource("5_l30hf")]
-
-[node name="allowTogglingUiCell" parent="genericAdventurer1/basicArmor/makeGearUiCell" instance=ExtResource("8_0sa1u")]
-
-[node name="templateGearCell" type="Control" parent="genericAdventurer1/basicArmor/makeGearUiCell"]
-process_mode = 4
-visible = false
-z_index = 10
-custom_minimum_size = Vector2(10, 10)
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="textureRect" type="TextureRect" parent="genericAdventurer1/basicArmor/makeGearUiCell/templateGearCell"]
-process_mode = 4
-custom_minimum_size = Vector2(10, 10)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("8_gqx2d")
-expand_mode = 1
-stretch_mode = 6
-
-[node name="toggledOn" type="ColorRect" parent="genericAdventurer1/basicArmor/makeGearUiCell/templateGearCell"]
-visible = false
-z_index = -1
-layout_mode = 0
-offset_left = 1.0
-offset_top = -1.0
-offset_right = 9.0
-offset_bottom = 11.0
-color = Color(0.478431, 0.541176, 1, 0.592157)
-
-[node name="uiControl" type="Control" parent="genericAdventurer1"]
+[node name="playerUi" type="Control" parent="genericAdventurer1"]
 z_index = 1000
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -138.0
-offset_top = -76.0
-offset_right = 136.681
-offset_bottom = 74.486
+offset_left = -141.0
+offset_top = -77.0
+offset_right = 141.0
+offset_bottom = 78.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer1/uiControl"]
+[node name="bottomBar" type="HBoxContainer" parent="genericAdventurer1/playerUi"]
 custom_minimum_size = Vector2(0, 13)
 layout_mode = 1
 anchors_preset = 12
@@ -1092,7 +1311,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar"]
+[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar"]
 texture_filter = 1
 custom_minimum_size = Vector2(82, 0)
 layout_mode = 2
@@ -1105,23 +1324,31 @@ patch_margin_bottom = 2
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[node name="expanderButton" type="TextureButton" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
-visibility_layer = 2
-custom_minimum_size = Vector2(8, 8)
+[node name="hpBar" type="Control" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar"]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -6.0
-offset_right = 12.0
-offset_bottom = 6.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-toggle_mode = true
-texture_normal = ExtResource("20_k863q")
-stretch_mode = 5
 
-[node name="hpBar" type="ProgressBar" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/hpBar"]
+visibility_layer = 2
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 42.3419
+offset_bottom = 10.965
+texture = ExtResource("13_67e61")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/hpBar"]
+show_behind_parent = true
 visibility_layer = 2
 layout_mode = 0
 offset_left = 11.3419
@@ -1136,23 +1363,9 @@ theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_kexke")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/hpBar" instance=ExtResource("15_fbiw8")]
+[node name="syncRangeToCharacterStat" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/hpBar/hpBar" instance=ExtResource("15_fbiw8")]
 
-[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
-visibility_layer = 2
-layout_mode = 0
-offset_left = 11.3419
-offset_top = 1.96497
-offset_right = 42.3419
-offset_bottom = 10.965
-texture = ExtResource("13_67e61")
-region_rect = Rect2(0, 0, 16, 10)
-patch_margin_left = 6
-patch_margin_top = 3
-patch_margin_right = 6
-patch_margin_bottom = 3
-
-[node name="mpBar" type="Control" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar"]
+[node name="mpBar" type="Control" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar"]
 visibility_layer = 2
 anchors_preset = 0
 offset_left = 43.0
@@ -1161,7 +1374,7 @@ offset_right = 79.0
 offset_bottom = 11.0
 mouse_filter = 2
 
-[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar"]
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/mpBar"]
 visibility_layer = 2
 layout_mode = 1
 anchors_preset = 15
@@ -1176,7 +1389,7 @@ patch_margin_top = 3
 patch_margin_right = 6
 patch_margin_bottom = 3
 
-[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar"]
+[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/mpBar"]
 show_behind_parent = true
 visibility_layer = 2
 layout_mode = 0
@@ -1190,9 +1403,76 @@ theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dk5r0")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="genericAdventurer1/uiControl/bottomBar/hpMpBar/mpBar/ProgressBar" instance=ExtResource("15_fbiw8")]
+[node name="syncRangeToCharacterStat" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/mpBar/ProgressBar" instance=ExtResource("15_fbiw8")]
 
-[node name="gearBar" type="NinePatchRect" parent="genericAdventurer1/uiControl/bottomBar"]
+[node name="statDisplayAreaExpander" type="TextureRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar"]
+visibility_layer = 2
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("20_k863q")
+stretch_mode = 5
+
+[node name="watchAndPutStatUiElementsFromCharacterHere" type="Node" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander"]
+script = SubResource("GDScript_rmng7")
+
+[node name="statDisplayArea" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander"]
+process_mode = 4
+visible = false
+layout_mode = 2
+offset_left = -1.0
+offset_top = -68.014
+offset_right = 122.0
+offset_bottom = -1.01401
+texture = ExtResource("13_3jrfy")
+region_rect = Rect2(0, 0, 8, 8)
+patch_margin_left = 3
+patch_margin_top = 5
+patch_margin_right = 3
+patch_margin_bottom = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/statDisplayArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/statDisplayArea/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_scroll_mode = 0
+
+[node name="HFlowContainer" type="HFlowContainer" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/statDisplayArea/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Area2D" type="Area2D" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/Area2D"]
+position = Vector2(6.24365, 5.93908)
+shape = SubResource("RectangleShape2D_jif51")
+
+[node name="toggleNodeVisibilityOnClick" type="Node" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/Area2D" node_paths=PackedStringArray("node")]
+script = SubResource("GDScript_slqfr")
+node = NodePath("../../statDisplayArea")
+
+[node name="gearBar" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar"]
 texture_filter = 1
 layout_mode = 2
 size_flags_horizontal = 3
@@ -1205,10 +1485,10 @@ patch_margin_bottom = 2
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[node name="mirrorContainerGearNodesToNode" parent="genericAdventurer1/uiControl/bottomBar/gearBar" node_paths=PackedStringArray("cell_container") instance=ExtResource("16_xla0x")]
+[node name="mirrorContainerGearNodesToNode" parent="genericAdventurer1/playerUi/bottomBar/gearBar" node_paths=PackedStringArray("cell_container") instance=ExtResource("16_xla0x")]
 cell_container = NodePath("../MarginContainer/ScrollContainer/HBoxContainer")
 
-[node name="templateCellHolder" type="Control" parent="genericAdventurer1/uiControl/bottomBar/gearBar/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
+[node name="templateCellHolder" type="Control" parent="genericAdventurer1/playerUi/bottomBar/gearBar/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
 process_mode = 4
 visible = false
 custom_minimum_size = Vector2(10, 10)
@@ -1218,7 +1498,7 @@ offset_right = 10.0
 offset_bottom = 10.0
 mouse_filter = 2
 
-[node name="background" type="ColorRect" parent="genericAdventurer1/uiControl/bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
+[node name="background" type="ColorRect" parent="genericAdventurer1/playerUi/bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1229,13 +1509,13 @@ mouse_filter = 2
 color = Color(0.905882, 0.690196, 0.619608, 1)
 metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
 
-[node name="Area2D" type="Area2D" parent="genericAdventurer1/uiControl/bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
+[node name="Area2D" type="Area2D" parent="genericAdventurer1/playerUi/bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1/uiControl/bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1/playerUi/bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
 position = Vector2(5, 5)
 shape = SubResource("RectangleShape2D_ssi3t")
 
-[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar"]
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/playerUi/bottomBar/gearBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1248,14 +1528,14 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/playerUi/bottomBar/gearBar/MarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 theme = SubResource("Theme_nk3tk")
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="genericAdventurer1/uiControl/bottomBar/gearBar/MarginContainer/ScrollContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="genericAdventurer1/playerUi/bottomBar/gearBar/MarginContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
@@ -1380,23 +1660,7 @@ texture = ExtResource("11_3edqv")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="basicArmor2" parent="basicLootBag" instance=ExtResource("13_42vnk")]
-
-[node name="makeGearUiCell" parent="basicLootBag/basicArmor2" instance=ExtResource("5_l30hf")]
-
-[node name="templateGearCell" type="TextureRect" parent="basicLootBag/basicArmor2/makeGearUiCell"]
-process_mode = 4
-visible = false
-custom_minimum_size = Vector2(10, 10)
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("8_gqx2d")
-expand_mode = 1
-stretch_mode = 6
+[node name="basicArmor" parent="basicLootBag" instance=ExtResource("13_42vnk")]
 
 [connection signal="body_entered" from="genericEnemy4/targetNearestNonfaction2" to="genericEnemy4/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_entered"]
 [connection signal="body_exited" from="genericEnemy4/targetNearestNonfaction2" to="genericEnemy4/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_exited"]

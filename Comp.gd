@@ -64,13 +64,6 @@ func get_prop(obj: Object, prop: String, default: Variant = null) -> Variant:
     return default
 
 
-func set_prop(obj: Object, prop: String, value: Variant):
-  if prop in obj:
-    Watch.set_object_prop(obj, prop, value)
-  else:
-    Watch.set_object_meta(obj, prop, value)
-
-
 func satisfy_call_when_has_prop(obj: Object, prop: String, fn: Callable):
   fn.call()
   Watch.stop_calling_on_set_meta(obj, prop, satisfy_call_when_has_prop.bind(obj, prop, fn))
@@ -90,6 +83,32 @@ func stop_calling_when_has_prop(obj: Object, prop: String, fn: Callable):
   Watch.stop_calling_on_set_meta(obj, prop, satisfy_call_when_has_prop.bind(obj, prop, fn))
 
 
+
+func call_on_set_prop(obj: Object, prop: String, fn: Callable):
+  if not obj.has_meta('watch_call_on_set_prop'):
+    obj.set_meta('watch_call_on_set_prop', {})
+  var callable_array = obj.get_meta('watch_call_on_set_prop')
+  Watch.add_callable_to_dict(callable_array, prop, fn)
+
+func call_on_set_prop_and_now(obj: Object, prop: String, fn: Callable):
+  fn.call()
+  call_on_set_prop(obj, prop, fn)
+  
+func stop_calling_on_set_prop(obj: Object, prop: String, fn: Callable):
+  if not obj.has_meta('watch_call_on_set_prop'):
+    return
+  var callable_array = obj.get_meta('watch_call_on_set_prop')
+  Watch.remove_callable_from_dict(callable_array, prop, fn)
+
+func set_prop(obj: Object, prop: String, value: Variant):
+  if prop in obj:
+    Watch.set_object_prop(obj, prop, value)
+  else:
+    Watch.set_object_meta(obj, prop, value)
+  if not obj.has_meta('watch_call_on_set_prop'):
+    return
+  var callable_array = obj.get_meta('watch_call_on_set_prop')
+  Watch.call_callable(callable_array, prop, [])
 
 
 
