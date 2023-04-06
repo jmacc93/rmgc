@@ -1,0 +1,90 @@
+[gd_scene load_steps=4 format=3 uid="uid://c5pmsvltyenpc"]
+
+[ext_resource type="PackedScene" uid="uid://bn4b3ukcc2bdv" path="res://testingWorld.tscn" id="1_iqyp2"]
+[ext_resource type="PackedScene" uid="uid://con7anbdmqj31" path="res://gameUniverseSubViewport.tscn" id="1_vn6w6"]
+
+[sub_resource type="GDScript" id="GDScript_be2qu"]
+script/source = "extends Control
+
+
+var subviewport = preload(\"res://gameUniverseSubViewport.tscn\")
+
+
+
+func open_world(world_scene_file: String, use_already_open = true):
+  if use_already_open:
+    for child in get_children():
+      if not (child is SubViewport):
+        continue
+      var viewport_world_child = Lib.get_first_immediate_child_in_group(child, 'game_world')
+      var world_file = Comp.get_prop(viewport_world_child, 'from_file', '')
+      if world_file == world_scene_file:
+        return viewport_world_child
+  
+  var new_viewport = subviewport.instantiate()
+  add_child(new_viewport)
+  
+  var new_world = load(world_scene_file).instantiate()
+  new_world.add_to_group('game_world')
+  Comp.set_prop(new_world, 'from_file', world_scene_file)
+  if new_world == null:
+    return null
+  new_viewport.add_child(new_world)
+  return new_world
+
+
+func set_visible_world(world: Node):
+  var viewport_container = $SubViewportContainer
+  var current_viewport = Lib.get_first_immediate_child_with_class(viewport_container, 'SubViewport')
+  var world_viewport = world.get_parent()
+  
+  current_viewport.reparent(self)
+  world_viewport.reparent(viewport_container)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="gameUniverse" type="Control" groups=["game_universe"]]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = SubResource("GDScript_be2qu")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="gameUniverseSubViewport" parent="SubViewportContainer" instance=ExtResource("1_vn6w6")]
+
+[node name="testWorld" parent="SubViewportContainer/gameUniverseSubViewport" instance=ExtResource("1_iqyp2")]

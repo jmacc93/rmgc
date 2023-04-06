@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3 uid="uid://con7anbdmqj31"]
+
+[sub_resource type="GDScript" id="GDScript_0dee0"]
+script/source = "extends Node
+
+var container: Container
+var parent: Viewport
+
+
+func _enter_tree():
+  container = Lib.get_parent_with_class(self, 'Container')
+  if container == null:
+    return
+  container.resized.connect(on_resized)
+  on_resized()
+
+
+func _exit_tree():
+  container = Lib.get_parent_with_class(self, 'Container')
+  if container == null:
+    return
+  container.resized.disconnect(on_resized)
+
+
+func on_resized():
+  get_parent().size = container.size
+"
+
+[node name="SubViewport" type="SubViewport"]
+handle_input_locally = false
+canvas_item_default_texture_filter = 0
+render_target_update_mode = 4
+
+[node name="setViewportDimensionsToContainerDimensions" type="Node" parent="."]
+script = SubResource("GDScript_0dee0")

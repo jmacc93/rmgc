@@ -50,7 +50,7 @@ func getmeta(obj: Object, prop: String, default: Variant = null) -> Variant:
 
 
 func has_prop(obj: Object, prop: String) -> bool:
-  return ((prop in obj) or obj.has_meta(prop))
+  return ((prop in obj) or obj.has_meta(prop) or obj.has_method(prop))
 
 
 func get_prop(obj: Object, prop: String, default: Variant = null) -> Variant:
@@ -93,12 +93,14 @@ func call_on_set_prop(obj: Object, prop: String, fn: Callable):
 func call_on_set_prop_and_now(obj: Object, prop: String, fn: Callable):
   fn.call()
   call_on_set_prop(obj, prop, fn)
+
   
 func stop_calling_on_set_prop(obj: Object, prop: String, fn: Callable):
   if not obj.has_meta('watch_call_on_set_prop'):
     return
   var callable_array = obj.get_meta('watch_call_on_set_prop')
   Watch.remove_callable_from_dict(callable_array, prop, fn)
+
 
 func set_prop(obj: Object, prop: String, value: Variant):
   if prop in obj:
@@ -110,6 +112,17 @@ func set_prop(obj: Object, prop: String, value: Variant):
   var callable_array = obj.get_meta('watch_call_on_set_prop')
   Watch.call_callable(callable_array, prop, [])
 
+
+#remove meta values and set real properties to default
+func remove_prop(obj: Object, prop: String, default = null):
+  if prop in obj:
+    Watch.set_object_prop(obj, prop, default)
+  else:
+    Watch.remove_object_meta(obj, prop)
+  if not obj.has_meta('watch_call_on_remove_prop'):
+    return
+  var callable_array = obj.get_meta('watch_call_on_remove_prop')
+  Watch.call_callable(callable_array, prop, [])
 
 
 

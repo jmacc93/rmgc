@@ -1,4 +1,4 @@
-[gd_scene load_steps=137 format=3 uid="uid://c7uj8ms18c2ge"]
+[gd_scene load_steps=144 format=3 uid="uid://c7uj8ms18c2ge"]
 
 [ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_mg3gl"]
 [ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="2_0f1mu"]
@@ -34,6 +34,8 @@
 [ext_resource type="PackedScene" uid="uid://yn2hfhus4y1p" path="res://items/mirrorParentGearNodesHere.tscn" id="32_d87xt"]
 [ext_resource type="PackedScene" uid="uid://dt0l2qsjnfbnb" path="res://items/basicLootBag.tscn" id="33_6g6co"]
 [ext_resource type="Texture2D" uid="uid://2ik0r18qqcdc" path="res://items/basic-loot-bag.png" id="34_oxwld"]
+[ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="35_ssfj1"]
+[ext_resource type="PackedScene" uid="uid://dxyw0xj7631nd" path="res://environment/worlds/ashlands/ashlandsWorld.tscn" id="36_vrir7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tsxmw"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -2434,6 +2436,109 @@ func on_direct_mouse_event(event: InputEventMouse):
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pqmp8"]
 size = Vector2(6, 6)
 
+[sub_resource type="GDScript" id="GDScript_gpgj4"]
+script/source = "extends Node
+
+func _enter_tree():
+  var parent = get_parent() as Sprite2D
+  var noisemask = parent.material.get_shader_parameter(\"noisemask\")
+  noisemask.noise.seed = randi()
+  prints('lavaDecoration.randomizeNoiseSeed', noisemask.noise.seed)
+  
+"
+
+[sub_resource type="GDScript" id="GDScript_u8d6p"]
+script/source = "extends Node
+
+@export_dir var directory: String
+
+func _enter_tree():
+  if directory == '':
+    push_error('No directory given')
+    return
+  
+  var dir_access = DirAccess.open(directory)
+  var file_list = []
+  for possible_file in dir_access.get_files():
+    if possible_file.ends_with('png') or possible_file.ends_with('jpg') or possible_file.ends_with('jpeg'):
+      file_list.push_back(possible_file)
+  var file = Lib.pick_random_from(file_list)
+  if file == null:
+    push_error('No files found to select from')
+    return
+  
+  var file_image
+  var file_resource = load(directory + '/' + file)
+  if file_resource is Texture2D:
+    file_image = file_resource.get_image()
+  elif file_resource is Image:
+    file_image = file_resource
+  else:
+    push_error('File resource type is unrecognized ', file_resource)
+    return
+  
+  var parent = get_parent()
+  var parent_image = parent.texture.get_image()
+  
+  if parent_image.get_size() != file_image.get_size():
+    push_error('Mask size doesnt match parent image size')
+    return
+  
+  for i in range(0, parent_image.get_width()):
+    for j in range(0, parent_image.get_height()):
+      var file_color = file_image.get_pixel(i, j)
+      var parent_color = parent_image.get_pixel(i, j)
+      parent_image.set_pixel(i, j, Color(parent_color.r, parent_color.g, parent_color.b, file_color.r * parent_color.a))
+  
+  parent.texture.set_data(parent_image)
+
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2bdni"]
+size = Vector2(12, 8)
+
+[sub_resource type="GDScript" id="GDScript_buqvs"]
+script/source = "extends Node
+
+
+func _enter_tree():
+  var parent = get_parent()
+  parent.body_entered.connect(on_body_entered)
+  parent.body_exited.connect(on_body_exited)
+
+
+func _exit_tree():
+  var parent = get_parent()
+  parent.body_entered.disconnect(on_body_entered)
+  parent.body_exited.disconnect(on_body_exited)
+
+
+func on_body_entered(body: Node2D):
+  prints('reportWhenTouched.. entered')
+
+
+func on_body_exited(body: Node2D):
+  prints('reportWhenTouched.. exited')
+
+"
+
+[sub_resource type="GDScript" id="GDScript_lsl0m"]
+script/source = "extends Node
+
+var container: Container
+var parent: Viewport
+
+
+func _ready():
+  container = Lib.get_parent_with_class(self, 'Container')
+  container.resized.connect(on_resized)
+  on_resized()
+
+
+func on_resized():
+  get_parent().size = container.size
+"
+
 [node name="saved_nodes" type="Node"]
 
 [node name="genericAdventurer1" parent="." instance=ExtResource("1_mg3gl")]
@@ -3729,6 +3834,77 @@ size_flags_vertical = 3
 mouse_filter = 2
 
 [node name="mirrorParentGearNodesHere" parent="basicLootBag/inventoryDisplay2/MarginContainer/ScrollContainer/FlowContainer" instance=ExtResource("32_d87xt")]
+
+[node name="randomizeNoiseSeed" type="Node" parent="."]
+script = SubResource("GDScript_gpgj4")
+
+[node name="alphaMaskParentTextureWithMaskFromDirectory" type="Node" parent="."]
+script = SubResource("GDScript_u8d6p")
+
+[node name="testingEnvironmentRocks" type="Node" parent="."]
+
+[node name="smallRock1" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-59.5686, -55.1942)
+
+[node name="smallRock2" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(19.2739, -64.033)
+
+[node name="smallRock3" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(64.8822, 8.799)
+
+[node name="smallRock4" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(57.4576, -39.9914)
+
+[node name="smallRock5" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-85.378, -27.2635)
+
+[node name="smallRock6" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(52.8615, 42.7401)
+
+[node name="smallRock8" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(24.9307, 62.5391)
+
+[node name="smallRock9" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-4.06067, 74.5599)
+
+[node name="smallRock10" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-42.2444, 63.5998)
+
+[node name="smallRock11" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-75.1249, 40.2652)
+
+[node name="smallRock12" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-91.3884, 5.97055)
+
+[node name="smallRock13" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-30.5772, -0.039856)
+
+[node name="smallRock7" parent="testingEnvironmentRocks" instance=ExtResource("35_ssfj1")]
+position = Vector2(-27.7488, -69.6899)
+
+[node name="ashlandsWorld" parent="." instance=ExtResource("36_vrir7")]
+
+[node name="ashlandsWorld2" parent="." instance=ExtResource("36_vrir7")]
+
+[node name="reportWhenTouched" type="Area2D" parent="."]
+position = Vector2(-25, -8)
+collision_layer = 0
+collision_mask = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="reportWhenTouched"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_2bdni")
+
+[node name="reportWhenTouched" type="Node" parent="reportWhenTouched"]
+script = SubResource("GDScript_buqvs")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+handle_input_locally = false
+canvas_item_default_texture_filter = 0
+render_target_update_mode = 4
+
+[node name="setViewportDimensionsToContainerDimensions" type="Node" parent="SubViewport"]
+script = SubResource("GDScript_lsl0m")
 
 [connection signal="body_entered" from="genericEnemy3/targetNearestNonfaction2" to="genericEnemy3/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_entered"]
 [connection signal="body_exited" from="genericEnemy3/targetNearestNonfaction2" to="genericEnemy3/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_exited"]

@@ -11,47 +11,61 @@ var parent_container
 
 @export var loot_bag_scene: PackedScene
 
+@export var parent_ui: Node
 
-func _enter_tree():
-  parent_container = Lib.get_parent_in_group(self, 'gear_container')
-  if parent_container == null:
-    push_error('No parent found in group gear_container')
-    return
-  
-  if cell_container == null:
-    push_error('No cell container export variable given')
-    return
-  
-  #for future gear nodes:
-  parent_container.child_entered_tree.connect(on_added_container_node)
-  
-  (func(): 
-    #add cell holders to hboxcontainer
-    var cell_holder_template = get_node('templateCellHolder')
-    var cell_count = Comp.get_prop(parent_container, 'ui_gear_cells', 6)
-    for i in range(0, cell_count):
-      var new_cell_holder = cell_holder_template.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
-      new_cell_holder.visible = true
-      new_cell_holder.process_mode = Node.PROCESS_MODE_INHERIT
-      new_cell_holder.add_to_group('ui_cell_holder')
-      Comp.set_prop(new_cell_holder, 'get_parent_container', func(): return parent_container)
-      var click_area = new_cell_holder.get_node('Area2D')
-      Comp.set_prop(click_area, 'on_direct_mouse_event', holder_on_direct_mouse_event.bind(new_cell_holder))
-      Comp.set_prop(click_area, 'own_dragging_started', holder_own_dragging_started.bind(new_cell_holder))
-      Comp.set_prop(click_area, 'own_dragging_ended', holder_own_dragging_ended.bind(new_cell_holder))
-      cell_container.add_child(new_cell_holder)
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      (func(): 
+        parent_container = Lib.get_parent_in_group(self, 'gear_container')
+        if parent_container == null:
+          push_error('No parent found in group gear_container')
+          return
+        
+        if cell_container == null:
+          push_error('No cell container export variable given')
+          return
+        
+        parent_ui.tree_exited.connect(disengage_from_container)
+        
+        #add cell holders to hboxcontainer
+        var cell_count = Comp.get_prop(parent_container, 'ui_gear_cells', 6)
+        for i in range(0, cell_count):
+          make_new_holder_child()
+        
+        #add current gear ndoes:
+        for possible_gear_node in parent_container.get_children():
+          if not possible_gear_node.is_in_group('gear'):
+            continue
+          on_added_container_node(possible_gear_node)
+        
+        #for future gear nodes:
+        parent_container.child_entered_tree.connect(on_added_container_node)
+      ).call_deferred()
     
-    #add current gear ndoes:
-    for possible_gear_node in parent_container.get_children():
-      if not possible_gear_node.is_in_group('gear'):
-        continue
-      on_added_container_node(possible_gear_node)
-  ).call_deferred()
+    NOTIFICATION_UNPARENTED:
+      disengage_from_container()
 
 
-func _exit_tree():
-  Comp.set_prop(parent_container, 'add_gear_ui_cell', null)
+func disengage_from_container():
+  if parent_ui.get_parent() == parent_container:
+    return #ui not unparented; probably higher parent left tree
   parent_container.child_entered_tree.disconnect(on_added_container_node)
+
+
+func make_new_holder_child():
+  var cell_holder_template = $templateCellHolder
+  var new_cell_holder = cell_holder_template.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+  new_cell_holder.visible = true
+  new_cell_holder.process_mode = Node.PROCESS_MODE_INHERIT
+  new_cell_holder.add_to_group('ui_cell_holder')
+  Comp.set_prop(new_cell_holder, 'get_parent_container', func(): return parent_container)
+  var click_area = new_cell_holder.get_node('Area2D')
+  Comp.set_prop(click_area, 'on_direct_mouse_event', holder_on_direct_mouse_event.bind(new_cell_holder))
+  Comp.set_prop(click_area, 'own_dragging_started', holder_own_dragging_started.bind(new_cell_holder))
+  Comp.set_prop(click_area, 'own_dragging_ended', holder_own_dragging_ended.bind(new_cell_holder))
+  cell_container.add_child(new_cell_holder)
 
 
 func on_added_container_node(new_node: Node):
@@ -194,7 +208,7 @@ func holder_own_dragging_ended(_max_z_collider, holder_node: Node):
   if game_world == null:
     push_error('No game_world group parent to place loot bag droo')
     return
-  var new_loot_bag = (loot_bag_scene if loot_bag_scene else Lib.default_loot_bag).instantiate()
+  var new_loot_bag = (loot_bag_scene if loot_bag_scene else Game.default_loot_bag).instantiate()
   new_loot_bag.global_position = Lib.player_character.get_global_mouse_position()
   gear_node.reparent(new_loot_bag)
   game_world.add_child(new_loot_bag)

@@ -76,6 +76,30 @@ func set_object_meta(obj: Object, key: String, value: Variant):
 
 
 
+func call_on_remove_meta(obj: Object, key: String, fn: Callable):
+  var callable_array
+  if not obj.has_meta('watch_call_on_remove_meta'):
+    obj.set_meta('watch_call_on_remove_meta', {})
+    callable_array = obj.get_meta('watch_call_on_remove_meta')
+  else:
+    callable_array = obj.get_meta('watch_call_on_remove_meta')
+  add_callable_to_dict(callable_array, key, fn)
+  
+func stop_calling_on_remove_meta(obj: Object, key: String, fn: Callable):
+  if not obj.has_meta('watch_call_on_remove_meta'):
+    return
+  var callable_array = obj.get_meta('watch_call_on_remove_meta')
+  remove_callable_from_dict(callable_array, key, fn)
+
+func remove_object_meta(obj: Object, key: String):
+  obj.remove_meta(key)
+  if not obj.has_meta('watch_call_on_remove_meta'):
+    return
+  var callable_array = obj.get_meta('watch_call_on_remove_meta')
+  call_callable(callable_array, key, [])
+
+
+
 func satisfy_call_when_has_meta(obj: Object, key: String, fn: Callable):
   fn.call()
   stop_calling_on_set_meta(obj, key, satisfy_call_when_has_meta.bind(obj, key, fn))

@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://d1anohsr446dl"]
+
+[ext_resource type="Script" path="res://environment/Wall.gd" id="1_nb20t"]
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="2_4nwyb"]
+[ext_resource type="Texture2D" uid="uid://d4kbe6xikkoo8" path="res://environment/small-bush-1.png" id="3_b8ng2"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(8, 8)
+
+[node name="smallObject" type="StaticBody2D"]
+script = ExtResource("1_nb20t")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+material = ExtResource("2_4nwyb")
+texture = ExtResource("3_b8ng2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
+shape = SubResource("1")

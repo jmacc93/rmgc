@@ -4,29 +4,34 @@
 script/source = "extends Node
 
 var gear_node_parent #should be parent
-var container_parent #should be grandparent
 
 var retain_active_gear_cell = false
 
 var active_gear_cell : Control = null
-func _enter_tree():
-  gear_node_parent = get_parent()
-  if gear_node_parent == null:
-    push_error('No gear node parent')
-    return
-  
-  container_parent = gear_node_parent.get_parent()
-  if container_parent == null:
-    push_error('No container or character grandparent')
-    return
-  
-  Comp.set_prop(gear_node_parent, 'make_ui_cell', make_ui_cell)
-  
-  if not gear_node_parent.tree_exited.is_connected(on_exit_tree):
-    gear_node_parent.tree_exited.connect(on_exit_tree)
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      gear_node_parent = get_parent()
+      if gear_node_parent == null:
+        push_error('No gear node parent')
+        return
+      
+      Comp.set_prop(gear_node_parent, 'make_ui_cell', make_ui_cell)
+      
+      if not gear_node_parent.tree_exited.is_connected(on_gear_exit_tree):
+        gear_node_parent.tree_exited.connect(on_gear_exit_tree)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(gear_node_parent, 'make_ui_cell')
+      if gear_node_parent.tree_exited.is_connected(on_gear_exit_tree):
+        gear_node_parent.tree_exited.disconnect(on_gear_exit_tree)
 
 
-func on_exit_tree():
+func on_gear_exit_tree():
+  if gear_node_parent.get_parent() != null:
+    return #gear node wasn't unparented
+
   if retain_active_gear_cell:
     retain_active_gear_cell = false
     return
@@ -35,6 +40,8 @@ func on_exit_tree():
 
 
 func make_ui_cell():
+  if get_parent().name == 'produceShotGear':
+    prints('produceShotGear makeGearUiCell')
   var cell = $templateGearCell.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
   cell.process_mode = Node.PROCESS_MODE_INHERIT
   cell.visible = true

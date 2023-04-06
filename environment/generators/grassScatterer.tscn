@@ -1,0 +1,108 @@
+[gd_scene load_steps=2 format=3 uid="uid://ohxxvbakgamo"]
+
+[sub_resource type="GDScript" id="GDScript_d0xty"]
+script/source = "extends Node2D
+
+@export_enum(\"Here\", \"ParentGameWorld\") var where = \"ParentGameWorld\"
+
+@export_enum(\"Binormal\", \"Uniform\") var distribution = \"Binormal\"
+
+@export_range(0.2, 5.0) var binormal_exp = 2.0
+
+@export var object_init_props: Dictionary
+
+@export var spread = 1.0
+
+@export var count = 10
+
+@export var scene_pool : Array
+var bias_list: Array
+
+func _ready():
+  if process_mode == PROCESS_MODE_DISABLED:
+    return
+  
+  (func():
+    add_children_to_scene_pool()
+    
+    if scene_pool.size() == 0:
+      return
+    
+    calculate_bias_list()
+    
+    for i in range(0, count):
+      generate_one_child()
+    
+  ).call_deferred()
+
+
+func add_children_to_scene_pool():
+  for child in get_children():
+    if not child.name.begins_with('template'):
+      continue
+    var scene = Lib.make_scene_from_node(child)
+    scene_pool.push_back([scene, Comp.get_prop(child, 'generation_bias', 0.0)])
+    remove_child(child)
+
+
+func calculate_bias_list():
+  bias_list = []
+  var bias_sum = 0.0
+  for resource_obj in scene_pool: #resource_obj is either resource, or [resource, bias value on [-inf, inf]]
+    if resource_obj is Array:
+      bias_sum += exp(resource_obj[1])
+    else:
+      bias_sum += 1.0
+  for resource_obj in scene_pool:
+    if resource_obj is Array:
+      bias_list.push_back(exp(resource_obj[1]) / bias_sum)
+    else:
+      bias_list.push_back(1.0 / bias_sum)
+
+
+func generate_one_child():
+  var random_selection = Lib.random_index_with_probs(bias_list)
+  var template_or_array = scene_pool[random_selection]
+  var template
+  if template_or_array is Array:
+    template = template_or_array[0]
+  else:
+    template = template_or_array
+
+  var new_scene
+  if template is PackedScene:
+    new_scene = template.instantiate()
+  elif template is Node2D:
+    new_scene = template.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+  
+  for key in object_init_props.keys():
+    var value = object_init_props.get(key)
+    Comp.set_prop(new_scene, key, value)
+  
+  new_scene.z_index = z_index
+
+  match where:
+    \"Here\": 
+      add_child(new_scene)
+    \"ParentGameWorld\": 
+      var game_world = Lib.get_parent_in_group(self, 'game_world')
+      if game_world != null:
+        game_world.add_child(new_scene)
+      else:
+        add_child(new_scene)
+  
+  match distribution:
+    \"Binormal\": new_scene.global_position = global_position + Lib.rand_binormal_vec(spread, binormal_exp)
+    \"Uniform\":  new_scene.global_position = global_position + Lib.rand_vec(spread)
+  
+"
+
+[node name="scatterObjectPlacer" type="Node2D"]
+editor_description = "Scatters the given scene_pool scenes using a binormal or uniform distribution
+
+binormal_exp is parameter for binormal distribution, and is roughly how the distribution density falls off with distance from the origin
+
+scene_pool can have members like [scene, bias] where bias is the log of the unnormalized probability of that item being selected. Just think of it like a relative score, higher scores are much more likely to be selected
+
+The `where` property determines where the new generated children are placed. ParentGameWorld looks for the closest parent in the group `game_world` (there *should* always be one of these), and `Here` means add the children to the object placer itself"
+script = SubResource("GDScript_d0xty")

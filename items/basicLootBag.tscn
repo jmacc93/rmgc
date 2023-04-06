@@ -8,14 +8,15 @@
 script/source = "extends Node
 
 
-func _enter_tree():
-  if count_gear_nodes() == 0:
-    destroy_parent.call_deferred()
-  get_parent().child_exiting_tree.connect(on_child_exiting)
-
-
-func _exit_tree():
-  get_parent().child_exiting_tree.disconnect(on_child_exiting)
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      if count_gear_nodes() == 0:
+        destroy_parent.call_deferred()
+      get_parent().child_exiting_tree.connect(on_child_exiting)
+    
+    NOTIFICATION_UNPARENTED:
+      get_parent().child_exiting_tree.disconnect(on_child_exiting)
 
 
 func count_gear_nodes():
@@ -99,8 +100,9 @@ offset_right = 37.2212
 offset_bottom = -6.0
 mouse_filter = 2
 
-[node name="mirrorContainerGearNodesToNode" parent="inventoryDisplay" node_paths=PackedStringArray("cell_container") instance=ExtResource("2_kdupq")]
+[node name="mirrorContainerGearNodesToNode" parent="inventoryDisplay" node_paths=PackedStringArray("cell_container", "parent_ui") instance=ExtResource("2_kdupq")]
 cell_container = NodePath("../MarginContainer/ScrollContainer/FlowContainer")
+parent_ui = NodePath("..")
 
 [node name="templateCellHolder" type="Control" parent="inventoryDisplay/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
 process_mode = 4

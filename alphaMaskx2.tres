@@ -1,0 +1,16 @@
+[gd_resource type="Shader" format=3 uid="uid://b310fdwg2tkvl"]
+
+[resource]
+code = "shader_type canvas_item;
+
+uniform sampler2D mask1: filter_nearest;
+uniform sampler2D mask2: filter_nearest;
+
+void fragment() {
+  vec4 color = texture(TEXTURE, UV);
+  vec4 mask1_color = texture(mask1, UV);
+  vec4 mask2_color = texture(mask2, UV);
+  
+  COLOR = vec4(color.r, color.g, color.b, mask1_color.r * mask2_color.r);
+}
+"

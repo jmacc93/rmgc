@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://denlwjbxajghs"]
+
+[sub_resource type="GDScript" id="GDScript_dajsk"]
+script/source = "extends Node
+
+@export_dir var directory: String
+
+var alpha_mask_shader = preload(\"res://alphaMask.gdshader\")
+
+func _ready():
+  var file_resource = Lib.random_texture2d_from(directory)
+  
+  var material = ShaderMaterial.new()
+  material.shader = alpha_mask_shader.duplicate(true)
+  material.set_shader_parameter('mask', file_resource)
+  
+  get_parent().material = material
+"
+
+[node name="alphaMaskParentWithShaderAndMaskFromFile" type="Node"]
+script = SubResource("GDScript_dajsk")
+directory = "res://masks/noise_blob_masks_x64/circle_rough"

@@ -1,0 +1,21 @@
+[gd_resource type="Shader" format=3 uid="uid://cmkyblbeksjdh"]
+
+[resource]
+code = "shader_type canvas_item;
+
+uniform sampler2D mask: filter_nearest;
+uniform sampler2D noisemask: filter_nearest;
+
+uniform vec2 offset;
+
+uniform vec2 nmult = vec2(16,16);
+
+void fragment() {
+  vec4 color = texture(TEXTURE, UV);
+  vec4 mask_color = texture(mask, UV);
+  vec2 UV_pixels = round(UV / (SCREEN_PIXEL_SIZE * nmult)) * (SCREEN_PIXEL_SIZE * nmult);
+  vec4 noisemask_color = round(texture(noisemask, UV_pixels));
+  
+  COLOR = vec4(color.r, color.g, color.b, mask_color.r * noisemask_color.r);
+}
+"

@@ -1,10 +1,10 @@
-[gd_scene load_steps=59 format=3 uid="uid://hhs58d72uxws"]
+[gd_scene load_steps=67 format=3 uid="uid://bn4b3ukcc2bdv"]
 
-[ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://bem8plj6aujpv" path="res://environment/worlds/homeWorld/homeWorld.tscn" id="1_lxujv"]
+[ext_resource type="Texture2D" uid="uid://cj1g06b45yc1h" path="res://characters/playableCharacters/assets/generic-adventurer-1.png" id="3_xe77s"]
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="5_l30hf"]
 [ext_resource type="PackedScene" uid="uid://cq7jkqg3pv2o8" path="res://abilities/shots/basicSwipe_old.tscn" id="7_lsa8w"]
-[ext_resource type="PackedScene" uid="uid://2dl7owj1fh7" path="res://abilities/basicShotProducer.tscn" id="7_pxipu"]
-[ext_resource type="Texture2D" uid="uid://c3g1asnhn1qqp" path="res://environment/backgrounds/grass-2.png" id="8"]
+[ext_resource type="PackedScene" uid="uid://2dl7owj1fh7" path="res://items/basicShotProducer.tscn" id="7_pxipu"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="9"]
 [ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://copyMetaToParent.tscn" id="9_5j7tr"]
 [ext_resource type="Script" path="res://basicWeaponAttackAbility.gd" id="10"]
@@ -14,7 +14,6 @@
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="13_3jrfy"]
 [ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="13_42vnk"]
 [ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="13_67e61"]
-[ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="14"]
 [ext_resource type="PackedScene" uid="uid://dn8ekob6hhfv4" path="res://ui/syncRangeToCharacterStat.tscn" id="15_fbiw8"]
 [ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="16_xla0x"]
 [ext_resource type="PackedScene" uid="uid://bc4u5p3urh3h6" path="res://abilities/shots/basicSwipe2.tscn" id="18_3lt0f"]
@@ -24,16 +23,70 @@
 [ext_resource type="Script" path="res://compositeNode.gd" id="20_g5gm6"]
 [ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/expander.png" id="20_k863q"]
 [ext_resource type="Texture2D" uid="uid://btel35amx7ar0" path="res://white_point.png" id="24_0mrmr"]
+[ext_resource type="Texture2D" uid="uid://clpocpxfts7x5" path="res://environment/small_world_portal.png" id="25_c6dml"]
+[ext_resource type="PackedScene" path="res://environment/lavaDecoration.tscn" id="26_4pgg4"]
+
+[sub_resource type="GDScript" id="GDScript_cdjwg"]
+script/source = "extends Node
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      Comp.set_prop(get_parent(), 'changed_worlds', changed_worlds)
+    NOTIFICATION_UNPARENTED:
+      Comp.set_prop(get_parent(), 'changed_worlds', null)
+      
+
+func changed_worlds():
+  prints('Character added to world', Lib.get_parent_in_group(self, 'game_world'))  
+  var universe = Lib.get_parent_in_group(self, 'game_universe')
+  var current_world = Lib.get_parent_in_group(self, 'game_world')
+  
+  universe.set_visible_world(current_world)
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_2u4m4"]
+script/source = "extends Area2D
+
+
+func _input(event: InputEvent):
+  if not event.is_action_released('interact'):
+    return
+  
+  prints('calling interact')
+  
+  for body in get_overlapping_bodies():
+    if Comp.run_method(body, 'interact', [get_parent()]):
+      return
+  for area in get_overlapping_areas():
+    if Comp.run_method(area, 'interact', [get_parent()]):
+      return
+
+
+
+
+
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_leme8"]
+size = Vector2(12, 12)
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(8, 8)
 
 [sub_resource type="GDScript" id="GDScript_wl53u"]
 script/source = "extends Node2D
 
-func _enter_tree():
-  Lib.player_character = get_parent()
-
-func _exit_tree():
-  Lib.player_character = null
-
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      Lib.player_character = get_parent()
+    
+    NOTIFICATION_UNPARENTED:
+      Lib.player_character = null
+      
 "
 
 [sub_resource type="GDScript" id="GDScript_a6mdq"]
@@ -46,17 +99,25 @@ script/source = "extends Node
 var last_velocity : Vector2
 
 
-func _enter_tree():
-  var parent = get_parent()
-  if not ('velocity' in parent):
-    push_error('No velocity in parent')
-    return
-  if not parent.has_method('move_and_slide'):
-    push_error('No move_and_slide in parent')
-    return
-  
-  Watch.set_object_meta(parent, 'spd', initial_spd)
-  Watch.set_object_meta(parent, 'walk_by', Callable(self, 'walk_by'))
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      var parent = get_parent()
+      if not ('velocity' in parent):
+        push_error('No velocity in parent')
+        return
+      if not parent.has_method('move_and_slide'):
+        push_error('No move_and_slide in parent')
+        return
+      
+      Comp.set_prop(parent, 'spd', initial_spd)
+      Comp.set_prop(parent, 'walk_by', Callable(self, 'walk_by'))
+    
+    NOTIFICATION_UNPARENTED:
+      var parent = get_parent()
+      Comp.remove_prop(parent, 'spd', 0)
+      Comp.remove_prop(parent, 'walk_by')
+      
 
 
 #move in a particular direction, with collisions
@@ -125,18 +186,34 @@ var next_hp_regen_time = 0
 var hp_regen_delay = 1000
 
 
-func _enter_tree():
-  var parent = get_parent()
-  
-  Comp.set_prop(parent, 'hp', initial_hp)
-  Comp.set_prop(parent, 'max_hp', initial_max_hp)
-  Comp.set_prop(parent, 'hp_regen', initial_hp_regen)
-  Comp.set_prop(parent, 'mdef', initial_mdef)
-  Comp.set_prop(parent, 'adef', initial_adef)
-  
-  Comp.set_prop(parent, 'heal_by', Callable(self, 'heal_by'))
-  Comp.set_prop(parent, 'overheal_by', Callable(self, 'overheal_by'))
-  Comp.set_prop(parent, 'hurt_by', Callable(self, 'hurt_by'))
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      var parent = get_parent()
+      
+      Comp.set_prop(parent, 'hp', initial_hp)
+      Comp.set_prop(parent, 'max_hp', initial_max_hp)
+      Comp.set_prop(parent, 'hp_regen', initial_hp_regen)
+      Comp.set_prop(parent, 'mdef', initial_mdef)
+      Comp.set_prop(parent, 'adef', initial_adef)
+      
+      Comp.set_prop(parent, 'heal_by', Callable(self, 'heal_by'))
+      Comp.set_prop(parent, 'overheal_by', Callable(self, 'overheal_by'))
+      Comp.set_prop(parent, 'hurt_by', Callable(self, 'hurt_by'))
+    
+    NOTIFICATION_UNPARENTED:
+      var parent = get_parent()
+      
+      Comp.remove_prop(parent, 'hp', 0)
+      Comp.remove_prop(parent, 'max_hp', 0)
+      Comp.remove_prop(parent, 'hp_regen', 0)
+      Comp.remove_prop(parent, 'mdef', 0)
+      Comp.remove_prop(parent, 'adef', 0)
+      
+      Comp.remove_prop(parent, 'heal_by', null)
+      Comp.remove_prop(parent, 'overheal_by', null)
+      Comp.remove_prop(parent, 'hurt_by', null)
 
 
 func hurt_by(dmg: float, _dmger: Object):
@@ -185,12 +262,16 @@ func make_stat_display_element():
   
   var hp_label = element.get_node('hpHBox/currentHpValueLabel')
   Comp.call_on_set_prop_and_now(parent, 'hp', func():
+    if not is_instance_valid(hp_label):
+      return
     var hp = Comp.get_prop(parent, 'hp')
     hp_label.text = str(hp)
   )
   
   var max_hp_label = element.get_node('hpHBox/maxHpValueLabel')
   Comp.call_on_set_prop_and_now(parent, 'max_hp', func():
+    if not is_instance_valid(max_hp_label):
+      return
     var max_hp = Comp.get_prop(parent, 'max_hp')
     max_hp_label.text = str(max_hp)
     prints(max_hp)
@@ -198,12 +279,16 @@ func make_stat_display_element():
   
   var hp_regen_label = element.get_node('regenHBox/hpRegenLabel')
   Comp.call_on_set_prop_and_now(parent, 'hp_regen', func():
+    if not is_instance_valid(hp_regen_label):
+      return
     var hp_regen = Comp.get_prop(parent, 'hp_regen')
     hp_regen_label.text = str(hp_regen)
   )
   
   var adef_label = element.get_node('adefHBox/adefValueLabel')
   Comp.call_on_set_prop_and_now(parent, 'adef', func():
+    if not is_instance_valid(adef_label):
+      return
     var adef = Comp.get_prop(parent, 'adef')
     if adef != 0:
       adef_label.text = str(adef)
@@ -216,6 +301,8 @@ func make_stat_display_element():
   
   var mdef_label = element.get_node('mdefHBox/mdefValueLabel')
   Comp.call_on_set_prop_and_now(parent, 'mdef', func():
+    if not is_instance_valid(mdef_label):
+      return
     var mdef = Comp.get_prop(parent, 'mdef')
     if mdef != 1.0:
       mdef_label.text = str(mdef)
@@ -254,11 +341,13 @@ func _process(_delta):
 script/source = "extends Node
 
 
-func _enter_tree():
-  Watch.set_object_meta(get_parent(), 'can_equip', can_equip)
-
-func _exit_tree():
-  Watch.set_object_meta(get_parent(), 'can_equip', null)
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      Comp.set_prop(get_parent(), 'can_equip', can_equip)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(get_parent(), 'can_equip', null)
 
 
 func can_equip(equipment_object):
@@ -298,17 +387,24 @@ func count_in_class(classname: String) -> int:
 [sub_resource type="GDScript" id="GDScript_lnhq2"]
 script/source = "extends Node
 
-func _enter_tree():
+func _notification(what):
   var parent = get_parent()
-  Watch.call_on_set_meta(parent, 'hp', func():
-    var hp = parent.get_meta('hp')
-    if hp <= 0:
-      if Comp.run_method(parent, 'die', []):
-        return
-      else:
-        parent.queue_free()
-  )
+  match what:
+    NOTIFICATION_PARENTED:  
+      Comp.call_on_set_prop(parent, 'hp', check_and_die)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.stop_calling_on_set_prop(parent, 'hp', check_and_die)
+      
 
+func check_and_die():
+  var parent = get_parent()
+  var hp = Comp.get_prop(parent, 'hp')
+  if hp <= 0:
+    if Comp.run_method(parent, 'die', []):
+      return
+    else:
+      parent.queue_free()
 "
 
 [sub_resource type="GDScript" id="GDScript_67g1a"]
@@ -374,33 +470,22 @@ var character_composite
 var pressed = false
 
 
-func _enter_tree():
+func _notification(what):
   var parent = get_parent()
-  
-  Watch.set_object_meta(parent, 'equip_weapon', Callable(self, \"equip_weapon\"))
-  Watch.set_object_meta(parent, 'toggle_weapon_equip', Callable(self, \"equip_weapon\"))
-  
-  #make sure main_attack group node is highlighted
-  var main_attack_node = Lib.get_children_in_group(parent, 'main_attack')
-  if main_attack_node.size() >= 1:
-    Watch.set_object_meta(main_attack_node[0], 'ui_cell_highlight', true)
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.set_prop(parent, 'equip_weapon', Callable(self, \"equip_weapon\"))
+      Comp.set_prop(parent, 'toggle_weapon_equip', Callable(self, \"equip_weapon\"))
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'equip_weapon')
+      Comp.remove_prop(parent, 'toggle_weapon_equip')
+      
 
-
-func equip_weapon(weapon_node: Node):
-  var parent = get_parent()
-  
+func equip_weapon(weapon_node: Node, _toggle_state: bool = true):
   if weapon_node.is_in_group('main_attack'):
     weapon_node.remove_from_group('main_attack')
-    Watch.set_object_meta(weapon_node, 'ui_cell_highlight', false)
     return
-  
-  #allow only one main_attack group node
-  var current_main_attack_nodes = Lib.get_children_in_group(parent, 'main_attack')
-  for node in current_main_attack_nodes:
-    Watch.remove_child_from_group(parent, node, 'main_attack')
-    Watch.set_object_meta(weapon_node, 'ui_cell_highlight', false)
-  Watch.add_child_to_group(parent, weapon_node, 'main_attack')
-  Watch.set_object_meta(weapon_node, 'ui_cell_highlight', true)
 
 
 func find_main_attack_abilities_and_attack():
@@ -421,14 +506,11 @@ func _unhandled_input(_event):
     find_main_attack_abilities_and_attack()
 
 
-func _input(_event):
-  if Input.is_action_just_released(action):
-    pressed = false
-
-
 func _process(_delta):
   if repeatedly and pressed:
     find_main_attack_abilities_and_attack()
+    if Input.is_action_just_released(action):
+      pressed = false
 "
 
 [sub_resource type="GDScript" id="GDScript_jbbkt"]
@@ -440,10 +522,7 @@ func use_flask(user: Object):
   var health = get_meta('health', 25)
   var max_uses = get_meta('max_uses', 1)
   
-  if user.has_method('call_method'): #is a composite
-    user.call_method('heal_by', [health])
-  elif user.has_method('heal_by'):
-    user.heal_by(health)
+  Comp.run_method(user, 'heal_by', [health])
   
   use_count += 1
   if (max_uses > -1) and (use_count >= max_uses):
@@ -496,27 +575,42 @@ script/source = "extends Node
 
 var parent_character
 
-var ui_element_container
-
-func _enter_tree():
-  parent_character = Lib.get_parent_in_group(self, 'character')
-  if parent_character == null:
-    push_error('No parent found in group character')
-    return
-  
-  ui_element_container = $\"../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer\"
-  if ui_element_container == null:
-    push_error('No container at ../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer found')
-    return
-  
-  #for future gear nodes:
-  parent_character.child_entered_tree.connect(on_added_character_node)
-  for child in parent_character.get_children():
-    on_added_character_node(child)
+@export var ui_element_container: Node
 
 
-func _exit_tree():
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      (func(): #defer to wait for ui_element_container node to be added
+        parent_character = Lib.get_parent_in_group(self, 'character')
+        if parent_character == null:
+          push_error('No parent found in group character')
+          return
+        
+        if ui_element_container == null:
+          push_error('No ui element container give')
+          return
+        
+        #for future stat nodes:
+        parent_character.child_entered_tree.connect(on_added_character_node)
+        #for current gear stat nodes:
+        for child in parent_character.get_children():
+          on_added_character_node(child)
+        
+        var ui_parent = Lib.get_parent_with_name(self, 'playerUi')
+        ui_parent.tree_exited.connect(disconnect_signals)
+      ).call_deferred()
+    
+    NOTIFICATION_UNPARENTED:
+      disconnect_signals()
+
+
+func disconnect_signals():
+  var ui_parent = Lib.get_parent_with_name(self, 'playerUi')
+  if (ui_parent != null) and (ui_parent.get_parent() != null):
+    return #ui not actually unparented; probably character or higher parent removed from tree
   parent_character.child_entered_tree.disconnect(on_added_character_node)
+
 
 
 func on_added_character_node(new_node: Node):
@@ -562,12 +656,18 @@ script/source = "extends Node
 
 @export var and_process = true
 
-func _ready():
+
+func _notification(what):
   var parent = get_parent()
-  if node == null:
-    node = parent.get_parent()
-  
-  Comp.set_prop(parent, 'on_direct_mouse_event', on_direct_mouse_event)
+  match what:
+    NOTIFICATION_PARENTED:  
+      if node == null:
+        node = parent.get_parent()
+      
+      Comp.set_prop(parent, 'on_direct_mouse_event', on_direct_mouse_event)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'on_direct_mouse_event')
 
 
 func on_direct_mouse_event(event: InputEventMouse):
@@ -804,6 +904,7 @@ script/source = "extends Node
 
 var mirrored_target_object
 
+
 func _enter_tree():
   var parent = get_parent()
   Watch.call_on_set_meta(parent, 'target_object', func():
@@ -869,10 +970,11 @@ script/source = "extends Node
 
 func _enter_tree():
   var parent = get_parent()
+  var game_world = Lib.get_parent_in_group(self, 'game_world')
   var global_position_parent = Lib.get_parent_with_property(self, 'global_position')
   Watch.call_on_notify(parent, 'die', func():
     var bag_instance = bag_scene.instantiate()
-    get_tree().current_scene.call_deferred('add_child', bag_instance)
+    game_world.add_child(bag_instance)
     bag_instance.global_position = global_position_parent.global_position
     
     #add guaranteed drops
@@ -880,7 +982,7 @@ func _enter_tree():
       if not loot_scene_obj.has_method('instantiate'):
         continue
       var loot_instance = loot_scene_obj.instantiate()
-      bag_instance.call_deferred('add_child', loot_instance)
+      bag_instance.add_child(loot_instance)
     
     #add random drops
     for i in range(0, random_drop_count):
@@ -888,7 +990,7 @@ func _enter_tree():
       if not random_loot_scene_obj.has_method('instantiate'):
         continue
       var loot_instance = random_loot_scene_obj.instantiate()
-      bag_instance.call_deferred('add_child', loot_instance)
+      bag_instance.add_child(loot_instance)
   )
 
 
@@ -1029,63 +1131,103 @@ func handle_left_clicked(event: InputEventMouse):
 
 "
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2x3t2"]
+size = Vector2(12, 8)
+
+[sub_resource type="GDScript" id="GDScript_6dji4"]
+script/source = "extends Node
+
+@export_file(\"*.tscn\") var world_file: String
+
+
+func _enter_tree():
+  Comp.set_prop(get_parent(), 'interact', interact)
+
+
+func _exit_tree():
+  Comp.set_prop(get_parent(), 'interact', null)
+
+
+func interact(character: Node):
+  var universe = Lib.get_parent_in_group(self, 'game_universe')
+  var world = universe.open_world(world_file)
+  
+  var this_world = Game.get_game_world(self)
+  if Comp.run_method(world, 'move_character_into', [character, this_world]):
+    return
+  
+  character.reparent(this_world)
+  
+
+"
+
+[sub_resource type="GDScript" id="GDScript_fvlnl"]
+script/source = "extends Node
+
+
+func _enter_tree():
+  var parent = get_parent()
+  parent.body_entered.connect(on_body_entered)
+  parent.body_exited.connect(on_body_exited)
+
+
+func _exit_tree():
+  var parent = get_parent()
+  parent.body_entered.disconnect(on_body_entered)
+  parent.body_exited.disconnect(on_body_exited)
+
+
+func on_body_entered(body: Node2D):
+  prints('showGrandparentOnPlayer.. entered')
+  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
+    return
+  
+  var grandparent = $'../../'
+  grandparent.visible = true
+  grandparent.process_mode = PROCESS_MODE_INHERIT
+
+
+func on_body_exited(body: Node2D):
+  prints('showGrandparentOnPlayer.. exited')
+  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
+    return
+  
+  var grandparent = $'../../'
+  grandparent.visible = false
+  grandparent.process_mode = Node.PROCESS_MODE_DISABLED
+
+
+"
+
 [node name="testWorld" type="Node2D" groups=["game_world"]]
 
-[node name="testingEnvironmentRocks" type="Node" parent="."]
+[node name="homeWorld" parent="." instance=ExtResource("1_lxujv")]
 
-[node name="smallRock1" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-59.5686, -55.1942)
-
-[node name="smallRock2" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(19.2739, -64.033)
-
-[node name="smallRock3" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(64.8822, 8.799)
-
-[node name="smallRock4" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(57.4576, -39.9914)
-
-[node name="smallRock5" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-85.378, -27.2635)
-
-[node name="smallRock6" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(52.8615, 42.7401)
-
-[node name="smallRock8" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(24.9307, 62.5391)
-
-[node name="smallRock9" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-4.06067, 74.5599)
-
-[node name="smallRock10" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-42.2444, 63.5998)
-
-[node name="smallRock11" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-75.1249, 40.2652)
-
-[node name="smallRock12" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-91.3884, 5.97055)
-
-[node name="smallRock13" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-30.5772, -0.039856)
-
-[node name="smallRock7" parent="testingEnvironmentRocks" instance=ExtResource("14")]
-position = Vector2(-27.7488, -69.6899)
-
-[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
-
-[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_mirroring = Vector2(512, 512)
-
-[node name="background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
-z_index = -1000
-z_as_relative = false
-texture_filter = 1
-texture = ExtResource("8")
-
-[node name="genericAdventurer1" parent="." groups=["gear_container"] instance=ExtResource("1")]
-script = null
+[node name="genericAdventurer1" type="CharacterBody2D" parent="." groups=["character", "gear_container"]]
+collision_layer = 2
 metadata/ui_gear_cells = 6
+metadata/_edit_group_ = true
+metadata/faction_object = ["players"]
+
+[node name="setVisibleWorldToParentWorld" type="Node" parent="genericAdventurer1"]
+script = SubResource("GDScript_cdjwg")
+
+[node name="callFirstTouchingColliderInteractMethod" type="Area2D" parent="genericAdventurer1"]
+collision_layer = 2
+collision_mask = 3855
+script = SubResource("GDScript_2u4m4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1/callFirstTouchingColliderInteractMethod"]
+shape = SubResource("RectangleShape2D_leme8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1"]
+shape = SubResource("1")
+
+[node name="Sprite2D" type="Sprite2D" parent="genericAdventurer1"]
+texture_filter = 1
+material = ExtResource("9")
+texture = ExtResource("3_xe77s")
+region_rect = Rect2(0, 0, 10, 10)
 
 [node name="setAsPlayerCharacter" type="Node2D" parent="genericAdventurer1"]
 script = SubResource("GDScript_wl53u")
@@ -1311,7 +1453,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="hpMpBar" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar"]
+[node name="statBar" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar"]
 texture_filter = 1
 custom_minimum_size = Vector2(82, 0)
 layout_mode = 2
@@ -1324,7 +1466,7 @@ patch_margin_bottom = 2
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[node name="hpBar" type="Control" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar"]
+[node name="hpBar" type="Control" parent="genericAdventurer1/playerUi/bottomBar/statBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1333,7 +1475,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/hpBar"]
+[node name="hpBackground" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/statBar/hpBar"]
 visibility_layer = 2
 layout_mode = 0
 offset_left = 11.3419
@@ -1347,7 +1489,7 @@ patch_margin_top = 3
 patch_margin_right = 6
 patch_margin_bottom = 3
 
-[node name="hpBar" type="ProgressBar" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/hpBar"]
+[node name="hpBar" type="ProgressBar" parent="genericAdventurer1/playerUi/bottomBar/statBar/hpBar"]
 show_behind_parent = true
 visibility_layer = 2
 layout_mode = 0
@@ -1363,9 +1505,10 @@ theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_kexke")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/hpBar/hpBar" instance=ExtResource("15_fbiw8")]
+[node name="syncRangeToCharacterStat" parent="genericAdventurer1/playerUi/bottomBar/statBar/hpBar/hpBar" instance=ExtResource("15_fbiw8")]
+max_stat = "max_hp"
 
-[node name="mpBar" type="Control" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar"]
+[node name="mpBar" type="Control" parent="genericAdventurer1/playerUi/bottomBar/statBar"]
 visibility_layer = 2
 anchors_preset = 0
 offset_left = 43.0
@@ -1374,7 +1517,7 @@ offset_right = 79.0
 offset_bottom = 11.0
 mouse_filter = 2
 
-[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/mpBar"]
+[node name="mpBackground" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/statBar/mpBar"]
 visibility_layer = 2
 layout_mode = 1
 anchors_preset = 15
@@ -1389,7 +1532,7 @@ patch_margin_top = 3
 patch_margin_right = 6
 patch_margin_bottom = 3
 
-[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/mpBar"]
+[node name="ProgressBar" type="ProgressBar" parent="genericAdventurer1/playerUi/bottomBar/statBar/mpBar"]
 show_behind_parent = true
 visibility_layer = 2
 layout_mode = 0
@@ -1403,9 +1546,10 @@ theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dk5r0")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/mpBar/ProgressBar" instance=ExtResource("15_fbiw8")]
+[node name="syncRangeToCharacterStat" parent="genericAdventurer1/playerUi/bottomBar/statBar/mpBar/ProgressBar" instance=ExtResource("15_fbiw8")]
+max_stat = "max_mp"
 
-[node name="statDisplayAreaExpander" type="TextureRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar"]
+[node name="statDisplayAreaExpander" type="TextureRect" parent="genericAdventurer1/playerUi/bottomBar/statBar"]
 visibility_layer = 2
 custom_minimum_size = Vector2(8, 8)
 layout_mode = 1
@@ -1420,10 +1564,11 @@ mouse_filter = 2
 texture = ExtResource("20_k863q")
 stretch_mode = 5
 
-[node name="watchAndPutStatUiElementsFromCharacterHere" type="Node" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander"]
+[node name="watchAndPutStatUiElementsFromCharacterHere" type="Node" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander" node_paths=PackedStringArray("ui_element_container")]
 script = SubResource("GDScript_rmng7")
+ui_element_container = NodePath("../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer")
 
-[node name="statDisplayArea" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander"]
+[node name="statDisplayArea" type="NinePatchRect" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander"]
 process_mode = 4
 visible = false
 layout_mode = 2
@@ -1438,7 +1583,7 @@ patch_margin_top = 5
 patch_margin_right = 3
 patch_margin_bottom = 5
 
-[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/statDisplayArea"]
+[node name="MarginContainer" type="MarginContainer" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander/statDisplayArea"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1451,24 +1596,24 @@ theme_override_constants/margin_top = 3
 theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/statDisplayArea/MarginContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander/statDisplayArea/MarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 horizontal_scroll_mode = 0
 
-[node name="HFlowContainer" type="HFlowContainer" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/statDisplayArea/MarginContainer/ScrollContainer"]
+[node name="HFlowContainer" type="HFlowContainer" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander/statDisplayArea/MarginContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="Area2D" type="Area2D" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander"]
+[node name="Area2D" type="Area2D" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander/Area2D"]
 position = Vector2(6.24365, 5.93908)
 shape = SubResource("RectangleShape2D_jif51")
 
-[node name="toggleNodeVisibilityOnClick" type="Node" parent="genericAdventurer1/playerUi/bottomBar/hpMpBar/statDisplayAreaExpander/Area2D" node_paths=PackedStringArray("node")]
+[node name="toggleNodeVisibilityOnClick" type="Node" parent="genericAdventurer1/playerUi/bottomBar/statBar/statDisplayAreaExpander/Area2D" node_paths=PackedStringArray("node")]
 script = SubResource("GDScript_slqfr")
 node = NodePath("../../statDisplayArea")
 
@@ -1485,8 +1630,9 @@ patch_margin_bottom = 2
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[node name="mirrorContainerGearNodesToNode" parent="genericAdventurer1/playerUi/bottomBar/gearBar" node_paths=PackedStringArray("cell_container") instance=ExtResource("16_xla0x")]
+[node name="mirrorContainerGearNodesToNode" parent="genericAdventurer1/playerUi/bottomBar/gearBar" node_paths=PackedStringArray("cell_container", "parent_ui") instance=ExtResource("16_xla0x")]
 cell_container = NodePath("../MarginContainer/ScrollContainer/HBoxContainer")
+parent_ui = NodePath("../../..")
 
 [node name="templateCellHolder" type="Control" parent="genericAdventurer1/playerUi/bottomBar/gearBar/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
 process_mode = 4
@@ -1543,6 +1689,7 @@ theme_override_constants/separation = 2
 
 [node name="genericEnemy1" parent="." groups=["character"] instance=ExtResource("12")]
 position = Vector2(-71, 20)
+metadata/_edit_group_ = true
 
 [node name="targetNearestNonfaction" parent="genericEnemy1" index="3"]
 visible = false
@@ -1559,11 +1706,14 @@ cast_speed = 60.0
 shot_resource = ExtResource("7_lsa8w")
 
 [node name="genericEnemy4" type="CharacterBody2D" parent="."]
+process_mode = 4
+visible = false
 position = Vector2(37.6776, 23.0497)
 collision_layer = 2
 motion_mode = 1
 script = ExtResource("20_g5gm6")
 metadata/is_character = true
+metadata/_edit_group_ = true
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="genericEnemy4"]
 visible = false
@@ -1635,6 +1785,7 @@ metadata/ui_cell_left_click = "equip"
 
 [node name="basicLootBag" parent="." instance=ExtResource("20_0vsro")]
 position = Vector2(18.0407, -20.9361)
+metadata/_edit_group_ = true
 
 [node name="hpFlaskGear2" type="Node" parent="basicLootBag" groups=["ability", "gear"]]
 editor_description = "meta:
@@ -1661,6 +1812,60 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="basicArmor" parent="basicLootBag" instance=ExtResource("13_42vnk")]
+
+[node name="lavaDecoration" parent="." instance=ExtResource("26_4pgg4")]
+visible = false
+position = Vector2(-136, 48)
+
+[node name="lavaDecoration2" parent="." instance=ExtResource("26_4pgg4")]
+visible = false
+position = Vector2(-168, 16)
+
+[node name="mainWorldPortal" type="Sprite2D" parent="."]
+z_index = -1
+position = Vector2(-7.07104, -27.5355)
+texture = ExtResource("25_c6dml")
+
+[node name="NinePatchRect" type="NinePatchRect" parent="mainWorldPortal"]
+visible = false
+z_index = 1000
+offset_left = -15.0
+offset_top = -23.0
+offset_right = 14.0
+offset_bottom = -9.0
+texture = ExtResource("13_3jrfy")
+region_rect = Rect2(0.9986, 1, 6.0014, 5.81159)
+patch_margin_left = 3
+patch_margin_top = 3
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="Label" type="Label" parent="mainWorldPortal/NinePatchRect"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 4.0
+offset_right = 114.0
+offset_bottom = 56.0
+scale = Vector2(0.25, 0.25)
+theme_override_colors/font_color = Color(0.247059, 0.247059, 0.247059, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+text = "The Ashlands"
+
+[node name="Area2D" type="Area2D" parent="mainWorldPortal/NinePatchRect"]
+position = Vector2(15, 23)
+collision_layer = 8
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="mainWorldPortal/NinePatchRect/Area2D"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_2x3t2")
+
+[node name="goToWorldOnInteract" type="Node" parent="mainWorldPortal/NinePatchRect/Area2D"]
+script = SubResource("GDScript_6dji4")
+world_file = "res://environment/worlds/ashlands/ashlandsWorld.tscn"
+
+[node name="showGrandparentOnPlayerTouching" type="Node" parent="mainWorldPortal/NinePatchRect/Area2D"]
+script = SubResource("GDScript_fvlnl")
 
 [connection signal="body_entered" from="genericEnemy4/targetNearestNonfaction2" to="genericEnemy4/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_entered"]
 [connection signal="body_exited" from="genericEnemy4/targetNearestNonfaction2" to="genericEnemy4/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_exited"]

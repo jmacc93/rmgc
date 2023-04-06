@@ -17,8 +17,11 @@ var next_attack_time = 0
 
 @export var shot_resource: PackedScene
 
-func _exit_tree():
-  toggle_equipped(false)
+
+func _notification(notification):
+  match notification:
+    NOTIFICATION_UNPARENTED:
+      toggle_equipped(false)
 
 
 #shoot new shot toward target point / target object with shoot delay

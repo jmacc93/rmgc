@@ -9,8 +9,11 @@ script/source = "extends Node
 
 @export var adef = 10
 
-func _exit_tree():
-  toggle_equipped(false)
+
+func _notification(what):
+  match what:
+    NOTIFICATION_UNPARENTED:
+      toggle_equipped(false)
 
 
 func toggle_equipped(state: Variant = null):

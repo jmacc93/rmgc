@@ -3,12 +3,15 @@
 [sub_resource type="GDScript" id="GDScript_bp5rc"]
 script/source = "extends Node
 
-func _enter_tree():
-  Comp.set_prop(get_parent(), 'toggle', toggle)
-  
-func _exit_tree():
-  Comp.set_prop(get_parent(), 'toggle', null)
 
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      Comp.set_prop(get_parent(), 'toggle', toggle)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(get_parent(), 'toggle')
+      
 
 func toggle(state: bool):
   var parent = get_parent()

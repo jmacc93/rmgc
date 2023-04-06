@@ -13,36 +13,45 @@ var character_parent : Node
 @export var max_stat = ''
 
 
-func _enter_tree():
-  character_parent = Lib.get_parent_in_group(self, 'character')
-  if character_parent == null:
-    push_error(\"No parent character found\")
-    queue_free()
-    return
-  
-  range_parent = Lib.get_parent_with_class(self, 'Range')
-  if range_parent == null:
-    push_error('No Range, ProgressBar, etc parent found')
-    queue_free()
-    return
-  
-  Watch.call_on_set_meta(character_parent, stat, Callable(self, 'on_stat_change'))
-  if max_stat != '':
-    Watch.call_on_set_meta(character_parent, max_stat, Callable(self, 'on_max_stat_change'))
-
-
-func _ready():
-  #set initial values on next idle  
-  (func():
-    on_stat_change(character_parent.get_meta(stat))
-    if max_stat != '':
-      on_max_stat_change(character_parent.get_meta(max_stat))
-  ).call_deferred()
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      character_parent = Lib.get_parent_in_group(self, 'character')
+      if character_parent == null:
+        push_error(\"No parent character found\")
+        queue_free()
+        return
+      
+      range_parent = Lib.get_parent_with_class(self, 'Range')
+      if range_parent == null:
+        push_error('No Range, ProgressBar, etc parent found')
+        queue_free()
+        return
+      
+      Comp.call_on_set_prop(character_parent, stat, on_stat_change)
+      if max_stat != '':
+        Comp.call_on_set_prop(character_parent, max_stat, on_max_stat_change)
+    
+      #set initial values on next idle  
+      (func():
+        on_stat_change(Comp.get_prop(character_parent, stat))
+        if max_stat != '':
+          on_max_stat_change(Comp.get_prop(character_parent, max_stat))
+      ).call_deferred()
+      
+    NOTIFICATION_EXIT_TREE:
+      character_parent = Lib.get_parent_in_group(self, 'character')
+      if character_parent != null:
+        return #ui not unparented
+      Comp.stop_calling_on_set_prop(character_parent, stat, on_stat_change)
+      if max_stat != '':
+        Comp.stop_calling_on_set_prop(character_parent, max_stat, on_max_stat_change)
 
 
 func on_stat_change(new_stat_value):
   if new_stat_value is float:
     range_parent.set_value(new_stat_value)
+
 
 func on_max_stat_change(new_max_stat_value):
   if new_max_stat_value is float:

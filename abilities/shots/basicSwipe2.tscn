@@ -24,6 +24,10 @@ func on_collision(collision):
   if source_object and (source_object == body) and except_source_object:
     return #dont hurt source object
   
+  #hurt factions?
+  if source_object:
+    var faction_object = Comp.get_prop(source_object, 'faction_object')
+  
   #damage by method
   var dmg = Comp.get_prop(parent, 'dmg', 1)
   if Comp.run_method(body, \"hurt_by\", [dmg, parent]):

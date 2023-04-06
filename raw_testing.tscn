@@ -1,20 +1,55 @@
-[gd_scene load_steps=2 format=3 uid="uid://dbqubeqit7wdk"]
+[gd_scene load_steps=4 format=3 uid="uid://dbqubeqit7wdk"]
 
-[sub_resource type="GDScript" id="GDScript_3g4ia"]
+[sub_resource type="GDScript" id="GDScript_o4scu"]
 script/source = "extends Node
 
-func _ready():
-  var child = get_node('testNode')
-  for i in range(0, 10):
-    var new_child = child.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
-    Comp.set_prop(new_child, 'i', i)
-    add_child.call_deferred(new_child)
+var child
+
+func _process(delta):
+  if child == null:
+    child = $ANode
+    remove_child(child)
+  else:
+    add_child(child)
+    child = null
+
+#func _process(delta):
+#  $ANode.reparent(self)
+"
+
+[sub_resource type="GDScript" id="GDScript_35i0s"]
+script/source = "extends Node
+
+func _notification(notification):
+  match notification:
+    NOTIFICATION_PARENTED:  
+      prints('A child added', get_parent(), Time.get_ticks_msec())
+    
+    NOTIFICATION_UNPARENTED:
+      prints('A child added', Time.get_ticks_msec())
+      
+"
+
+[sub_resource type="GDScript" id="GDScript_wm67p"]
+script/source = "extends Node
+
+func _notification(note):
+  match note:
+    NOTIFICATION_PARENTED:  
+      prints('B child added', Time.get_ticks_msec())
+    
+    NOTIFICATION_UNPARENTED:
+      prints('B child removed', get_parent(), Time.get_ticks_msec())
+      
 "
 
 [node name="raw_testing" type="Node2D"]
 
 [node name="Node" type="Node" parent="."]
-script = SubResource("GDScript_3g4ia")
+script = SubResource("GDScript_o4scu")
 
-[node name="testNode" type="Node" parent="Node"]
-metadata/asdf = "Something bla bla"
+[node name="ANode" type="Node" parent="Node"]
+script = SubResource("GDScript_35i0s")
+
+[node name="BNode" type="Node" parent="Node/ANode"]
+script = SubResource("GDScript_wm67p")
