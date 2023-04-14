@@ -1,0 +1,343 @@
+[gd_scene load_steps=12 format=3 uid="uid://dg2m4dwi7hqom"]
+
+[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://abilities/shots/basicSwipe.png" id="1_8myq8"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(5, 5)
+
+[sub_resource type="GDScript" id="GDScript_ajm2v"]
+script/source = "extends Node
+
+@export var except_source_object = true
+@export var hurt_everyone = false
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(get_parent(), 'collision', on_collision)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(get_parent(), 'collision', on_collision)
+
+
+func damage_body(body):
+  var parent = get_parent()
+  
+  #damage by method
+  var dmg = Comp.get_prop(parent, 'dmg', 1)
+  if Comp.run_method(body, \"hurt_by\", [dmg, parent]):
+    return
+  
+  #damage by directly changing health
+  var hp = Comp.get_prop(body, 'hp')
+  if hp != null:
+    Comp.set_prop(body, 'hp', hp - dmg)
+
+
+func on_collision(collision):
+  if not collision:
+    return
+  var body = collision.get_collider()
+  var parent = get_parent()
+  
+  #hurt source?
+  var source = Comp.get_prop(parent, 'source_object')
+  if source and (source == body) and except_source_object:
+    return #dont hurt source object
+  
+  if hurt_everyone:
+    damage_body(body)
+  
+  if not source:
+    return
+  
+  #is body an enemy?
+  var body_faction = Comp.get_prop(body, 'factions', 'default')
+  var source_faction = Comp.get_prop(source, 'factions', 'default')
+  var factions_agree = Game.check_factions_agree(source_faction, body_faction)
+  if not factions_agree:
+    damage_body(body)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_vtxd2"]
+script/source = "extends Node
+
+@export var except_source_object = true
+
+## restrict to a particular group, or leave blank to not restrict to a group
+@export var group = ''
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(get_parent(), 'collision', on_collision)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(get_parent(), 'collision', on_collision)
+
+
+func on_collision(collision):
+  if not collision:
+    return
+  
+  var parent = get_parent()
+  var body = collision.get_collider()
+  var source_object = Comp.get_object_meta(parent, 'source_object')
+  
+  #only destroy self on collision with particular group?
+  if (group != '') and (not body.is_in_group(group)):
+    return
+  
+  #is body the parent?
+  if except_source_object and source_object and (body == source_object):
+    return
+  
+  #kill self
+  if not Comp.run_method(parent, 'kill', []):
+    parent.queue_free()
+  
+"
+
+[sub_resource type="GDScript" id="GDScript_edgem"]
+script/source = "extends Node
+
+@export var wall_bit = 1
+
+@export var except_source_object = false
+
+## restrict to a particular group, or leave blank to not restrict to a group
+@export var group = ''
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(get_parent(), 'collision', on_collision)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(get_parent(), 'collision', on_collision)
+
+
+func on_collision(collision):
+  if not collision:
+    return
+  
+  var parent = get_parent()
+  var body = collision.get_collider()
+  var source_object = Comp.get_object_meta(parent, 'source_object')
+  
+  #body has collision layer
+  if not body.has_method('get_collision_layer_value'):
+    return
+  
+  #only destroy self on collision with particular group?
+  if (group != '') and (not body.is_in_group(group)):
+    return
+  
+  #body in collision layer?
+  if not body.get_collision_layer_value(wall_bit):
+    return
+  
+  #is body the parent?
+  if except_source_object and source_object and (body == source_object):
+    return
+  
+  #kill self
+  if not Comp.run_method(parent, 'kill', []):
+    parent.queue_free()
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_7qe0w"]
+script/source = "extends Node
+
+var timeout_time
+@export var max_age = 1.0
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      timeout_time = Time.get_ticks_msec() + max_age * 1000
+
+
+func _process(_delta):
+  var current_time = Time.get_ticks_msec()
+  if (timeout_time < current_time):
+    var parent = get_parent()
+    if not Comp.run_method(parent, 'kill', []):
+      parent.queue_free()
+"
+
+[sub_resource type="GDScript" id="GDScript_ygm6t"]
+script/source = "extends Node
+
+var body_parent: CharacterBody2D
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      body_parent = get_parent() as CharacterBody2D
+    NOTIFICATION_UNPARENTED:
+      body_parent = null
+  
+
+func _physics_process(_delta):
+  if body_parent == null:
+    return
+  if body_parent.velocity.x == 0 and body_parent.velocity.y == 0:
+    return
+  
+  var transform = body_parent.get_transform()
+  
+  body_parent.move_and_slide()
+  for i in range(0, body_parent.get_slide_collision_count()):
+    Watch.notify(get_parent(), 'collision', [body_parent.get_slide_collision(i)])
+"
+
+[sub_resource type="GDScript" id="GDScript_t1lxd"]
+script/source = "extends Node
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      if not ('velocity' in parent):
+        push_error('Parent has no velocity')
+        return
+      
+      Comp.set_prop(parent, 'cast_toward', cast_toward)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'cast_toward')
+
+
+func cast_toward(toward_point: Vector2, speed: float):
+  var parent = get_parent()
+  var parent_position = parent.global_position
+  parent.velocity = (toward_point - parent_position).normalized() * speed
+"
+
+[sub_resource type="GDScript" id="GDScript_rnupt"]
+script/source = "extends Node
+
+@export var source_object_property_name = 'source_object'
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      if not parent.has_method('add_collision_exception_with'):
+        return #cant add collision exceptions
+      Comp.call_on_set_prop(parent, source_object_property_name, on_set_source_object)
+    NOTIFICATION_UNPARENTED:
+      Comp.stop_calling_on_set_prop(parent, source_object_property_name, on_set_source_object)
+
+
+func on_set_source_object():
+  var parent = get_parent()
+  
+  var source_object = Comp.get_prop(parent, source_object_property_name)
+  if source_object:
+    parent.add_collision_exception_with(source_object)
+  else:
+    parent.remove_collision_exception_with(source_object)
+"
+
+[sub_resource type="GDScript" id="GDScript_ygnts"]
+script/source = "extends Area2D
+
+func _init():
+  body_entered.connect(on_body_entered)
+
+
+func on_body_entered(body: CollisionObject2D):
+  var parent = get_parent()
+
+  var source = Comp.get_prop(parent, 'source_object', null)
+  if source == null:
+    return
+  
+  #is body an enemy?
+  var body_faction = Comp.get_prop(body, 'factions', null)
+  if body_faction == null:
+    return
+  var source_faction = Comp.get_prop(source, 'factions', 'default')
+  var factions_agree = Game.check_factions_agree(source_faction, body_faction)
+  if not factions_agree:
+    return #don't add collision exception
+  
+  parent.add_collision_exception_with(body)
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o3p08"]
+size = Vector2(40, 40)
+
+[node name="genericShot" type="CharacterBody2D" groups=["shot"]]
+editor_description = "define meta `dmg` to set damage"
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+metadata/dmg = 10.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("1_8myq8")
+
+[node name="damageCollidingBodyOnCollision" type="Node" parent="."]
+script = SubResource("GDScript_ajm2v")
+
+[node name="destroySelfOnCollision" type="Node" parent="."]
+script = SubResource("GDScript_vtxd2")
+
+[node name="destroySelfOnWallCollision" type="Node" parent="."]
+script = SubResource("GDScript_edgem")
+
+[node name="destroySelfOnTimeout" type="Node" parent="."]
+script = SubResource("GDScript_7qe0w")
+
+[node name="moveAndSlideWithVelocity" type="Node" parent="."]
+script = SubResource("GDScript_ygm6t")
+
+[node name="castTowardAbility" type="Node" parent="."]
+script = SubResource("GDScript_t1lxd")
+
+[node name="parentObjectCollisionException" type="Node" parent="."]
+script = SubResource("GDScript_rnupt")
+
+[node name="addAlignmentCollisionExceptionsOnTouch" type="Area2D" parent="."]
+collision_mask = 7
+script = SubResource("GDScript_ygnts")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="addAlignmentCollisionExceptionsOnTouch"]
+shape = SubResource("RectangleShape2D_o3p08")

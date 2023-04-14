@@ -6,6 +6,7 @@ var composite
 
 var target_object
 
+
 func _enter_tree():
   composite = Lib.get_parent_with_method(self, 'new_getter')
   if not composite:

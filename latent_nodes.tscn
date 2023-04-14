@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/grassScatterer.tscn" id="1_0pxu6"]
-[ext_resource type="PackedScene" uid="uid://0jickbw1fxsk" path="res://environment/lavaDecoration.tscn" id="2_4s4em"]
+[ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="1_0pxu6"]
+[ext_resource type="PackedScene" uid="uid://cnxsns5hnsrsl" path="res://environment/lavaDecoration.tscn" id="2_4s4em"]
 
 [sub_resource type="GDScript" id="GDScript_qeedt"]
 script/source = "extends Node2D

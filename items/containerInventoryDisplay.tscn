@@ -1,0 +1,87 @@
+[gd_scene load_steps=4 format=3 uid="uid://dau0p74mlw7o"]
+
+[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="1_1edgh"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="2_cxmtj"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2d47m"]
+size = Vector2(10, 10)
+
+[node name="inventoryDisplay" type="Control" groups=["loot_bag_display_popup"]]
+process_mode = 4
+visible = false
+z_index = 800
+layout_mode = 3
+anchors_preset = 0
+offset_left = -37.7788
+offset_top = -46.0
+offset_right = 37.2212
+offset_bottom = -6.0
+mouse_filter = 2
+
+[node name="mirrorContainerGearNodesToNode" parent="." node_paths=PackedStringArray("cell_container", "parent_ui") instance=ExtResource("1_1edgh")]
+cell_container = NodePath("../MarginContainer/ScrollContainer/FlowContainer")
+parent_ui = NodePath("..")
+
+[node name="templateCellHolder" type="Control" parent="mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
+process_mode = 4
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 2
+
+[node name="background" type="ColorRect" parent="mirrorContainerGearNodesToNode/templateCellHolder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.905882, 0.690196, 0.619608, 1)
+metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
+
+[node name="Area2D" type="Area2D" parent="mirrorContainerGearNodesToNode/templateCellHolder"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
+position = Vector2(5, 5)
+shape = SubResource("RectangleShape2D_2d47m")
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_cxmtj")
+patch_margin_left = 3
+patch_margin_top = 3
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_scroll_mode = 0
+
+[node name="FlowContainer" type="FlowContainer" parent="MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2

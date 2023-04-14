@@ -34,12 +34,16 @@ func open_world(world_scene_file: String, use_already_open = true):
 
 
 func set_visible_world(world: Node):
-  var viewport_container = $SubViewportContainer
-  var current_viewport = Lib.get_first_immediate_child_with_class(viewport_container, 'SubViewport')
-  var world_viewport = world.get_parent()
-  
-  current_viewport.reparent(self)
-  world_viewport.reparent(viewport_container)
+  (func(): #defer to get out of any tree_entered signaled functions
+    var viewport_container = $SubViewportContainer
+    var current_viewport = Lib.get_first_immediate_child_with_class(viewport_container, 'SubViewport')
+    var world_viewport = world.get_parent()
+    if current_viewport == world_viewport:
+      return
+    
+    current_viewport.reparent(self)
+    world_viewport.reparent(viewport_container)
+  ).call_deferred()
 
 
 

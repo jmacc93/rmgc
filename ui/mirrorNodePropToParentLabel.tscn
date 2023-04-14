@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3 uid="uid://cltmch762lqa4"]
+
+[sub_resource type="GDScript" id="GDScript_k1bqe"]
+script/source = "extends Node
+
+@export var node_with_prop_path: NodePath #uses parent if this property is empty
+@export var prop_name: String = 'label'
+
+var node_with_bound_call: Node = null
+
+func _init():
+  tree_entered.connect(on_tree_entered)
+  tree_exited.connect(on_tree_exited)
+
+
+func on_tree_entered():
+  var node_with_prop = get_node(node_with_prop_path) if (not node_with_prop_path.is_empty()) else get_parent()
+  if node_with_prop == null:
+    push_error('No node found from path ', node_with_prop_path)
+    return
+  node_with_bound_call = node_with_prop
+  Comp.call_on_set_prop_and_now(node_with_prop, prop_name, on_set_prop)
+
+
+func on_tree_exited(what):
+  if node_with_bound_call == null:
+    return
+  var node_with_prop = get_node(node_with_prop_path) if (not node_with_prop_path.is_empty()) else get_parent()
+  if node_with_prop != null:
+    return #not disconnected from node_with_prop
+  Comp.stop_calling_on_set_prop(node_with_bound_call, prop_name, on_set_prop)
+  node_with_bound_call = null
+
+
+func on_set_prop():
+  var node_with_prop = get_node(node_with_prop_path) if (not node_with_prop_path.is_empty()) else get_parent()
+  if node_with_prop == null:
+    push_error('No node found from path ', node_with_prop_path)
+    return
+  var prop_value = str(Comp.get_prop(node_with_prop, prop_name, 'PROPERTY-NOT-FOUND'))
+  get_parent().text = prop_value
+
+
+
+"
+
+[node name="mirrorParentPropToParentLabel" type="Node"]
+script = SubResource("GDScript_k1bqe")

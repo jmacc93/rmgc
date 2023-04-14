@@ -1,10 +1,11 @@
-[gd_scene load_steps=17 format=3 uid="uid://bno08tt56qp6v"]
+[gd_scene load_steps=22 format=3 uid="uid://b0kbpv2w4ustw"]
 
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="1_i3w13"]
 [ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/expander.png" id="2_gtiv0"]
 [ext_resource type="PackedScene" uid="uid://dn8ekob6hhfv4" path="res://ui/syncRangeToCharacterStat.tscn" id="3_5kha5"]
 [ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="4_vmx2j"]
 [ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="5_22xy8"]
+[ext_resource type="Texture2D" uid="uid://hbf5i88n16ce" path="res://ui/home-icon.png" id="5_ni8lo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8yqf6"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -14,6 +15,168 @@ bg_color = Color(1, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dk5r0"]
 bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="GDScript" id="GDScript_rmng7"]
+script/source = "extends Node
+
+#For use in playerUi.tscn
+
+var parent_character
+
+@export var ui_element_container: Node
+
+
+func _init():
+  tree_entered.connect(on_tree_entered)
+  tree_exited.connect(on_tree_exited)
+
+
+func on_tree_entered():
+  on_tree_exited() #disconnect if already connected
+  parent_character = Lib.get_parent_in_group(self, 'character')
+  if parent_character == null:
+    return
+  (func(): #defer to wait for ui_element_container node to be added
+    if ui_element_container == null:
+      push_error('No ui element container give')
+      return
+    
+    #for future stat nodes:
+    parent_character.child_entered_tree.connect(on_added_character_node)
+    #for current gear stat nodes:
+    for child in parent_character.get_children():
+      on_added_character_node(child)
+  ).call_deferred()
+
+
+func on_tree_exited():
+  if parent_character == null:
+    return #already disconnected
+  var current_parent_character = Lib.get_parent_in_group(self, 'character')
+  if current_parent_character != null:
+    return #not unparented from character
+  parent_character.child_entered_tree.disconnect(on_added_character_node)
+  parent_character = null
+
+
+func on_added_character_node(new_node: Node):
+  var stat_ui_element = Comp.call_method_or(new_node, 'make_stat_display_element', [], null)
+  if not stat_ui_element:
+    return
+  
+  ui_element_container.add_child(stat_ui_element)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jif51"]
+size = Vector2(8.75635, 9)
+
+[sub_resource type="GDScript" id="GDScript_slqfr"]
+script/source = "extends Node
+
+@export var node : Node
+
+@export var and_process = true
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:  
+      if node == null:
+        node = parent.get_parent()
+      
+      Comp.set_prop(parent, 'on_direct_mouse_event', on_direct_mouse_event)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'on_direct_mouse_event')
+
+
+func on_direct_mouse_event(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  if node == null:
+    return
+  
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  
+  node.visible = not node.visible
+  node.process_mode = Node.PROCESS_MODE_INHERIT if node.visible else Node.PROCESS_MODE_DISABLED
+  
+  
+
+"
+
+[sub_resource type="GDScript" id="GDScript_ji1a0"]
+script/source = "extends Node
+
+var home_world_file = \"res://environment/worlds/homeWorld/homeWorld.tscn\"
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.set_prop(get_parent(), 'on_direct_mouse_event', on_direct_mouse_event)
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(get_parent(), 'on_direct_mouse_event')
+
+func on_direct_mouse_event(event: InputEventMouse):
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  
+  var character = Lib.get_parent_in_group(self, 'character')
+  
+  var universe = Lib.get_parent_in_group(self, 'game_universe')
+  var home_world = universe.open_world(home_world_file)
+  
+  var this_world = Game.get_game_world(self)
+  if Comp.run_method(home_world, 'move_character_into', [character, this_world]):
+    return
+  
+  character.reparent(home_world, false)
+  Comp.run_method(character, 'changed_worlds', [home_world])
+  
+
+
+
+
+
+
+
+
+
+
+
+"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ssi3t"]
 size = Vector2(10, 10)
@@ -43,53 +206,18 @@ HScrollBar/styles/grabber_pressed = SubResource("StyleBoxEmpty_vjc08")
 HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_epkwg")
 HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_rhyut")
 
-[node name="uiControl" type="Control"]
+[node name="playerUi" type="Control"]
 z_index = 1000
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -138.0
-offset_top = -76.0
-offset_right = -996.0
-offset_bottom = -575.0
+offset_left = -141.0
+offset_top = -77.0
+offset_right = 141.0
+offset_bottom = 78.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-
-[node name="statDisplayArea" type="NinePatchRect" parent="."]
-layout_mode = 2
-offset_left = 1.0
-offset_top = 71.0
-offset_right = 124.0
-offset_bottom = 138.0
-texture = ExtResource("1_i3w13")
-region_rect = Rect2(0, 0, 8, 8)
-patch_margin_left = 3
-patch_margin_top = 5
-patch_margin_right = 3
-patch_margin_bottom = 5
-
-[node name="MarginContainer" type="MarginContainer" parent="statDisplayArea"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 3
-theme_override_constants/margin_top = 3
-theme_override_constants/margin_right = 3
-theme_override_constants/margin_bottom = 3
-
-[node name="ScrollContainer" type="ScrollContainer" parent="statDisplayArea/MarginContainer"]
-layout_mode = 2
-mouse_filter = 2
-horizontal_scroll_mode = 0
-
-[node name="HFlowContainer" type="HFlowContainer" parent="statDisplayArea/MarginContainer/ScrollContainer"]
-layout_mode = 2
 mouse_filter = 2
 
 [node name="bottomBar" type="HBoxContainer" parent="."]
@@ -108,9 +236,9 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="hpMpBar" type="NinePatchRect" parent="bottomBar"]
+[node name="statBar" type="NinePatchRect" parent="bottomBar"]
 texture_filter = 1
-custom_minimum_size = Vector2(82, 0)
+custom_minimum_size = Vector2(93.267, 0)
 layout_mode = 2
 texture = ExtResource("1_i3w13")
 region_rect = Rect2(1, 1, 6, 6)
@@ -121,23 +249,31 @@ patch_margin_bottom = 2
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[node name="expanderButton" type="TextureButton" parent="bottomBar/hpMpBar"]
-visibility_layer = 2
-custom_minimum_size = Vector2(8, 8)
+[node name="hpBar" type="Control" parent="bottomBar/statBar"]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -6.0
-offset_right = 12.0
-offset_bottom = 6.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-toggle_mode = true
-texture_normal = ExtResource("2_gtiv0")
-stretch_mode = 5
 
-[node name="hpBar" type="ProgressBar" parent="bottomBar/hpMpBar"]
+[node name="hpBackground" type="NinePatchRect" parent="bottomBar/statBar/hpBar"]
+visibility_layer = 2
+layout_mode = 0
+offset_left = 11.3419
+offset_top = 1.96497
+offset_right = 42.3419
+offset_bottom = 10.965
+texture = ExtResource("4_vmx2j")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="hpBar" type="ProgressBar" parent="bottomBar/statBar/hpBar"]
+show_behind_parent = true
 visibility_layer = 2
 layout_mode = 0
 offset_left = 11.3419
@@ -152,23 +288,10 @@ theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_kexke")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="bottomBar/hpMpBar/hpBar" instance=ExtResource("3_5kha5")]
+[node name="syncRangeToCharacterStat" parent="bottomBar/statBar/hpBar/hpBar" instance=ExtResource("3_5kha5")]
+max_stat = "max_hp"
 
-[node name="hpBackground" type="NinePatchRect" parent="bottomBar/hpMpBar"]
-visibility_layer = 2
-layout_mode = 0
-offset_left = 11.3419
-offset_top = 1.96497
-offset_right = 42.3419
-offset_bottom = 10.965
-texture = ExtResource("4_vmx2j")
-region_rect = Rect2(0, 0, 16, 10)
-patch_margin_left = 6
-patch_margin_top = 3
-patch_margin_right = 6
-patch_margin_bottom = 3
-
-[node name="mpBar" type="Control" parent="bottomBar/hpMpBar"]
+[node name="mpBar" type="Control" parent="bottomBar/statBar"]
 visibility_layer = 2
 anchors_preset = 0
 offset_left = 43.0
@@ -177,7 +300,7 @@ offset_right = 79.0
 offset_bottom = 11.0
 mouse_filter = 2
 
-[node name="mpBackground" type="NinePatchRect" parent="bottomBar/hpMpBar/mpBar"]
+[node name="mpBackground" type="NinePatchRect" parent="bottomBar/statBar/mpBar"]
 visibility_layer = 2
 layout_mode = 1
 anchors_preset = 15
@@ -192,7 +315,7 @@ patch_margin_top = 3
 patch_margin_right = 6
 patch_margin_bottom = 3
 
-[node name="ProgressBar" type="ProgressBar" parent="bottomBar/hpMpBar/mpBar"]
+[node name="ProgressBar" type="ProgressBar" parent="bottomBar/statBar/mpBar"]
 show_behind_parent = true
 visibility_layer = 2
 layout_mode = 0
@@ -206,7 +329,107 @@ theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dk5r0")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="bottomBar/hpMpBar/mpBar/ProgressBar" instance=ExtResource("3_5kha5")]
+[node name="syncRangeToCharacterStat" parent="bottomBar/statBar/mpBar/ProgressBar" instance=ExtResource("3_5kha5")]
+max_stat = "max_mp"
+
+[node name="statDisplayAreaExpander" type="TextureRect" parent="bottomBar/statBar"]
+visibility_layer = 2
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_gtiv0")
+stretch_mode = 5
+
+[node name="watchAndPutStatUiElementsFromCharacterHere" type="Node" parent="bottomBar/statBar/statDisplayAreaExpander" node_paths=PackedStringArray("ui_element_container")]
+script = SubResource("GDScript_rmng7")
+ui_element_container = NodePath("../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer")
+
+[node name="statDisplayArea" type="NinePatchRect" parent="bottomBar/statBar/statDisplayAreaExpander"]
+process_mode = 4
+visible = false
+layout_mode = 2
+offset_left = -1.0
+offset_top = -68.014
+offset_right = 122.0
+offset_bottom = -1.01401
+texture = ExtResource("1_i3w13")
+region_rect = Rect2(0, 0, 8, 8)
+patch_margin_left = 3
+patch_margin_top = 5
+patch_margin_right = 3
+patch_margin_bottom = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="bottomBar/statBar/statDisplayAreaExpander/statDisplayArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="bottomBar/statBar/statDisplayAreaExpander/statDisplayArea/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_scroll_mode = 0
+
+[node name="HFlowContainer" type="HFlowContainer" parent="bottomBar/statBar/statDisplayAreaExpander/statDisplayArea/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Area2D" type="Area2D" parent="bottomBar/statBar/statDisplayAreaExpander"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bottomBar/statBar/statDisplayAreaExpander/Area2D"]
+position = Vector2(6.24365, 5.93908)
+shape = SubResource("RectangleShape2D_jif51")
+
+[node name="toggleNodeVisibilityOnClick" type="Node" parent="bottomBar/statBar/statDisplayAreaExpander/Area2D" node_paths=PackedStringArray("node")]
+script = SubResource("GDScript_slqfr")
+node = NodePath("../../statDisplayArea")
+
+[node name="homeButtonTextureRect" type="TextureRect" parent="bottomBar/statBar"]
+layout_mode = 2
+offset_left = 80.0
+offset_top = 2.0
+offset_right = 89.0
+offset_bottom = 11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_ni8lo")
+expand_mode = 2
+
+[node name="Area2D" type="Area2D" parent="bottomBar/statBar/homeButtonTextureRect"]
+position = Vector2(-81, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bottomBar/statBar/homeButtonTextureRect/Area2D"]
+position = Vector2(85.6254, 4.48599)
+shape = SubResource("RectangleShape2D_jif51")
+
+[node name="teleportCharacterParentToHomeWorldOnClick" type="Node" parent="bottomBar/statBar/homeButtonTextureRect/Area2D"]
+script = SubResource("GDScript_ji1a0")
+
+[node name="homeButton" type="NinePatchRect" parent="bottomBar"]
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+texture = ExtResource("1_i3w13")
+region_rect = Rect2(0.945007, 0.702801, 6.216, 6.35113)
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
 
 [node name="gearBar" type="NinePatchRect" parent="bottomBar"]
 texture_filter = 1

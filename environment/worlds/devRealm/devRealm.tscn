@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3 uid="uid://n7p1mynbtqe2"]
+
+[ext_resource type="Texture2D" uid="uid://c7xyy1us74kct" path="res://environment/worlds/devRealm/metric-background.png" id="1_m8mtt"]
+
+[node name="devRealm" type="Node2D"]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+z_index = -1000
+motion_mirroring = Vector2(1024, 1024)
+metadata/_edit_group_ = true
+
+[node name="background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+texture = ExtResource("1_m8mtt")
+
+[node name="background2" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+position = Vector2(512, 0)
+texture = ExtResource("1_m8mtt")
+
+[node name="background3" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+position = Vector2(0, 512)
+texture = ExtResource("1_m8mtt")
+
+[node name="background4" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+position = Vector2(512, 512)
+texture = ExtResource("1_m8mtt")

@@ -1,0 +1,100 @@
+[gd_scene load_steps=20 format=3 uid="uid://cbdlhd2682nf2"]
+
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="1_euwb6"]
+[ext_resource type="Texture2D" uid="uid://cj1g06b45yc1h" path="res://characters/playableCharacters/assets/generic-adventurer-1.png" id="2_1j18p"]
+[ext_resource type="PackedScene" uid="uid://dt5lmfyk204gy" path="res://characters/callFirstTouchingColliderInteractMethodOnInteract.tscn" id="3_yypxc"]
+[ext_resource type="PackedScene" uid="uid://dqxwsxaf3a00a" path="res://characters/setAsPlayerCharacter.tscn" id="4_73cic"]
+[ext_resource type="PackedScene" uid="uid://dcexsoo05r476" path="res://characters/walkAbility.tscn" id="5_uiv4d"]
+[ext_resource type="PackedScene" uid="uid://bu15t22bkicre" path="res://characters/moveCharacterOnAction.tscn" id="6_fwpbx"]
+[ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/healthStats.tscn" id="7_icdjc"]
+[ext_resource type="PackedScene" uid="uid://dm1it4xh6cbaq" path="res://characters/equipmentRestrictions.tscn" id="9_p37en"]
+[ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/dieOnZeroHp.tscn" id="10_6qmqh"]
+[ext_resource type="PackedScene" uid="uid://cydlabqo6mon2" path="res://characters/makeBasicDamagePopups.tscn" id="11_3m5t7"]
+[ext_resource type="PackedScene" uid="uid://nddvfrwny2x2" path="res://characters/setTargetToMouseLocation.tscn" id="12_lmr86"]
+[ext_resource type="PackedScene" uid="uid://b8oc4qapcpigw" path="res://characters/mainAttackOnAction.tscn" id="13_4wfma"]
+[ext_resource type="PackedScene" uid="uid://d3ffms5y4ng4q" path="res://items/hpFlaskGear.tscn" id="14_xkami"]
+[ext_resource type="PackedScene" uid="uid://2dl7owj1fh7" path="res://items/basicShotProducer.tscn" id="15_1gvf0"]
+[ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="16_rm1a6"]
+[ext_resource type="PackedScene" uid="uid://b0kbpv2w4ustw" path="res://ui/playerUi.tscn" id="17_lq81o"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(8, 8)
+
+[sub_resource type="GDScript" id="GDScript_cdjwg"]
+script/source = "extends Node
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      get_parent().tree_entered.connect(parent_entered_tree)
+    NOTIFICATION_UNPARENTED:
+      get_parent().tree_entered.disconnect(parent_entered_tree)
+      
+
+func parent_entered_tree():
+  var universe = Lib.get_parent_in_group(self, 'game_universe')
+  var current_world = Lib.get_parent_in_group(self, 'game_world')
+  
+  universe.set_visible_world(current_world)
+
+
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ngsae"]
+size = Vector2(12, 12)
+
+[node name="genericClass" type="CharacterBody2D" groups=["character", "gear_container"]]
+collision_layer = 2
+metadata/ui_gear_cells = 6
+metadata/_edit_group_ = true
+metadata/factions = "players"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+material = ExtResource("1_euwb6")
+texture = ExtResource("2_1j18p")
+region_rect = Rect2(0, 0, 10, 10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="setAsPlayerCharacter" parent="." instance=ExtResource("4_73cic")]
+
+[node name="setVisibleWorldToParentWorld" type="Node" parent="."]
+script = SubResource("GDScript_cdjwg")
+
+[node name="callFirstTouchingColliderInteractMethodOnInteract" parent="." instance=ExtResource("3_yypxc")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="callFirstTouchingColliderInteractMethodOnInteract"]
+shape = SubResource("RectangleShape2D_ngsae")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
+
+[node name="walkAbility" parent="." instance=ExtResource("5_uiv4d")]
+
+[node name="moveCharacterOnAction" parent="." instance=ExtResource("6_fwpbx")]
+
+[node name="healthStats" parent="." instance=ExtResource("7_icdjc")]
+initial_max_hp = 1000.0
+initial_hp = 1000.0
+initial_hp_regen = 10.0
+
+[node name="equipmentRestrictions" parent="." instance=ExtResource("9_p37en")]
+
+[node name="dieOnZeroHp" parent="." instance=ExtResource("10_6qmqh")]
+
+[node name="makeBasicDamagePopups" parent="." instance=ExtResource("11_3m5t7")]
+position = Vector2(0.40524, -9.375)
+
+[node name="setTargetToMouseLocation" parent="." instance=ExtResource("12_lmr86")]
+
+[node name="mainAttackOnAction" parent="." instance=ExtResource("13_4wfma")]
+
+[node name="hpFlaskGear" parent="." instance=ExtResource("14_xkami")]
+
+[node name="basicShotProducer" parent="." instance=ExtResource("15_1gvf0")]
+
+[node name="basicArmor" parent="." instance=ExtResource("16_rm1a6")]
+
+[node name="playerUi" parent="." instance=ExtResource("17_lq81o")]

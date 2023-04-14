@@ -395,9 +395,61 @@ func _input(event: InputEvent):
         Comp.run_method(drag_originator, 'own_dragging_started')
 
 
+
+#Call call_after to call the given function fn after a delay of approximately delay_ms
+var call_after_list = []
+var new_call_after_items = [] #<- this is a buffer for new call_after functions
+#if we didn't have this buffer, then we couldn't add new functions to call_after_list
+#while we are processing call_after_list items. ie: We couldn't add new
+#call_after functions inside a call_after_list item function
+func call_after(delay_ms: int, fn: Callable):
+  new_call_after_items.push_back([fn, delay_ms])
+
+
+func integrate_new_call_after_items():
+  while new_call_after_items.size() > 0:
+    var fn_time  = new_call_after_items.pop_back()
+    var fn       = fn_time[0]
+    var delay_ms = fn_time[1]
+    #insert the given fn at the right position in call_after_list to keep it sorted by call time
+    var current_time = Time.get_ticks_msec()
+    var call_time = current_time + delay_ms
+    var i = call_after_list.size()-1
+    while i >= 0:
+      var fn_and_time = call_after_list[i]
+      if fn_and_time[1] > call_time:
+        call_after_list.insert(i+1, [fn, call_time])
+        return
+      i -= 1
+    #else, no return called so didnt insert
+    call_after_list.push_front([fn, call_time])
+
+
+func process_call_after_list():
+  var i = call_after_list.size()-1
+  while i >= 0:
+    var fn_and_time = call_after_list[i]
+    var fn          = fn_and_time[0] as Callable
+    var call_time   = fn_and_time[1]
+    var current_time = Time.get_ticks_msec()
+    if call_time <= current_time:
+      fn.call()
+      call_after_list.remove_at(i)
+      i -= 1
+    else:
+      return
+
+
 func _process(_delta: float):
   if is_dragging:
     dragging_display.global_position = player_character.get_global_mouse_position()
+  
+  if call_after_list.size() > 0:
+    process_call_after_list()
+  
+  #add call_after items requested during a call_after function called in process_call_after_list:
+  if new_call_after_items.size() > 0:
+    integrate_new_call_after_items()
       
 
 

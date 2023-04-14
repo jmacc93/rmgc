@@ -1,8 +1,52 @@
-[gd_scene load_steps=8 format=3 uid="uid://dt0l2qsjnfbnb"]
+[gd_scene load_steps=6 format=3 uid="uid://dt0l2qsjnfbnb"]
 
 [ext_resource type="Texture2D" uid="uid://2ik0r18qqcdc" path="res://items/basic-loot-bag.png" id="1_dnb7g"]
-[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="2_kdupq"]
-[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="2_u828d"]
+[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://items/containerInventoryDisplay.tscn" id="3_uwonn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qvo24"]
+size = Vector2(6, 6)
+
+[sub_resource type="GDScript" id="GDScript_756tj"]
+script/source = "extends Node
+
+@export var target_node_path : NodePath
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      var parent = get_parent()
+      parent.body_entered.connect(on_body_entered)
+      parent.body_exited.connect(on_body_exited)
+    NOTIFICATION_UNPARENTED:
+      var parent = get_parent()
+      parent.body_entered.disconnect(on_body_entered)
+      parent.body_exited.disconnect(on_body_exited)
+
+
+func on_body_entered(body: Node2D):
+  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
+    return
+  
+  var target_node = get_node(target_node_path)
+  if target_node == null:
+    push_error('Could not find target node with given path ', target_node_path)
+    return
+  target_node.visible = true
+  target_node.process_mode = PROCESS_MODE_INHERIT
+
+
+func on_body_exited(body: Node2D):
+  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
+    return
+  
+  var target_node = get_node(target_node_path)
+  if target_node == null:
+    push_error('Could not find target node with given path ', target_node_path)
+    return
+  target_node.visible = false
+  target_node.process_mode = Node.PROCESS_MODE_DISABLED
+"
 
 [sub_resource type="GDScript" id="GDScript_t348g"]
 script/source = "extends Node
@@ -37,38 +81,6 @@ func on_child_exiting(child: Node):
     destroy_parent.call_deferred()
 "
 
-[sub_resource type="GDScript" id="GDScript_nqnks"]
-script/source = "extends Area2D
-
-@export var target_node : Node
-
-func on_direct_mouse_event(event: InputEventMouse):
-  get_viewport().set_input_as_handled()
-  if not target_node:
-    return
-  if not (event is InputEventMouseButton):
-    return
-  if event.pressed:
-    return
-  if event.button_index != MOUSE_BUTTON_LEFT:
-    return
-  
-  #only left mouse click released
-  target_node.visible = not target_node.visible
-  target_node.process_mode = Node.PROCESS_MODE_INHERIT if target_node.visible else Node.PROCESS_MODE_DISABLED
-  if target_node.visible:
-    for loot_popup in get_viewport().get_tree().get_nodes_in_group('loot_bag_display_popup'):
-      if loot_popup != target_node:
-        loot_popup.visible = false
-        loot_popup.process_mode = Node.PROCESS_MODE_DISABLED
-"
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_5qv4g"]
-size = Vector2(6, 6)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_2d47m"]
-size = Vector2(10, 10)
-
 [node name="basicLootBag" type="Node2D" groups=["container", "gear_container"]]
 z_index = -1
 metadata/ui_gear_cells = 10
@@ -78,92 +90,19 @@ metadata/accepts_gear_drops = true
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("1_dnb7g")
 
+[node name="displayVisibilityArea2D" type="Area2D" parent="."]
+scale = Vector2(0.75, 0.75)
+collision_layer = 0
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="displayVisibilityArea2D"]
+shape = SubResource("RectangleShape2D_qvo24")
+
+[node name="toggleVisibilityOnPlayerWalkOver" type="Node" parent="displayVisibilityArea2D"]
+script = SubResource("GDScript_756tj")
+target_node_path = NodePath("../../inventoryDisplay")
+
 [node name="containerDestroyOnEmpty" type="Node" parent="."]
 script = SubResource("GDScript_t348g")
 
-[node name="toggleLootDisplayVisibilityOnClick" type="Area2D" parent="." node_paths=PackedStringArray("target_node")]
-script = SubResource("GDScript_nqnks")
-target_node = NodePath("../inventoryDisplay")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="toggleLootDisplayVisibilityOnClick"]
-shape = SubResource("RectangleShape2D_5qv4g")
-
-[node name="inventoryDisplay" type="Control" parent="." groups=["loot_bag_display_popup"]]
-process_mode = 4
-visible = false
-z_index = 800
-layout_mode = 3
-anchors_preset = 0
-offset_left = -37.7788
-offset_top = -46.0
-offset_right = 37.2212
-offset_bottom = -6.0
-mouse_filter = 2
-
-[node name="mirrorContainerGearNodesToNode" parent="inventoryDisplay" node_paths=PackedStringArray("cell_container", "parent_ui") instance=ExtResource("2_kdupq")]
-cell_container = NodePath("../MarginContainer/ScrollContainer/FlowContainer")
-parent_ui = NodePath("..")
-
-[node name="templateCellHolder" type="Control" parent="inventoryDisplay/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
-process_mode = 4
-visible = false
-custom_minimum_size = Vector2(10, 10)
-layout_mode = 3
-anchors_preset = 0
-offset_right = 10.0
-offset_bottom = 10.0
-mouse_filter = 2
-
-[node name="background" type="ColorRect" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.905882, 0.690196, 0.619608, 1)
-metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
-
-[node name="Area2D" type="Area2D" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="inventoryDisplay/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
-position = Vector2(5, 5)
-shape = SubResource("RectangleShape2D_2d47m")
-
-[node name="NinePatchRect" type="NinePatchRect" parent="inventoryDisplay"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("2_u828d")
-patch_margin_left = 3
-patch_margin_top = 3
-patch_margin_right = 3
-patch_margin_bottom = 3
-
-[node name="MarginContainer" type="MarginContainer" parent="inventoryDisplay"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 3
-theme_override_constants/margin_top = 3
-theme_override_constants/margin_right = 3
-theme_override_constants/margin_bottom = 3
-
-[node name="ScrollContainer" type="ScrollContainer" parent="inventoryDisplay/MarginContainer"]
-layout_mode = 2
-mouse_filter = 2
-horizontal_scroll_mode = 0
-
-[node name="FlowContainer" type="FlowContainer" parent="inventoryDisplay/MarginContainer/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-mouse_filter = 2
+[node name="inventoryDisplay" parent="." instance=ExtResource("3_uwonn")]

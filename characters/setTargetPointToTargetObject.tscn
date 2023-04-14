@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://dli120vxqfrx5"]
+
+[sub_resource type="GDScript" id="GDScript_p77ub"]
+script/source = "extends Node
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.call_on_set_prop(get_parent(), 'target_object', mirror_target_object)
+    NOTIFICATION_UNPARENTED:
+      Comp.stop_calling_on_set_prop(get_parent(), 'target_object', mirror_target_object)
+
+
+#this is for performance purposes: we use target_object every frame in _process
+var mirrored_target_object
+func mirror_target_object():
+  mirrored_target_object = Comp.get_prop(get_parent(), 'target_object')
+
+
+func _process(_delta):
+  if (mirrored_target_object != null) and ('global_position' in mirrored_target_object):
+    var target_point = mirrored_target_object.global_position
+    Comp.set_prop(get_parent(), 'target_point', target_point)
+    var debug_point = get_node_or_null('DebugPoint')
+    if debug_point != null:
+      debug_point.global_position = target_point
+
+"
+
+[node name="setTargetPointToTargetObject" type="Node"]
+script = SubResource("GDScript_p77ub")

@@ -1,0 +1,92 @@
+[gd_scene load_steps=7 format=3 uid="uid://cfe01o3bqox5e"]
+
+[ext_resource type="Texture2D" uid="uid://clpocpxfts7x5" path="res://environment/small_world_portal.png" id="1_wjl8m"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="2_wpaav"]
+[ext_resource type="PackedScene" uid="uid://cltmch762lqa4" path="res://ui/mirrorNodePropToParentLabel.tscn" id="3_7c8na"]
+[ext_resource type="PackedScene" uid="uid://ceomcg1jw817h" path="res://showGrandparentOnPlayerTouching.tscn" id="3_wtt6d"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2x3t2"]
+size = Vector2(12, 8)
+
+[sub_resource type="GDScript" id="GDScript_6dji4"]
+script/source = "extends Node
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.set_prop(parent, 'interact', on_interact)
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'interact')
+
+
+func on_interact(character: Node):
+  var parent_with_world_file = Comp.get_parent_with_prop(self, 'world_file')
+  if parent_with_world_file == null:
+    push_error('No parent with world_file prop found')
+    return
+  
+  var world_file = Comp.get_prop(parent_with_world_file, 'world_file')
+  
+  var universe = Lib.get_parent_in_group(self, 'game_universe')
+  var world = universe.open_world(world_file)
+  
+  var this_world = Game.get_game_world(self)
+  if Comp.run_method(world, 'move_character_into', [character, this_world]):
+    return
+  
+  character.reparent(world)
+  
+
+"
+
+[node name="mainWorldPortal" type="Sprite2D"]
+z_index = -1
+texture = ExtResource("1_wjl8m")
+metadata/world_file = ""
+metadata/world_name = ""
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+visible = false
+z_index = 1000
+offset_left = -15.0
+offset_top = -23.0
+offset_right = 14.0
+offset_bottom = -9.0
+texture = ExtResource("2_wpaav")
+region_rect = Rect2(0.9986, 1, 6.0014, 5.81159)
+patch_margin_left = 3
+patch_margin_top = 3
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="Label" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 108.0
+offset_bottom = 50.0
+scale = Vector2(0.25, 0.25)
+theme_override_colors/font_color = Color(0.247059, 0.247059, 0.247059, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="mirrorParentPropToParentLabel" parent="NinePatchRect/Label" instance=ExtResource("3_7c8na")]
+node_with_prop_path = NodePath("../../..")
+prop_name = "world_name"
+
+[node name="Area2D" type="Area2D" parent="NinePatchRect"]
+position = Vector2(15, 23)
+collision_layer = 8
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NinePatchRect/Area2D"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_2x3t2")
+
+[node name="goToParentsWorldFileOnInteract" type="Node" parent="NinePatchRect/Area2D"]
+script = SubResource("GDScript_6dji4")
+
+[node name="showGrandparentOnPlayerTouching" parent="NinePatchRect/Area2D" instance=ExtResource("3_wtt6d")]

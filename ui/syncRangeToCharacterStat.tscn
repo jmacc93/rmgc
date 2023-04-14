@@ -3,9 +3,8 @@
 [sub_resource type="GDScript" id="GDScript_v288j"]
 script/source = "extends Node
 
+#For use in playerUi.tscn
 #The hp / mp / etc of the closest parent in the character group is synced to the closest Range / ProgressBar / TexturedProgressBar / etc parent
-
-var range_parent : Range
 
 var character_parent : Node
 
@@ -15,17 +14,9 @@ var character_parent : Node
 
 func _notification(what):
   match what:
-    NOTIFICATION_PARENTED:  
+    NOTIFICATION_ENTER_TREE:
       character_parent = Lib.get_parent_in_group(self, 'character')
       if character_parent == null:
-        push_error(\"No parent character found\")
-        queue_free()
-        return
-      
-      range_parent = Lib.get_parent_with_class(self, 'Range')
-      if range_parent == null:
-        push_error('No Range, ProgressBar, etc parent found')
-        queue_free()
         return
       
       Comp.call_on_set_prop(character_parent, stat, on_stat_change)
@@ -40,20 +31,23 @@ func _notification(what):
       ).call_deferred()
       
     NOTIFICATION_EXIT_TREE:
-      character_parent = Lib.get_parent_in_group(self, 'character')
-      if character_parent != null:
-        return #ui not unparented
+      var current_character_parent = Lib.get_parent_in_group(self, 'character')
+      if current_character_parent != null:
+        return #ui not unparented from character
       Comp.stop_calling_on_set_prop(character_parent, stat, on_stat_change)
       if max_stat != '':
         Comp.stop_calling_on_set_prop(character_parent, max_stat, on_max_stat_change)
+      character_parent = null
 
 
 func on_stat_change(new_stat_value):
+  var range_parent = get_parent()
   if new_stat_value is float:
     range_parent.set_value(new_stat_value)
 
 
 func on_max_stat_change(new_max_stat_value):
+  var range_parent = get_parent()
   if new_max_stat_value is float:
     range_parent.set_max(new_max_stat_value)
 

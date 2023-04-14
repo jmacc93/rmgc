@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://dqxwsxaf3a00a"]
+
+[sub_resource type="GDScript" id="GDScript_wl53u"]
+script/source = "extends Node2D
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      Lib.player_character = get_parent()
+    
+    NOTIFICATION_UNPARENTED:
+      Lib.player_character = null
+      
+"
+
+[node name="setAsPlayerCharacter" type="Node2D"]
+script = SubResource("GDScript_wl53u")

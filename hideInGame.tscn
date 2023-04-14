@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://61atbwqqn8h0"]
+
+[sub_resource type="GDScript" id="GDScript_q74se"]
+script/source = "extends Node
+
+func _notification(notification):
+  match notification:
+    NOTIFICATION_PARENTED:  
+      get_parent().visible = false
+
+
+"
+
+[node name="hideInGame" type="Node"]
+script = SubResource("GDScript_q74se")

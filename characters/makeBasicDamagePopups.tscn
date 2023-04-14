@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://cydlabqo6mon2"]
+
+[sub_resource type="GDScript" id="GDScript_67g1a"]
+script/source = "extends Node2D
+
+var composite
+
+var damage_popup_resource : PackedScene = preload(\"res://damagePopup.tscn\")
+
+var prev_hp = 0
+
+func _enter_tree():
+  var parent = get_parent()
+  Comp.call_on_set_prop(parent, 'hp', func():
+    var hp = Comp.get_prop(parent, 'hp')
+    var change = hp - prev_hp
+    if change == 0:
+      return
+    var damage_popup = damage_popup_resource.instantiate()
+    damage_popup.set_damage(change)
+    call_deferred('add_child', damage_popup)
+    prev_hp = hp
+  )
+
+
+func _ready():
+  prev_hp = Comp.get_prop(get_parent(), 'hp')
+"
+
+[node name="makeBasicDamagePopups" type="Node2D"]
+z_index = 100
+script = SubResource("GDScript_67g1a")

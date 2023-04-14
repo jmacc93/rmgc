@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3 uid="uid://duig04u2vu4cq"]
+
+[sub_resource type="GDScript" id="GDScript_lg7e8"]
+script/source = "extends Area2D
+
+@export var hates_everyone = false
+
+func _init():
+  body_entered.connect(on_body_entered)
+  body_exited.connect(on_body_exited)
+
+
+#does character love or hate obj?
+func is_hostile_faction_array(my_faction_array, obj_faction_array):
+  for my_faction in my_faction_array:
+    #if any of parent my factions are in obj's faction_array then they're best buds
+    var my_faction_in_object = (obj_faction_array.find(my_faction) != -1)
+    if my_faction_in_object:
+      return false #loves
+  return true #hates
+
+
+#is body an enemy? then target. Return true if targeted something
+func test_and_switch_target_to_body(body):
+  var parent = get_parent()
+  
+  #get factions and faction alignment  
+  var body_faction = Comp.get_prop(body, 'factions', 'default')
+  var my_faction = Comp.get_prop(parent, 'factions', 'default')
+  var factions_agree = Game.check_factions_agree(my_faction, body_faction)
+  
+  if not factions_agree:
+    Comp.set_prop(parent, 'target_object', body)
+    return true #true == has new target
+  
+  #no action taken
+  return false #false == no new target
+  
+
+#target characters and factioned objects that enter
+func on_body_entered(body):
+  var parent = get_parent()
+  #dont do anything if already have target
+  var target_object = Comp.get_prop(parent, 'target_object')
+  if target_object != null:
+    return
+  
+  #set new target if body is hostile faction
+  test_and_switch_target_to_body(body)
+
+
+#untarget active target if its far away, and then get a new target if there are any
+func on_body_exited(body):
+  var parent = get_parent()
+  #dont untarget current target if it didnt just leave
+  var target_object = Comp.get_prop(parent, 'target_object')
+  if body != target_object:
+    return
+  
+  #get a new target, if there is one still in this area
+  Comp.set_prop(parent, 'target_object', null)
+  for overlapping_body in get_overlapping_bodies():
+    var has_new_target = test_and_switch_target_to_body(overlapping_body)
+    if has_new_target:
+      return
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="targetNearestNonfaction" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+script = SubResource("GDScript_lg7e8")
+hates_everyone = true
+
+[connection signal="body_entered" from="." to="." method="_on_targetNearestNonfaction_body_entered" flags=18]
+[connection signal="body_exited" from="." to="." method="_on_targetNearestNonfaction_body_exited" flags=18]

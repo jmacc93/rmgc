@@ -11,46 +11,45 @@ var parent_container
 
 @export var loot_bag_scene: PackedScene
 
-@export var parent_ui: Node
+
+func _init():
+  tree_entered.connect(on_tree_entered)
+  tree_exited.connect(on_tree_exited)
 
 
-func _notification(what):
-  match what:
-    NOTIFICATION_PARENTED:
-      (func(): 
-        parent_container = Lib.get_parent_in_group(self, 'gear_container')
-        if parent_container == null:
-          push_error('No parent found in group gear_container')
-          return
-        
-        if cell_container == null:
-          push_error('No cell container export variable given')
-          return
-        
-        parent_ui.tree_exited.connect(disengage_from_container)
-        
-        #add cell holders to hboxcontainer
-        var cell_count = Comp.get_prop(parent_container, 'ui_gear_cells', 6)
-        for i in range(0, cell_count):
-          make_new_holder_child()
-        
-        #add current gear ndoes:
-        for possible_gear_node in parent_container.get_children():
-          if not possible_gear_node.is_in_group('gear'):
-            continue
-          on_added_container_node(possible_gear_node)
-        
-        #for future gear nodes:
-        parent_container.child_entered_tree.connect(on_added_container_node)
-      ).call_deferred()
+func on_tree_entered():
+  on_tree_exited() #exit tree and the re-attach
+  var new_parent_container = Lib.get_parent_in_group(self, 'gear_container')
+  if parent_container == new_parent_container:
+    return #still connected
+  parent_container = new_parent_container
+  (func(): 
+    if cell_container == null:
+      push_error('No cell container export variable given')
+      return
     
-    NOTIFICATION_UNPARENTED:
-      disengage_from_container()
+    #add cell holders to hboxcontainer
+    var cell_count = Comp.get_prop(parent_container, 'ui_gear_cells', 6)
+    for i in range(0, cell_count):
+      make_new_holder_child()
+    
+    #add current gear ndoes:
+    for possible_gear_node in parent_container.get_children():
+      if not possible_gear_node.is_in_group('gear'):
+        continue
+      on_added_container_node(possible_gear_node)
+    
+    #for future gear nodes:
+    parent_container.child_entered_tree.connect(on_added_container_node)
+  ).call_deferred()
+  
 
-
-func disengage_from_container():
-  if parent_ui.get_parent() == parent_container:
-    return #ui not unparented; probably higher parent left tree
+func on_tree_exited():
+  if parent_container == null:
+    return #already unparented
+  var current_gear_container = Lib.get_parent_in_group(self, 'gear_container')
+  if current_gear_container != null:
+    return #not unparented from container
   parent_container.child_entered_tree.disconnect(on_added_container_node)
 
 

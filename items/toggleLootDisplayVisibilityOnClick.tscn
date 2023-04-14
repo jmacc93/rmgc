@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://bwbt72svh4xmp"]
+
+[sub_resource type="GDScript" id="GDScript_nqnks"]
+script/source = "extends Area2D
+
+@export var target_node_path : NodePath
+
+
+func on_direct_mouse_event(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  var target_node = get_node(target_node_path)
+  if not target_node:
+    return
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  
+  #only left mouse click released
+  target_node.visible = not target_node.visible
+  target_node.process_mode = Node.PROCESS_MODE_INHERIT if target_node.visible else Node.PROCESS_MODE_DISABLED
+  if target_node.visible:
+    for loot_popup in get_viewport().get_tree().get_nodes_in_group('loot_bag_display_popup'):
+      if loot_popup != target_node:
+        loot_popup.visible = false
+        loot_popup.process_mode = Node.PROCESS_MODE_DISABLED
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5qv4g"]
+size = Vector2(6, 6)
+
+[node name="toggleLootDisplayVisibilityOnClick" type="Area2D"]
+script = SubResource("GDScript_nqnks")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_5qv4g")

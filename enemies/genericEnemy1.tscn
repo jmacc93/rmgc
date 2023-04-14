@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://bqtm2kgmesrsj"]
+[gd_scene load_steps=15 format=3 uid="uid://bqtm2kgmesrsj"]
 
 [ext_resource type="Script" path="res://compositeNode.gd" id="1_wg4p3"]
 [ext_resource type="Script" path="res://characters/makeBasicDamagePopups.gd" id="3"]
@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://characters/randomlyWalk.gd" id="5_0gob7"]
 [ext_resource type="Script" path="res://targetNearestNonfaction.gd" id="7"]
 [ext_resource type="Script" path="res://characters/shootConstantlyAtTargetObject.gd" id="8_hek0o"]
-[ext_resource type="Script" path="res://characters/inSingleFaction.gd" id="9_elpwm"]
 [ext_resource type="Texture2D" uid="uid://btel35amx7ar0" path="res://white_point.png" id="9_pks3n"]
 [ext_resource type="Script" path="res://characters/dieOnZeroHp.gd" id="10_7fhrc"]
 [ext_resource type="Script" path="res://characters/freeOnDie.gd" id="11_mjcr8"]
@@ -24,23 +23,19 @@ size = Vector2(100, 100)
 collision_layer = 2
 motion_mode = 1
 script = ExtResource("1_wg4p3")
-metadata/is_character = true
+metadata/faction = "enemies"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 visible = false
 shape = SubResource("1")
 
-[node name="inSingleFaction" type="Node" parent="."]
-script = ExtResource("9_elpwm")
-faction = "enemies"
-
 [node name="walkAbility" type="Node" parent="."]
 script = ExtResource("3_oa70o")
 
-[node name="walkTowardTargetedObject" type="Node" parent="walkAbility"]
+[node name="walkTowardTargetedObject" type="Node" parent="."]
 script = ExtResource("4_27hon")
 
-[node name="randomlyWalk" type="Node" parent="walkAbility"]
+[node name="randomlyWalk" type="Node" parent="."]
 script = ExtResource("5_0gob7")
 
 [node name="targetNearestNonfaction" type="Area2D" parent="."]
@@ -51,11 +46,11 @@ script = ExtResource("7")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="targetNearestNonfaction"]
 shape = SubResource("2")
 
+[node name="shootConstantlyAtTargetObject" type="Node" parent="."]
+script = ExtResource("8_hek0o")
+
 [node name="setTargetPointToTargetObject" type="Node" parent="."]
 script = ExtResource("4")
-
-[node name="shootConstantlyAtTargetObject" type="Node" parent="setTargetPointToTargetObject"]
-script = ExtResource("8_hek0o")
 
 [node name="DebugPoint" type="Sprite2D" parent="setTargetPointToTargetObject"]
 modulate = Color(1, 0, 0, 1)
@@ -66,10 +61,10 @@ texture = ExtResource("9_pks3n")
 position = Vector2(0, -7)
 script = ExtResource("3")
 
-[node name="dieOnZeroHp" type="Node" parent="makeBasicDamagePopups"]
+[node name="dieOnZeroHp" type="Node" parent="."]
 script = ExtResource("10_7fhrc")
 
-[node name="freeOnDie" type="Node" parent="makeBasicDamagePopups"]
+[node name="freeOnDie" type="Node" parent="."]
 script = ExtResource("11_mjcr8")
 
 [node name="healthStats" type="Node" parent="."]

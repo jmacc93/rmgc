@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3 uid="uid://c85hm3mgk8xg7"]
+
+[sub_resource type="GDScript" id="GDScript_t348g"]
+script/source = "extends Node
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      if count_gear_nodes() == 0:
+        destroy_parent.call_deferred()
+      get_parent().child_exiting_tree.connect(on_child_exiting)
+    
+    NOTIFICATION_UNPARENTED:
+      get_parent().child_exiting_tree.disconnect(on_child_exiting)
+
+
+func count_gear_nodes():
+  var count = 0
+  for child in get_parent().get_children():
+    if child.is_in_group('gear'):
+      count += 1
+  return count
+
+
+func destroy_parent():
+  if count_gear_nodes() == 0:
+    get_parent().queue_free()
+
+
+func on_child_exiting(child: Node):
+  if count_gear_nodes() == 1:
+    destroy_parent.call_deferred()
+"
+
+[node name="containerDestroyOnEmpty" type="Node"]
+script = SubResource("GDScript_t348g")

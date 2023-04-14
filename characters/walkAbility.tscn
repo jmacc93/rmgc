@@ -1,0 +1,57 @@
+[gd_scene load_steps=2 format=3 uid="uid://dcexsoo05r476"]
+
+[sub_resource type="GDScript" id="GDScript_a6mdq"]
+script/source = "extends Node
+
+@export var initial_spd = 10.0
+
+@export var disabled = false
+
+var last_velocity : Vector2
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      var parent = get_parent()
+      if not ('velocity' in parent):
+        push_error('No velocity in parent')
+        return
+      if not parent.has_method('move_and_slide'):
+        push_error('No move_and_slide in parent')
+        return
+      
+      Comp.set_prop(parent, 'spd', initial_spd)
+      Comp.set_prop(parent, 'walk_by', Callable(self, 'walk_by'))
+    
+    NOTIFICATION_UNPARENTED:
+      var parent = get_parent()
+      Comp.remove_prop(parent, 'spd', 0)
+      Comp.remove_prop(parent, 'walk_by')
+
+
+#move in a particular direction, with collisions
+func walk_by(vec: Vector2):
+  if disabled:
+    return
+
+  if (vec.x == 0) and (vec.y == 0):
+    return
+  
+  var parent = get_parent()
+  var spd = parent.get_meta('spd')
+  parent.velocity += vec * 6.0 * spd
+  last_velocity = parent.velocity
+
+
+func _physics_process(_delta):
+  var parent = get_parent()
+  if parent.velocity.x == 0 and parent.velocity.y == 0:
+    return
+  
+  parent.move_and_slide()
+  parent.velocity = Vector2(0, 0)
+"
+
+[node name="walkAbility" type="Node"]
+script = SubResource("GDScript_a6mdq")

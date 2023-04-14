@@ -1,4 +1,4 @@
-[gd_scene load_steps=144 format=3 uid="uid://c7uj8ms18c2ge"]
+[gd_scene load_steps=146 format=3 uid="uid://c7uj8ms18c2ge"]
 
 [ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_mg3gl"]
 [ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="2_0f1mu"]
@@ -36,6 +36,7 @@
 [ext_resource type="Texture2D" uid="uid://2ik0r18qqcdc" path="res://items/basic-loot-bag.png" id="34_oxwld"]
 [ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="35_ssfj1"]
 [ext_resource type="PackedScene" uid="uid://dxyw0xj7631nd" path="res://environment/worlds/ashlands/ashlandsWorld.tscn" id="36_vrir7"]
+[ext_resource type="PackedScene" uid="uid://bwbt72svh4xmp" path="res://items/toggleLootDisplayVisibilityOnClick.tscn" id="37_qq3il"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tsxmw"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -2539,6 +2540,9 @@ func on_resized():
   get_parent().size = container.size
 "
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p5y2b"]
+size = Vector2(6, 6)
+
 [node name="saved_nodes" type="Node"]
 
 [node name="genericAdventurer1" parent="." instance=ExtResource("1_mg3gl")]
@@ -3216,7 +3220,7 @@ script = ExtResource("20_n61d3")
 [node name="genericEnemy1" parent="." groups=["character"] instance=ExtResource("24_i2yh1")]
 position = Vector2(-71, 20)
 
-[node name="targetNearestNonfaction" parent="genericEnemy1" index="3"]
+[node name="targetNearestNonfaction" parent="genericEnemy1" index="4"]
 visible = false
 
 [node name="Sprite2D" type="Sprite2D" parent="genericEnemy1"]
@@ -3906,9 +3910,18 @@ render_target_update_mode = 4
 [node name="setViewportDimensionsToContainerDimensions" type="Node" parent="SubViewport"]
 script = SubResource("GDScript_lsl0m")
 
+[node name="toggleLootDisplayVisibilityOnClick" parent="." instance=ExtResource("37_qq3il")]
+editor_description = "Originall for basicLootBag
+"
+target_node_path = NodePath("../inventoryDisplay")
+
+[node name="CollisionShape2D" parent="toggleLootDisplayVisibilityOnClick" index="0"]
+shape = SubResource("RectangleShape2D_p5y2b")
+
 [connection signal="body_entered" from="genericEnemy3/targetNearestNonfaction2" to="genericEnemy3/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_entered"]
 [connection signal="body_exited" from="genericEnemy3/targetNearestNonfaction2" to="genericEnemy3/targetNearestNonfaction2" method="_on_targetNearestNonfaction_body_exited"]
 [connection signal="tree_entered" from="genericAdventurer4/uiControl" to="genericAdventurer4/uiControl/bottomBar/gearBar/addGearUiCellMethodToParent" method="_on_ui_control_tree_entered"]
 [connection signal="tree_exited" from="genericAdventurer4/uiControl" to="genericAdventurer4/uiControl/bottomBar/gearBar/addGearUiCellMethodToParent" method="_on_ui_control_tree_exited"]
 
 [editable path="genericEnemy1"]
+[editable path="toggleLootDisplayVisibilityOnClick"]

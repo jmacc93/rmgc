@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3 uid="uid://dm1it4xh6cbaq"]
+
+[sub_resource type="GDScript" id="GDScript_jiatt"]
+script/source = "extends Node
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:  
+      Comp.set_prop(get_parent(), 'can_equip', can_equip)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(get_parent(), 'can_equip', null)
+
+
+func can_equip(equipment_object):
+  var equipment_classes = Comp.get_prop(equipment_object, 'equipment_classes')
+  if equipment_classes == null:
+    return
+  
+  for metaname in get_meta_list():
+    var index = equipment_classes.find(metaname)
+    if index == -1:
+      continue
+    var count = count_in_class(metaname)
+    var max_count = get_meta(metaname)
+    prints('equipmentRestrictions', count, max_count)
+    return count < max_count
+  return true
+
+
+func count_in_class(classname: String) -> int:
+  var gear_children = Lib.get_children_in_group(get_parent(), 'gear')
+  var count = 0
+  for gear_child in gear_children:
+    var is_equipped = gear_child.is_in_group('equipped')
+    if not is_equipped:
+      continue
+    var equipment_classes = Comp.get_object_meta(gear_child, 'equipment_classes')
+    if equipment_classes == null:
+      continue
+    var index = equipment_classes.find(classname) #eg ['armor', 'weapon'].find('armor') != -1
+    if index != -1: #classname in equipment_classes
+      count += 1
+    
+  return count
+
+"
+
+[node name="equipmentRestrictions" type="Node"]
+editor_description = "meta are like `equipment_class = max_equipped_gear_in_that_class`"
+script = SubResource("GDScript_jiatt")
+metadata/armor = 1
+metadata/weapon = 1

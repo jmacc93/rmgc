@@ -3,13 +3,25 @@
 [sub_resource type="GDScript" id="GDScript_qwhlc"]
 script/source = "extends Node
 
-func _enter_tree():
+
+func _notification(what):
   var parent = get_parent()
-  Watch.call_on_set_meta(parent, 'hp', func():
-    var hp = parent.get_meta('hp')
-    if hp <= 0:
-      Watch.notify(parent, 'die')
-  )
+  match what:
+    NOTIFICATION_PARENTED:  
+      Comp.call_on_set_prop(parent, 'hp', check_and_die)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.stop_calling_on_set_prop(parent, 'hp', check_and_die)
+      
+
+func check_and_die():
+  var parent = get_parent()
+  var hp = Comp.get_prop(parent, 'hp')
+  if hp <= 0:
+    if Comp.run_method(parent, 'die', []):
+      return
+    else:
+      parent.queue_free()
 "
 
 [node name="dieOnZeroHp" type="Node"]

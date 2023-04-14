@@ -125,7 +125,14 @@ func remove_prop(obj: Object, prop: String, default = null):
   Watch.call_callable(callable_array, prop, [])
 
 
-
+func get_parent_with_prop(start_node: Node, prop_name: String):
+  var current_node = start_node.get_parent()
+  while current_node:
+    if has_prop(current_node, prop_name):
+      return current_node
+    else:
+      current_node = current_node.get_parent()
+  return null
 
 
 

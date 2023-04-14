@@ -1,0 +1,58 @@
+[gd_scene load_steps=4 format=3 uid="uid://h0xwub473afg"]
+
+[ext_resource type="PackedScene" uid="uid://dt0l2qsjnfbnb" path="res://items/basicLootBag.tscn" id="1_wydod"]
+[ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="2_hyeb0"]
+
+[sub_resource type="GDScript" id="GDScript_m1ony"]
+script/source = "extends Node
+
+@export var bag_scene: PackedScene
+
+@export var guaranteed_loot_scenes: Array
+@export var random_loot_scenes: Array
+@export var random_drop_count = 0
+
+@export var drop_chance = 0.1
+
+func _enter_tree():
+  var parent = get_parent()
+  var game_world = Lib.get_parent_in_group(self, 'game_world')
+  var global_position_parent = Lib.get_parent_with_property(self, 'global_position')
+  Watch.call_on_notify(parent, 'die', func():
+    if randf() > drop_chance:
+      return
+    var bag_instance = bag_scene.instantiate()
+    game_world.add_child(bag_instance)
+    bag_instance.global_position = global_position_parent.global_position
+    
+    #add guaranteed drops
+    for loot_scene_obj in guaranteed_loot_scenes:
+      if not loot_scene_obj.has_method('instantiate'):
+        continue
+      var loot_instance = loot_scene_obj.instantiate()
+      bag_instance.add_child(loot_instance)
+    
+    #add random drops
+    for i in range(0, random_drop_count):
+      var random_loot_scene_obj = random_loot_scenes.pick_random()
+      if not random_loot_scene_obj.has_method('instantiate'):
+        continue
+      var loot_instance = random_loot_scene_obj.instantiate()
+      bag_instance.add_child(loot_instance)
+  )
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="dropLootOnDeath" type="Node"]
+script = SubResource("GDScript_m1ony")
+bag_scene = ExtResource("1_wydod")
+guaranteed_loot_scenes = [ExtResource("2_hyeb0")]

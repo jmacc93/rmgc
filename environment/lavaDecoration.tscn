@@ -1,8 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=7 format=3 uid="uid://bpm555ffxbu67"]
 
 [ext_resource type="Texture2D" uid="uid://wfnaaksk22j1" path="res://environment/textures/lava/lava.png" id="1_tdjef"]
 [ext_resource type="PackedScene" uid="uid://denlwjbxajghs" path="res://environment/alphaMaskParentWithShaderAndMaskFromFile.tscn" id="2_m3gfm"]
-[ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/grassScatterer.tscn" id="3_jo1kf"]
+[ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="3_jo1kf"]
 [ext_resource type="Texture2D" uid="uid://cce4gd011c55g" path="res://environment/textures/ash/ash1.png" id="4_5fxl4"]
 [ext_resource type="PackedScene" uid="uid://buq787t8yf45a" path="res://environment/randomMaskedGroundDecoration.tscn" id="4_y4tym"]
 

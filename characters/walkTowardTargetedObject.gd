@@ -1,6 +1,6 @@
 extends Node
 
-var composite
+var character_parent
 var global_position_parent
     
 @export var disabled = false
@@ -9,11 +9,6 @@ var global_position_parent
 
 
 func _enter_tree():
-  composite = Lib.get_parent_with_method(self, "new_getter")
-  if not composite:
-    push_error('No composite parent found')
-    queue_free()
-    return
   
   global_position_parent = Lib.get_parent_with_property(self, 'global_position')
   if not global_position_parent:
@@ -21,13 +16,18 @@ func _enter_tree():
     queue_free()    
     return
 
-
+var frame_num = 0
 func _process(_delta):
   if disabled:
     return
   
+  frame_num += 1
+  if frame_num % 2 == 0:
+    return #skip 1 out of 2 frames
+  
   #is there a target?
-  var target_object = composite.get_prop('target_object')
+  var parent = get_parent()
+  var target_object = Comp.get_prop(parent, 'target_object')
   if (target_object == null) or (not is_instance_valid(target_object)) or (not ('global_position' in target_object)):
     return
   
@@ -36,7 +36,7 @@ func _process(_delta):
   if vec_to_target.length() >= stay_distance:
     var adjusted_target_point = targets_position + vec_to_target.normalized() * stay_distance
     var move_vec = (adjusted_target_point - global_position_parent.global_position).normalized()
-    composite.call_method('walk_by', [move_vec])
+    Comp.run_method(parent, 'walk_by', [move_vec])
   
 
 

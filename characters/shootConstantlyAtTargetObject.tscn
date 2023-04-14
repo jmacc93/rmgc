@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3 uid="uid://qmkeouvfdesc"]
+
+[sub_resource type="GDScript" id="GDScript_gsacq"]
+script/source = "extends Node
+
+@export var disabled = false
+
+@export var msecs_between_attacks = 200
+var next_attack_time = 0
+
+
+func find_main_attack_ability_and_attack():
+  var parent = get_parent()
+  var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
+  for attack_node in main_attack_node_list:
+    if attack_node.has_method('attack'):
+      attack_node.attack(parent)
+    elif Comp.run_method(parent, 'attack', [parent]):
+      return
+
+
+func _process(_delta):
+  if disabled:
+    return
+  
+  var current_time = Time.get_ticks_msec()
+  if next_attack_time > current_time:
+    return
+  
+  #shoot if character has target
+  var parent = get_parent()
+  var target_object = Comp.get_prop(parent, 'target_object')
+  if (target_object == null) or (not is_instance_valid(target_object)):
+    return
+  
+  next_attack_time = current_time + msecs_between_attacks
+  find_main_attack_ability_and_attack()
+  
+"
+
+[node name="shootConstantlyAtTargetObject" type="Node"]
+script = SubResource("GDScript_gsacq")

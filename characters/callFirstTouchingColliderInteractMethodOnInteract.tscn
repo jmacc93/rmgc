@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3 uid="uid://dt5lmfyk204gy"]
+
+[sub_resource type="GDScript" id="GDScript_2u4m4"]
+script/source = "extends Area2D
+
+
+func _input(event: InputEvent):
+  if not event.is_action_released('interact'):
+    return
+  
+  for body in get_overlapping_bodies():
+    if Comp.run_method(body, 'interact', [get_parent()]):
+      return
+  for area in get_overlapping_areas():
+    if Comp.run_method(area, 'interact', [get_parent()]):
+      return
+
+
+
+
+
+"
+
+[node name="callFirstTouchingColliderInteractMethodOnInteract" type="Area2D"]
+collision_layer = 2
+collision_mask = 3855
+script = SubResource("GDScript_2u4m4")

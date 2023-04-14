@@ -22,8 +22,12 @@ func _ready():
   if process_mode == PROCESS_MODE_DISABLED:
     return
   
+  if scene_pool.size() == 0:
+    push_error('Empty scene pool')
+    return
+  
   (func():
-    add_children_to_scene_pool()
+#    add_children_to_scene_pool()
     
     if scene_pool.size() == 0:
       return
@@ -36,13 +40,13 @@ func _ready():
   ).call_deferred()
 
 
-func add_children_to_scene_pool():
-  for child in get_children():
-    if not child.name.begins_with('template'):
-      continue
-    var scene = Lib.make_scene_from_node(child)
-    scene_pool.push_back([scene, Comp.get_prop(child, 'generation_bias', 0.0)])
-    remove_child(child)
+#func add_children_to_scene_pool():
+#  for child in get_children():
+#    if not child.name.begins_with('template'):
+#      continue
+#    var scene = Lib.make_scene_from_node(child)
+#    scene_pool.push_back([scene, Comp.get_prop(child, 'generation_bias', 0.0)])
+#    remove_child(child)
 
 
 func calculate_bias_list():
@@ -80,7 +84,7 @@ func generate_one_child():
     Comp.set_prop(new_scene, key, value)
   
   new_scene.z_index = z_index
-
+  
   match where:
     \"Here\": 
       add_child(new_scene)
@@ -94,6 +98,8 @@ func generate_one_child():
   match distribution:
     \"Binormal\": new_scene.global_position = global_position + Lib.rand_binormal_vec(spread, binormal_exp)
     \"Uniform\":  new_scene.global_position = global_position + Lib.rand_vec(spread)
+  
+  Watch.notify(self, 'object_generated', [new_scene])
   
 "
 

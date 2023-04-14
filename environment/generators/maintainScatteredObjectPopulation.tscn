@@ -1,0 +1,65 @@
+[gd_scene load_steps=2 format=3 uid="uid://c0caw2af1m1en"]
+
+[sub_resource type="GDScript" id="GDScript_hrd40"]
+script/source = "extends Node
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(parent, 'object_generated', object_generated)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(parent, 'object_generated', object_generated)
+
+
+@export var respawn_delay_in_milliseconds: int = 1000
+
+var object_count = 0
+
+
+func object_generated(object: Node):
+  object.tree_exited.connect(object_exited.bind(object))
+
+
+func object_exited(object: Node):
+  var object_ref = weakref(object)
+  Lib.call_after(10, func(): #10 ms delay
+    if not self.is_inside_tree():
+      return #script was removed
+    var object_deref = object_ref.get_ref()
+    if object_deref != null:
+      if (object_deref.get_parent() != null):
+        return #object was reparented in the last 10 ms
+      object_deref.tree_exited.disconnect(object_exited.bind(object_deref))
+    Lib.call_after(respawn_delay_in_milliseconds, func():
+      prints('respawning enemy')
+      if not self.is_inside_tree():
+        return
+      var parent = get_parent()
+      if not parent.is_inside_tree():
+        return
+      parent.generate_one_child()
+    )
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="maintainScatteredObjectPopulation" type="Node"]
+editor_description = "For use as child of scatterObjectPlacer.tscn
+"
+script = SubResource("GDScript_hrd40")
