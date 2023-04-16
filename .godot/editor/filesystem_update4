@@ -5,3 +5,9 @@ res://latent_nodes.tscn
 res://outlineMaterial.tres
 res://testingWorld.tscn
 res://items/basicLootBag.tscn
+res://characters/makeBasicDamagePopups.tscn
+res://enemies/dustMote.tscn
+res://gameUniverse.tscn
+res://worlds/testingWorld.tscn
+res://ui/playerUi.tscn
+res://characters/playableCharacters/genericClass.tscn

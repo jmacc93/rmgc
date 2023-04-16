@@ -144,7 +144,7 @@ size = Vector2(8.75635, 9)
 [sub_resource type="GDScript" id="GDScript_ji1a0"]
 script/source = "extends Node
 
-var home_world_file = \"res://environment/worlds/homeWorld/homeWorld.tscn\"
+var home_world_file = \"res://worlds/homeWorld/homeWorld.tscn\"
 
 func _notification(what):
   match what:

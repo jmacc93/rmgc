@@ -1,13 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://c5pmsvltyenpc"]
+[gd_scene load_steps=4 format=3 uid="uid://1skc88idltxg"]
 
-[ext_resource type="PackedScene" uid="uid://bn4b3ukcc2bdv" path="res://testingWorld.tscn" id="1_iqyp2"]
-[ext_resource type="PackedScene" uid="uid://con7anbdmqj31" path="res://gameUniverseSubViewport.tscn" id="1_vn6w6"]
+[ext_resource type="PackedScene" uid="uid://con7anbdmqj31" path="res://scripts/gameUniverseSubViewport.tscn" id="1_vn6w6"]
+[ext_resource type="PackedScene" uid="uid://hkm27psr0pvq" path="res://worlds/testingWorld.tscn" id="2_d4ch1"]
 
 [sub_resource type="GDScript" id="GDScript_be2qu"]
 script/source = "extends Control
 
 
-var subviewport = preload(\"res://gameUniverseSubViewport.tscn\")
+var subviewport = preload(\"res://scripts/gameUniverseSubViewport.tscn\")
 
 
 
@@ -91,4 +91,4 @@ mouse_filter = 2
 
 [node name="gameUniverseSubViewport" parent="SubViewportContainer" instance=ExtResource("1_vn6w6")]
 
-[node name="testWorld" parent="SubViewportContainer/gameUniverseSubViewport" instance=ExtResource("1_iqyp2")]
+[node name="testWorld" parent="SubViewportContainer/gameUniverseSubViewport" instance=ExtResource("2_d4ch1")]

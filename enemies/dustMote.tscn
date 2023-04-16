@@ -1,7 +1,7 @@
-[gd_scene load_steps=20 format=3 uid="uid://b4wm1mjolckxd"]
+[gd_scene load_steps=20 format=3 uid="uid://d0rr46vhrj7as"]
 
 [ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/healthStats.tscn" id="2_26cqd"]
-[ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://copyMetaToParent.tscn" id="2_okk1x"]
+[ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://scripts/copyMetaToParent.tscn" id="2_okk1x"]
 [ext_resource type="PackedScene" uid="uid://dcexsoo05r476" path="res://characters/walkAbility.tscn" id="3_oucrw"]
 [ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/dieOnZeroHp.tscn" id="4_6vbro"]
 [ext_resource type="PackedScene" uid="uid://q6hdeppfpvc1" path="res://characters/walkTowardTargetedObject.tscn" id="4_f0dwn"]
@@ -90,7 +90,7 @@ script/source = "extends Node2D
 
 var composite
 
-var damage_popup_resource : PackedScene = preload(\"res://damagePopup.tscn\")
+var damage_popup_resource : PackedScene = preload(\"res://scripts/damagePopup.tscn\")
 
 var prev_hp = 0
 

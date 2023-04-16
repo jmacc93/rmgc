@@ -1,0 +1,222 @@
+[gd_scene load_steps=23 format=3]
+
+[ext_resource type="Texture2D" uid="uid://5g8lyh7kkut7" path="res://environment/backgrounds/ash-1.png" id="1_ccvxq"]
+[ext_resource type="PackedScene" uid="uid://61atbwqqn8h0" path="res://scripts/hideInGame.tscn" id="2_rp0lg"]
+[ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="2_xjlp7"]
+[ext_resource type="PackedScene" uid="uid://c0caw2af1m1en" path="res://environment/generators/maintainScatteredObjectPopulation.tscn" id="3_co7e3"]
+[ext_resource type="PackedScene" uid="uid://d0rr46vhrj7as" path="res://enemies/dustMote.tscn" id="3_gv3bu"]
+[ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://enemies/ash-mote-1.png" id="5_febj0"]
+[ext_resource type="Texture2D" uid="uid://cd68mt87qk5x5" path="res://worlds/ashlands/square-room-1.png" id="7_2mda5"]
+[ext_resource type="PackedScene" path="res://worlds/ashlands/ashBeast.tscn" id="8_hqdh1"]
+[ext_resource type="PackedScene" uid="uid://d3ffms5y4ng4q" path="res://items/hpFlaskGear.tscn" id="9_5ue0p"]
+[ext_resource type="PackedScene" uid="uid://dne3brtefeibj" path="res://scripts/instanceScenesAsSiblings.tscn" id="9_lmp5u"]
+[ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="12_ldtx5"]
+[ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://scripts/toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="14_cj5fe"]
+[ext_resource type="Texture2D" uid="uid://c1bqceo63l5kg" path="res://environment/chest.png" id="15_0l8tv"]
+[ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://items/destroyContainerOnEmpty.tscn" id="16_ssrdk"]
+[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://items/containerInventoryDisplay.tscn" id="18_lq42t"]
+[ext_resource type="PackedScene" uid="uid://bpm555ffxbu67" path="res://environment/lavaDecoration.tscn" id="19_dqysu"]
+
+
+[sub_resource type="GDScript" id="GDScript_16yok"]
+script/source = "extends Node2D
+
+
+func move_character_into(character: Node, _world: Node):
+  character.reparent(self)
+  Comp.run_method(character, 'changed_worlds', [])
+  
+  var spawn_point = $spawnPoint
+  character.global_position = spawn_point.global_position
+  
+"
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_arbk0"]
+normal = Vector2(1, 0)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_in34o"]
+normal = Vector2(-1, 0)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_di4hd"]
+normal = Vector2(0, 1)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_wqeem"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p0jne"]
+size = Vector2(6, 6)
+
+[node name="ashlandsWorld" type="Node2D" groups=["game_world"]]
+script = SubResource("GDScript_16yok")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+z_index = -1000
+motion_mirroring = Vector2(1024, 1024)
+metadata/_edit_group_ = true
+
+[node name="background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+texture = ExtResource("1_ccvxq")
+
+[node name="background2" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+position = Vector2(512, 0)
+texture = ExtResource("1_ccvxq")
+
+[node name="background3" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+position = Vector2(0, 512)
+texture = ExtResource("1_ccvxq")
+
+[node name="background4" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+z_index = -1000
+z_as_relative = false
+texture_filter = 1
+position = Vector2(512, 512)
+texture = ExtResource("1_ccvxq")
+
+[node name="spawnPoint" type="Node2D" parent="."]
+
+[node name="worldBoundaryArea2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="worldBoundaryArea2D"]
+position = Vector2(-7660, 81)
+shape = SubResource("WorldBoundaryShape2D_arbk0")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="worldBoundaryArea2D"]
+position = Vector2(10724, 41)
+shape = SubResource("WorldBoundaryShape2D_in34o")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="worldBoundaryArea2D"]
+position = Vector2(40, -7982)
+shape = SubResource("WorldBoundaryShape2D_di4hd")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="worldBoundaryArea2D"]
+position = Vector2(40, 8871)
+shape = SubResource("WorldBoundaryShape2D_wqeem")
+
+[node name="worldInside" type="ColorRect" parent="worldBoundaryArea2D"]
+z_index = -2024
+offset_left = -7640.0
+offset_top = -7954.0
+offset_right = 10731.0
+offset_bottom = 8878.0
+mouse_filter = 2
+color = Color(0, 0.756863, 0.454902, 0.239216)
+
+[node name="hideInGame" parent="worldBoundaryArea2D/worldInside" instance=ExtResource("2_rp0lg")]
+
+[node name="scatterAshMotes" parent="." instance=ExtResource("2_xjlp7")]
+position = Vector2(257, -45)
+spread = 200.0
+scene_pool = [ExtResource("3_gv3bu")]
+
+[node name="Sprite2D" type="Sprite2D" parent="scatterAshMotes"]
+modulate = Color(1, 1, 1, 0.568627)
+position = Vector2(209.406, 58.0733)
+scale = Vector2(57.4811, 52.4146)
+texture = ExtResource("5_febj0")
+
+[node name="hideInGame2" parent="scatterAshMotes/Sprite2D" instance=ExtResource("2_rp0lg")]
+
+[node name="maintainScatteredObjectPopulation" parent="scatterAshMotes" instance=ExtResource("3_co7e3")]
+
+[node name="scatterAshMotes2" parent="." instance=ExtResource("2_xjlp7")]
+position = Vector2(-119, 456)
+spread = 200.0
+scene_pool = [ExtResource("3_gv3bu")]
+
+[node name="Sprite2D" type="Sprite2D" parent="scatterAshMotes2"]
+modulate = Color(1, 1, 1, 0.568627)
+position = Vector2(209.406, 58.0732)
+scale = Vector2(57.4811, 52.4146)
+texture = ExtResource("5_febj0")
+
+[node name="hideInGame2" parent="scatterAshMotes2/Sprite2D" instance=ExtResource("2_rp0lg")]
+
+[node name="maintainScatteredObjectPopulation" parent="scatterAshMotes2" instance=ExtResource("3_co7e3")]
+
+[node name="scatterAshMotes3" parent="." instance=ExtResource("2_xjlp7")]
+position = Vector2(-837, -268)
+spread = 200.0
+scene_pool = [ExtResource("3_gv3bu")]
+
+[node name="Sprite2D" type="Sprite2D" parent="scatterAshMotes3"]
+modulate = Color(1, 1, 1, 0.568627)
+position = Vector2(209.406, 58.0732)
+scale = Vector2(57.4811, 52.4146)
+texture = ExtResource("5_febj0")
+
+[node name="hideInGame2" parent="scatterAshMotes3/Sprite2D" instance=ExtResource("2_rp0lg")]
+
+[node name="maintainScatteredObjectPopulation" parent="scatterAshMotes3" instance=ExtResource("3_co7e3")]
+
+[node name="scatterAshMotes4" parent="." instance=ExtResource("2_xjlp7")]
+position = Vector2(-157, 102)
+scale = Vector2(0.131525, 0.131525)
+spread = 80.0
+scene_pool = [ExtResource("3_gv3bu")]
+
+[node name="Sprite2D" type="Sprite2D" parent="scatterAshMotes4"]
+modulate = Color(1, 1, 1, 0.568627)
+position = Vector2(-7.60303, 15.2062)
+scale = Vector2(57.4811, 52.4146)
+texture = ExtResource("5_febj0")
+
+[node name="hideInGame2" parent="scatterAshMotes4/Sprite2D" instance=ExtResource("2_rp0lg")]
+
+[node name="maintainScatteredObjectPopulation" parent="scatterAshMotes4" instance=ExtResource("3_co7e3")]
+
+[node name="ashRoom1" type="Node2D" parent="."]
+position = Vector2(13, -1)
+
+[node name="Square-room-1" type="Sprite2D" parent="ashRoom1"]
+position = Vector2(-164, 39)
+texture = ExtResource("7_2mda5")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="ashRoom1/Square-room-1"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ashRoom1/Square-room-1/StaticBody2D"]
+polygon = PackedVector2Array(-93, -97, -92, 97, -41, 97, -41, 62, -68, 62, -68, -62, 68, -62, 68, 62, 44, 62, 44, 97, 92, 97, 92, -97)
+
+[node name="ashBeast" parent="ashRoom1" instance=ExtResource("8_hqdh1")]
+position = Vector2(-165, 37)
+
+[node name="basicChest" type="Node2D" parent="ashRoom1" groups=["container", "gear_container"]]
+position = Vector2(-162, -4)
+metadata/ui_gear_cells = 10
+metadata/accepts_gear_drops = true
+
+[node name="Sprite2D" type="Sprite2D" parent="ashRoom1/basicChest"]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("15_0l8tv")
+
+[node name="instanceScenesAsSiblings" parent="ashRoom1/basicChest" instance=ExtResource("9_lmp5u")]
+count = 3
+scene_pool = [ExtResource("9_5ue0p"), ExtResource("12_ldtx5")]
+
+[node name="containerDestroyOnEmpty" parent="ashRoom1/basicChest" instance=ExtResource("16_ssrdk")]
+
+[node name="visibilityTogglerArea2D" type="Area2D" parent="ashRoom1/basicChest"]
+scale = Vector2(0.75, 0.75)
+collision_layer = 0
+collision_mask = 3
+metadata/target_node_path = NodePath("")
+
+[node name="toggleVisibilityOfTargetOnPlayerWalkOver" parent="ashRoom1/basicChest/visibilityTogglerArea2D" instance=ExtResource("14_cj5fe")]
+target_node_path = NodePath("../../inventoryDisplay")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ashRoom1/basicChest/visibilityTogglerArea2D"]
+shape = SubResource("RectangleShape2D_p0jne")
+
+[node name="inventoryDisplay" parent="ashRoom1/basicChest" instance=ExtResource("18_lq42t")]
+
+[node name="lavaDecoration" parent="." instance=ExtResource("19_dqysu")]
+position = Vector2(144, 88)
