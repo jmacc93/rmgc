@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://bijx5noked2or"]
+
+[sub_resource type="GDScript" id="GDScript_t1lxd"]
+script/source = "extends Node
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      if not ('velocity' in parent):
+        push_error('Parent has no velocity')
+        return
+      
+      Comp.set_prop(parent, 'cast_toward', cast_toward)
+    
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'cast_toward')
+
+
+func cast_toward(toward_point: Vector2, speed: float):
+  var parent = get_parent()
+  var parent_position = parent.global_position
+  parent.velocity = (toward_point - parent_position).normalized() * speed
+"
+
+[node name="castTowardMethod" type="Node"]
+script = SubResource("GDScript_t1lxd")

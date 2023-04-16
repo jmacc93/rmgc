@@ -2,6 +2,9 @@ extends Area2D
 
 @onready var character = Lib.get_parent_with_property(self, "faction_array")
 
+func __init():
+  assert(false)
+
 
 #does character love or hate obj?
 func is_enemy_factioned_object(obj):

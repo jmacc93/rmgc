@@ -31,9 +31,9 @@ func _notification(what):
       Comp.set_prop(parent, 'mdef', initial_mdef)
       Comp.set_prop(parent, 'adef', initial_adef)
       
-      Comp.set_prop(parent, 'heal_by', Callable(self, 'heal_by'))
-      Comp.set_prop(parent, 'overheal_by', Callable(self, 'overheal_by'))
-      Comp.set_prop(parent, 'hurt_by', Callable(self, 'hurt_by'))
+      Comp.set_prop(parent, 'heal_by', heal_by)
+      Comp.set_prop(parent, 'overheal_by', overheal_by)
+      Comp.set_prop(parent, 'hurt_by', hurt_by)
     
     NOTIFICATION_UNPARENTED:
       var parent = get_parent()
@@ -44,24 +44,24 @@ func _notification(what):
       Comp.remove_prop(parent, 'mdef', 0)
       Comp.remove_prop(parent, 'adef', 0)
       
-      Comp.remove_prop(parent, 'heal_by', null)
-      Comp.remove_prop(parent, 'overheal_by', null)
-      Comp.remove_prop(parent, 'hurt_by', null)
+      Comp.remove_prop(parent, 'heal_by')
+      Comp.remove_prop(parent, 'overheal_by')
+      Comp.remove_prop(parent, 'hurt_by')
 
 
 func hurt_by(dmg: float, _dmger: Object):
   var parent = get_parent()
-  var hp = parent.get_meta('hp')
-  var mdef = parent.get_meta('mdef')
-  var adef = parent.get_meta('adef')
+  var hp = Comp.get_prop(parent, 'hp')
+  var mdef = Comp.get_prop(parent, 'mdef')
+  var adef = Comp.get_prop(parent, 'adef')
   var new_hp = hp - max(0, dmg * mdef - adef)
   Comp.set_prop(parent, 'hp', new_hp)
 
 
 func heal_by(change: float):
   var parent = get_parent()
-  var hp = parent.get_meta('hp')
-  var max_hp = parent.get_meta('max_hp')
+  var hp = Comp.get_prop(parent, 'hp')
+  var max_hp = Comp.get_prop(parent, 'max_hp')
   var new_hp = (hp + change) if always_overheal else min(max_hp, hp + change)
   Comp.set_prop(parent, 'hp', new_hp)
 
@@ -71,7 +71,7 @@ func overheal_by(change: float):
     heal_by(change)
     return
   var parent = get_parent()
-  var hp = parent.get_meta('hp')
+  var hp = Comp.get_prop(parent, 'hp')
   var new_hp = hp + change
   Comp.set_prop(parent, 'hp', new_hp)
 

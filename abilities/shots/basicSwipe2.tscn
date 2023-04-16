@@ -1,206 +1,16 @@
 [gd_scene load_steps=10 format=3 uid="uid://bc4u5p3urh3h6"]
 
 [ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://abilities/shots/basicSwipe.png" id="2_0r0nv"]
+[ext_resource type="PackedScene" uid="uid://bpguy8ol74pes" path="res://abilities/shots/damageCollidingBodyOnCollision.tscn" id="2_jpbxj"]
+[ext_resource type="PackedScene" uid="uid://bsewvrl0lv0rl" path="res://abilities/shots/destroySelfOnCollision.tscn" id="3_ssue5"]
+[ext_resource type="PackedScene" uid="uid://dkwrrt4jbugnu" path="res://abilities/shots/destroySelfOnTimeout.tscn" id="4_w15f4"]
+[ext_resource type="PackedScene" uid="uid://cytk41j43tol1" path="res://abilities/shots/destroySelfOnWallCollision.tscn" id="5_681rg"]
+[ext_resource type="PackedScene" uid="uid://c3ft2rqe8ivkd" path="res://abilities/shots/moveAndSlideWithVelocity.tscn" id="6_83c6r"]
+[ext_resource type="PackedScene" uid="uid://bijx5noked2or" path="res://abilities/shots/castTowardMethod.tscn" id="7_duo3o"]
+[ext_resource type="PackedScene" uid="uid://dgfcrjlit1rnt" path="res://abilities/shots/parentObjectCollisionException.tscn" id="8_ky30p"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(5, 5)
-
-[sub_resource type="GDScript" id="GDScript_ajm2v"]
-script/source = "extends Node
-
-@export var except_source_object = true
-
-func _enter_tree():
-  Watch.call_on_notify(get_parent(), 'collision', Callable(self, 'on_collision'))
-
-func on_collision(collision):
-  if not collision:
-    return
-  var body = collision.get_collider()
-  var parent = get_parent()
-  
-  #hurt source?
-  var source_object = Comp.get_prop(parent, 'source_object')
-  if source_object and (source_object == body) and except_source_object:
-    return #dont hurt source object
-  
-  #hurt factions?
-  if source_object:
-    var faction_object = Comp.get_prop(source_object, 'faction_object')
-  
-  #damage by method
-  var dmg = Comp.get_prop(parent, 'dmg', 1)
-  if Comp.run_method(body, \"hurt_by\", [dmg, parent]):
-    return
-  
-  #damage by directly changing health
-  var hp = Comp.get_prop(body, 'hp')
-  if hp != null:
-    Comp.set_prop(body, 'hp', hp - dmg)
-"
-
-[sub_resource type="GDScript" id="GDScript_vtxd2"]
-script/source = "extends Node
-
-@export var except_source_object = true
-
-## restrict to a particular group, or leave blank to not restrict to a group
-@export var group = ''
-
-func _enter_tree():
-  Watch.call_on_notify(get_parent(), 'collision', Callable(self, 'on_collision'))
-
-
-func on_collision(collision):
-  if not collision:
-    return
-  
-  var parent = get_parent()
-  var body = collision.get_collider()
-  var source_object = Comp.get_object_meta(parent, 'source_object')
-  
-  #only destroy self on collision with particular group?
-  if (group != '') and (not body.is_in_group(group)):
-    return
-  
-  #is body the parent?
-  if except_source_object and source_object and (body == source_object):
-    return
-  
-  #kill self
-  if not Comp.run_method(parent, 'kill', []):
-    parent.queue_free()
-  
-"
-
-[sub_resource type="GDScript" id="GDScript_edgem"]
-script/source = "extends Node
-
-@export var wall_bit = 1
-
-@export var except_source_object = false
-
-## restrict to a particular group, or leave blank to not restrict to a group
-@export var group = ''
-
-func _enter_tree():
-  Watch.call_on_notify(get_parent(), 'collision', Callable(self, 'on_collision'))
-
-
-func on_collision(collision):
-  if not collision:
-    return
-  
-  var parent = get_parent()
-  var body = collision.get_collider()
-  var source_object = Comp.get_object_meta(parent, 'source_object')
-  
-  #body has collision layer
-  if not body.has_method('get_collision_layer_value'):
-    return
-  
-  #only destroy self on collision with particular group?
-  if (group != '') and (not body.is_in_group(group)):
-    return
-  
-  #body in collision layer?
-  if not body.get_collision_layer_value(wall_bit):
-    return
-  
-  #is body the parent?
-  if except_source_object and source_object and (body == source_object):
-    return
-  
-  #kill self
-  if not Comp.run_method(parent, 'kill', []):
-    parent.queue_free()
-
-
-
-
-
-
-
-
-
-
-
-
-"
-
-[sub_resource type="GDScript" id="GDScript_7qe0w"]
-script/source = "extends Node
-
-var timeout_time
-@export var max_age = 1.0
-
-func _enter_tree():
-  timeout_time = Time.get_ticks_msec() + max_age * 1000
-  
-
-func _process(_delta):
-  var current_time = Time.get_ticks_msec()
-  if (timeout_time < current_time):
-    var parent = get_parent()
-    if not Comp.run_method(parent, 'kill', []):
-      parent.queue_free()
-"
-
-[sub_resource type="GDScript" id="GDScript_ygm6t"]
-script/source = "extends Node
-
-var body_parent
-
-
-func _enter_tree():
-  body_parent = Lib.get_parent_with_class(self, 'PhysicsBody2D')
-  if not body_parent:
-    push_error('No parent physics body found')
-    return
-  
-
-func _physics_process(_delta):
-  if body_parent.velocity.x == 0 and body_parent.velocity.y == 0:
-    return
-  
-  body_parent.move_and_slide()
-  for i in range(0, body_parent.get_slide_collision_count()):
-    Watch.notify(get_parent(), 'collision', [body_parent.get_slide_collision(i)])
-"
-
-[sub_resource type="GDScript" id="GDScript_t1lxd"]
-script/source = "extends Node
-
-func _enter_tree():
-  var velocity_parent = Lib.get_parent_with_property(self, 'velocity')
-  if not velocity_parent:
-    push_error('No velocity parent found')
-    return
-  
-  Watch.set_object_meta(get_parent(), 'cast_toward', func(toward_point: Vector2, speed: float):
-    velocity_parent.velocity = (toward_point - velocity_parent.global_position).normalized() * speed
-  )
-  
-"
-
-[sub_resource type="GDScript" id="GDScript_rnupt"]
-script/source = "extends Node
-
-@export var source_object_property_name = 'source_object'
-
-func _enter_tree():
-  var parent = get_parent()
-  Watch.call_on_set_meta(parent, source_object_property_name, func():
-    if not parent.has_method('add_collision_exception_with'):
-      return
-    
-    var source_object = parent.get_meta(source_object_property_name)
-    if source_object:
-      parent.add_collision_exception_with(source_object)
-    else:
-      parent.remove_collision_exception_with(source_object)
-  )
-"
 
 [node name="basicSwipe" type="CharacterBody2D" groups=["shot"]]
 editor_description = "define meta `dmg` to set damage"
@@ -215,23 +25,16 @@ shape = SubResource("1")
 texture_filter = 1
 texture = ExtResource("2_0r0nv")
 
-[node name="damageCollidingBodyOnCollision" type="Node" parent="."]
-script = SubResource("GDScript_ajm2v")
+[node name="damageCollidingBodyOnCollision" parent="." instance=ExtResource("2_jpbxj")]
 
-[node name="destroySelfOnCollision" type="Node" parent="."]
-script = SubResource("GDScript_vtxd2")
+[node name="destroySelfOnCollision" parent="." instance=ExtResource("3_ssue5")]
 
-[node name="destroySelfOnWallCollision" type="Node" parent="."]
-script = SubResource("GDScript_edgem")
+[node name="destroySelfOnTimeout" parent="." instance=ExtResource("4_w15f4")]
 
-[node name="destroySelfOnTimeout" type="Node" parent="."]
-script = SubResource("GDScript_7qe0w")
+[node name="destroySelfOnWallCollision" parent="." instance=ExtResource("5_681rg")]
 
-[node name="moveAndSlideWithVelocity" type="Node" parent="."]
-script = SubResource("GDScript_ygm6t")
+[node name="moveAndSlideWithVelocity" parent="." instance=ExtResource("6_83c6r")]
 
-[node name="castTowardAbility" type="Node" parent="."]
-script = SubResource("GDScript_t1lxd")
+[node name="castTowardMethod" parent="." instance=ExtResource("7_duo3o")]
 
-[node name="parentObjectCollisionException" type="Node" parent="."]
-script = SubResource("GDScript_rnupt")
+[node name="parentObjectCollisionException" parent="." instance=ExtResource("8_ky30p")]

@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsewvrl0lv0rl"]
+
+[sub_resource type="GDScript" id="GDScript_vtxd2"]
+script/source = "extends Node
+
+@export var except_source_object = true
+
+## restrict to a particular group, or leave blank to not restrict to a group
+@export var group = ''
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(get_parent(), 'collision', on_collision)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(get_parent(), 'collision', on_collision)
+
+
+func on_collision(collision):
+  if not collision:
+    return
+  
+  var parent = get_parent()
+  var body = collision.get_collider()
+  var source_object = Comp.get_object_meta(parent, 'source_object')
+  
+  #only destroy self on collision with particular group?
+  if (group != '') and (not body.is_in_group(group)):
+    return
+  
+  #is body the parent?
+  if except_source_object and source_object and (body == source_object):
+    return
+  
+  #kill self
+  if not Comp.run_method(parent, 'kill', []):
+    parent.queue_free()
+  
+"
+
+[node name="destroySelfOnCollision" type="Node"]
+script = SubResource("GDScript_vtxd2")

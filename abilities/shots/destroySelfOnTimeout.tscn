@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://dkwrrt4jbugnu"]
+
+[sub_resource type="GDScript" id="GDScript_7qe0w"]
+script/source = "extends Node
+
+var timeout_time
+@export var max_age = 1.0
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      timeout_time = Time.get_ticks_msec() + max_age * 1000
+
+
+func _process(_delta):
+  var current_time = Time.get_ticks_msec()
+  if (timeout_time < current_time):
+    var parent = get_parent()
+    if not Comp.run_method(parent, 'kill', []):
+      parent.queue_free()
+"
+
+[node name="destroySelfOnTimeout" type="Node"]
+script = SubResource("GDScript_7qe0w")

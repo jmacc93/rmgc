@@ -26,7 +26,7 @@ var generic_shot_scene: PackedScene = preload(\"res://abilities/shots/genericSho
 @export var shot_file: String
 var shot_file_scene_cache = [null, ''] #[loaded scene, cached file name]
 #shot_file as a .tscn file: use an instance of that scene
-#shot_file as a .png, etc file: use a generic shot and replace texture
+#shot_file as a .png, etc file: use a generic shot and replae texture
 #shot_file is anything else: use a generic shot with generic texture
 
 func _notification(what):
@@ -103,8 +103,6 @@ func attack(user_object: Object) -> void:
     return #can't attack yet
   
   next_attack_time = current_time + attack_delay
-  
-  var parent = get_parent()
   
   #get shot origin
   var origin_position = Comp.get_prop(user_object, 'shot_origin', null)

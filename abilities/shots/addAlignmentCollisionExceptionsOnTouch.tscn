@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxrs5t27l8n5a"]
+
+[sub_resource type="GDScript" id="GDScript_ygnts"]
+script/source = "extends Area2D
+
+func _init():
+  body_entered.connect(on_body_entered)
+
+
+func on_body_entered(body: CollisionObject2D):
+  var parent = get_parent()
+
+  var source = Comp.get_prop(parent, 'source_object', null)
+  if source == null:
+    return
+  
+  #is body an enemy?
+  var body_faction = Comp.get_prop(body, 'factions', null)
+  if body_faction == null:
+    return
+  var source_faction = Comp.get_prop(source, 'factions', 'default')
+  var factions_agree = Game.check_factions_agree(source_faction, body_faction)
+  if not factions_agree:
+    return #don't add collision exception
+  
+  parent.add_collision_exception_with(body)
+"
+
+[node name="addAlignmentCollisionExceptionsOnTouch" type="Area2D"]
+collision_mask = 7
+script = SubResource("GDScript_ygnts")

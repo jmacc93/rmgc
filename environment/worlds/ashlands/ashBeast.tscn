@@ -1,11 +1,11 @@
-[gd_scene load_steps=17 format=3 uid="uid://b3eiv4ilejtvw"]
+[gd_scene load_steps=17 format=3 uid="uid://c463k4ub7hb5y"]
 
 [ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/healthStats.tscn" id="1_kiy7q"]
 [ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/dieOnZeroHp.tscn" id="2_e6x1d"]
 [ext_resource type="PackedScene" uid="uid://dcexsoo05r476" path="res://characters/walkAbility.tscn" id="2_xxcd3"]
 [ext_resource type="PackedScene" uid="uid://q6hdeppfpvc1" path="res://characters/walkTowardTargetedObject.tscn" id="3_8nxcx"]
 [ext_resource type="PackedScene" uid="uid://bauq12gu6bg3d" path="res://characters/randomlyWalk.tscn" id="4_srpvj"]
-[ext_resource type="PackedScene" uid="uid://duig04u2vu4cq" path="res://characters/targetNearestNonfaction.tscn" id="5_ab107"]
+[ext_resource type="PackedScene" uid="uid://drxk8u12y05af" path="res://characters/targetNearestEnemy.tscn" id="5_g6yrp"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="5_jc044"]
 [ext_resource type="Texture2D" uid="uid://j306k5w1vmoh" path="res://environment/worlds/ashlands/ashbeast.png" id="6_acbhi"]
 [ext_resource type="PackedScene" uid="uid://dli120vxqfrx5" path="res://characters/setTargetPointToTargetObject.tscn" id="6_gmkqx"]
@@ -41,9 +41,12 @@ initial_adef = 5.0
 
 [node name="randomlyWalk" parent="." instance=ExtResource("4_srpvj")]
 
-[node name="targetNearestNonfaction" parent="." instance=ExtResource("5_ab107")]
+[node name="targetNearestEnemy" parent="." instance=ExtResource("5_g6yrp")]
+position = Vector2(6.66065, 13.1375)
+hates_everyone = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="targetNearestNonfaction"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="targetNearestEnemy"]
+position = Vector2(-6.66065, -13.1375)
 shape = SubResource("RectangleShape2D_cjvoq")
 
 [node name="setTargetPointToTargetObject" parent="." instance=ExtResource("6_gmkqx")]

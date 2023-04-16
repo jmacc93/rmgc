@@ -28,7 +28,7 @@ func destroy_parent():
     get_parent().queue_free()
 
 
-func on_child_exiting(child: Node):
+func on_child_exiting(_child: Node):
   if count_gear_nodes() == 1:
     destroy_parent.call_deferred()
 "

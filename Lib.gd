@@ -80,6 +80,13 @@ func get_parent_with_name(start_node: Node, name_string: String):
   return null
 
 
+func get_grandparent(start_node: Node) -> Node:
+  var parent = start_node.get_parent()
+  if parent == null:
+    return null
+  return parent.get_parent()
+
+
 func is_child_of(possible_parent: Node, possible_child: Node):
   var current_node = possible_child.get_parent()
   while current_node:
@@ -120,6 +127,14 @@ func get_children_in_group(start_node: Node, group_name: String, max_depth: floa
       for i in range(0, current_node.get_child_count()):
         var child = current_node.get_child(i)
         nodes_to_search.push_back([child, nodes_depth + 1])
+  return ret
+
+
+func get_immediate_children_with_class(start_node: Node, classname: String):
+  var ret = []
+  for child in start_node.get_children():
+    if child.get_class() == classname:
+      ret.push_back(child)
   return ret
 
 

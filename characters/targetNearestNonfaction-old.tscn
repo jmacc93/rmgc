@@ -6,6 +6,7 @@ script/source = "extends Area2D
 @export var hates_everyone = false
 
 func _init():
+  assert(false)
   body_entered.connect(on_body_entered)
   body_exited.connect(on_body_exited)
 

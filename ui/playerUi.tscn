@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://b0kbpv2w4ustw"]
+[gd_scene load_steps=24 format=3 uid="uid://b0kbpv2w4ustw"]
 
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="1_i3w13"]
 [ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/expander.png" id="2_gtiv0"]
@@ -6,6 +6,11 @@
 [ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="4_vmx2j"]
 [ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="5_22xy8"]
 [ext_resource type="Texture2D" uid="uid://hbf5i88n16ce" path="res://ui/home-icon.png" id="5_ni8lo"]
+
+[sub_resource type="SystemFont" id="SystemFont_mtb06"]
+font_names = PackedStringArray("Sans-Serif")
+font_weight = 550
+oversampling = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8yqf6"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -32,10 +37,10 @@ func _init():
 
 
 func on_tree_entered():
-  on_tree_exited() #disconnect if already connected
-  parent_character = Lib.get_parent_in_group(self, 'character')
-  if parent_character == null:
+  var new_parent_character = Lib.get_parent_in_group(self, 'character')
+  if new_parent_character == parent_character:
     return
+  parent_character = new_parent_character
   (func(): #defer to wait for ui_element_container node to be added
     if ui_element_container == null:
       push_error('No ui element container give')
@@ -50,11 +55,9 @@ func on_tree_entered():
 
 
 func on_tree_exited():
-  if parent_character == null:
+  var new_parent_character = Lib.get_parent_in_group(self, 'character')
+  if new_parent_character == parent_character:
     return #already disconnected
-  var current_parent_character = Lib.get_parent_in_group(self, 'character')
-  if current_parent_character != null:
-    return #not unparented from character
   parent_character.child_entered_tree.disconnect(on_added_character_node)
   parent_character = null
 
@@ -92,8 +95,8 @@ func on_added_character_node(new_node: Node):
 
 "
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_jif51"]
-size = Vector2(8.75635, 9)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3kkyb"]
+size = Vector2(8.13615, 9.00018)
 
 [sub_resource type="GDScript" id="GDScript_slqfr"]
 script/source = "extends Node
@@ -134,6 +137,9 @@ func on_direct_mouse_event(event: InputEventMouse):
   
 
 "
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jif51"]
+size = Vector2(8.75635, 9)
 
 [sub_resource type="GDScript" id="GDScript_ji1a0"]
 script/source = "extends Node
@@ -206,102 +212,70 @@ HScrollBar/styles/grabber_pressed = SubResource("StyleBoxEmpty_vjc08")
 HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_epkwg")
 HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_rhyut")
 
-[node name="playerUi" type="Control"]
-z_index = 1000
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -141.0
-offset_top = -77.0
-offset_right = 141.0
-offset_bottom = 78.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="bottomBar" type="HBoxContainer" parent="."]
+[node name="bottomBar" type="HBoxContainer"]
+z_index = 1024
 custom_minimum_size = Vector2(0, 13)
-layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 2.0
-offset_top = -10.486
-offset_right = 2.00003
-offset_bottom = 1.51401
+offset_top = -64.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="statBar" type="NinePatchRect" parent="bottomBar"]
-texture_filter = 1
-custom_minimum_size = Vector2(93.267, 0)
+[node name="hpMpStatHomeBar" type="NinePatchRect" parent="."]
+custom_minimum_size = Vector2(0, 13)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
 texture = ExtResource("1_i3w13")
 region_rect = Rect2(1, 1, 6, 6)
 patch_margin_left = 2
 patch_margin_top = 2
 patch_margin_right = 2
 patch_margin_bottom = 2
-axis_stretch_horizontal = 1
-axis_stretch_vertical = 1
 
-[node name="hpBar" type="Control" parent="bottomBar/statBar"]
+[node name="MarginContainer" type="MarginContainer" parent="hpMpStatHomeBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 2
 
-[node name="hpBackground" type="NinePatchRect" parent="bottomBar/statBar/hpBar"]
-visibility_layer = 2
-layout_mode = 0
-offset_left = 11.3419
-offset_top = 1.96497
-offset_right = 42.3419
-offset_bottom = 10.965
-texture = ExtResource("4_vmx2j")
-region_rect = Rect2(0, 0, 16, 10)
-patch_margin_left = 6
-patch_margin_top = 3
-patch_margin_right = 6
-patch_margin_bottom = 3
+[node name="HBoxContainer" type="HBoxContainer" parent="hpMpStatHomeBar/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+alignment = 1
 
-[node name="hpBar" type="ProgressBar" parent="bottomBar/statBar/hpBar"]
+[node name="hpBar" type="ProgressBar" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer"]
 show_behind_parent = true
 visibility_layer = 2
-layout_mode = 0
-offset_left = 11.3419
-offset_top = 1.96497
-offset_right = 149.342
-offset_bottom = 41.965
-scale = Vector2(0.224581, 0.224581)
+custom_minimum_size = Vector2(32, 9)
+layout_mode = 2
+size_flags_vertical = 1
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_fonts/font = SubResource("SystemFont_mtb06")
+theme_override_font_sizes/font_size = 7
 theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_kexke")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="bottomBar/statBar/hpBar/hpBar" instance=ExtResource("3_5kha5")]
+[node name="syncRangeToCharacterStat" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/hpBar" instance=ExtResource("3_5kha5")]
 max_stat = "max_hp"
+hide_on_no_stat_target = NodePath("..")
 
-[node name="mpBar" type="Control" parent="bottomBar/statBar"]
+[node name="hpBackground" type="NinePatchRect" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/hpBar"]
 visibility_layer = 2
-anchors_preset = 0
-offset_left = 43.0
-offset_top = 2.0
-offset_right = 79.0
-offset_bottom = 11.0
-mouse_filter = 2
-
-[node name="mpBackground" type="NinePatchRect" parent="bottomBar/statBar/mpBar"]
-visibility_layer = 2
+z_index = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -315,43 +289,55 @@ patch_margin_top = 3
 patch_margin_right = 6
 patch_margin_bottom = 3
 
-[node name="ProgressBar" type="ProgressBar" parent="bottomBar/statBar/mpBar"]
+[node name="mpBar" type="ProgressBar" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer"]
 show_behind_parent = true
 visibility_layer = 2
-layout_mode = 0
-offset_right = 250.0
-offset_bottom = 64.0
-scale = Vector2(0.143, 0.138)
+custom_minimum_size = Vector2(32, 9)
+layout_mode = 2
+size_flags_vertical = 1
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
-theme_override_font_sizes/font_size = 46
+theme_override_fonts/font = SubResource("SystemFont_mtb06")
+theme_override_font_sizes/font_size = 7
 theme_override_styles/background = SubResource("StyleBoxFlat_8yqf6")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dk5r0")
 value = 100.0
 
-[node name="syncRangeToCharacterStat" parent="bottomBar/statBar/mpBar/ProgressBar" instance=ExtResource("3_5kha5")]
+[node name="syncRangeToCharacterStat" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/mpBar" instance=ExtResource("3_5kha5")]
+stat = "mp"
 max_stat = "max_mp"
 
-[node name="statDisplayAreaExpander" type="TextureRect" parent="bottomBar/statBar"]
+[node name="mpBackground" type="NinePatchRect" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/mpBar"]
+visibility_layer = 2
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_vmx2j")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="statDisplayAreaExpander" type="TextureRect" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer"]
 visibility_layer = 2
 custom_minimum_size = Vector2(8, 8)
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -6.0
-offset_right = 12.0
-offset_bottom = 6.0
-grow_vertical = 2
+layout_mode = 2
+size_flags_vertical = 0
 mouse_filter = 2
 texture = ExtResource("2_gtiv0")
+expand_mode = 1
 stretch_mode = 5
 
-[node name="watchAndPutStatUiElementsFromCharacterHere" type="Node" parent="bottomBar/statBar/statDisplayAreaExpander" node_paths=PackedStringArray("ui_element_container")]
+[node name="watchAndPutStatUiElementsFromCharacterHere" type="Node" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander" node_paths=PackedStringArray("ui_element_container")]
 script = SubResource("GDScript_rmng7")
 ui_element_container = NodePath("../statDisplayArea/MarginContainer/ScrollContainer/HFlowContainer")
 
-[node name="statDisplayArea" type="NinePatchRect" parent="bottomBar/statBar/statDisplayAreaExpander"]
+[node name="statDisplayArea" type="NinePatchRect" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander"]
 process_mode = 4
 visible = false
 layout_mode = 2
@@ -366,7 +352,7 @@ patch_margin_top = 5
 patch_margin_right = 3
 patch_margin_bottom = 5
 
-[node name="MarginContainer" type="MarginContainer" parent="bottomBar/statBar/statDisplayAreaExpander/statDisplayArea"]
+[node name="MarginContainer" type="MarginContainer" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander/statDisplayArea"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -379,62 +365,52 @@ theme_override_constants/margin_top = 3
 theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="bottomBar/statBar/statDisplayAreaExpander/statDisplayArea/MarginContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander/statDisplayArea/MarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 horizontal_scroll_mode = 0
 
-[node name="HFlowContainer" type="HFlowContainer" parent="bottomBar/statBar/statDisplayAreaExpander/statDisplayArea/MarginContainer/ScrollContainer"]
+[node name="HFlowContainer" type="HFlowContainer" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander/statDisplayArea/MarginContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="Area2D" type="Area2D" parent="bottomBar/statBar/statDisplayAreaExpander"]
+[node name="Area2D" type="Area2D" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="bottomBar/statBar/statDisplayAreaExpander/Area2D"]
-position = Vector2(6.24365, 5.93908)
-shape = SubResource("RectangleShape2D_jif51")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander/Area2D"]
+position = Vector2(4.04039, 4.38)
+shape = SubResource("RectangleShape2D_3kkyb")
 
-[node name="toggleNodeVisibilityOnClick" type="Node" parent="bottomBar/statBar/statDisplayAreaExpander/Area2D" node_paths=PackedStringArray("node")]
+[node name="toggleNodeVisibilityOnClick" type="Node" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/statDisplayAreaExpander/Area2D" node_paths=PackedStringArray("node")]
 script = SubResource("GDScript_slqfr")
 node = NodePath("../../statDisplayArea")
 
-[node name="homeButtonTextureRect" type="TextureRect" parent="bottomBar/statBar"]
+[node name="homeButtonTextureRect" type="TextureRect" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(9, 9)
 layout_mode = 2
-offset_left = 80.0
-offset_top = 2.0
-offset_right = 89.0
-offset_bottom = 11.0
-grow_horizontal = 2
-grow_vertical = 2
+size_flags_vertical = 0
 texture = ExtResource("5_ni8lo")
-expand_mode = 2
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Area2D" type="Area2D" parent="bottomBar/statBar/homeButtonTextureRect"]
+[node name="Area2D" type="Area2D" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/homeButtonTextureRect"]
 position = Vector2(-81, 0)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="bottomBar/statBar/homeButtonTextureRect/Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/homeButtonTextureRect/Area2D"]
 position = Vector2(85.6254, 4.48599)
 shape = SubResource("RectangleShape2D_jif51")
 
-[node name="teleportCharacterParentToHomeWorldOnClick" type="Node" parent="bottomBar/statBar/homeButtonTextureRect/Area2D"]
+[node name="teleportCharacterParentToHomeWorldOnClick" type="Node" parent="hpMpStatHomeBar/MarginContainer/HBoxContainer/homeButtonTextureRect/Area2D"]
 script = SubResource("GDScript_ji1a0")
 
-[node name="homeButton" type="NinePatchRect" parent="bottomBar"]
-custom_minimum_size = Vector2(10, 10)
-layout_mode = 2
-texture = ExtResource("1_i3w13")
-region_rect = Rect2(0.945007, 0.702801, 6.216, 6.35113)
-patch_margin_left = 2
-patch_margin_top = 2
-patch_margin_right = 2
-patch_margin_bottom = 2
-
-[node name="gearBar" type="NinePatchRect" parent="bottomBar"]
+[node name="gearBar" type="NinePatchRect" parent="."]
 texture_filter = 1
+custom_minimum_size = Vector2(0, 13)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 0
+size_flags_stretch_ratio = 1.5
 texture = ExtResource("1_i3w13")
 region_rect = Rect2(1, 1, 6, 6)
 patch_margin_left = 2
@@ -444,10 +420,10 @@ patch_margin_bottom = 2
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[node name="mirrorContainerGearNodesToNode" parent="bottomBar/gearBar" node_paths=PackedStringArray("cell_container") instance=ExtResource("5_22xy8")]
+[node name="mirrorContainerGearNodesToNode" parent="gearBar" node_paths=PackedStringArray("cell_container") instance=ExtResource("5_22xy8")]
 cell_container = NodePath("../MarginContainer/ScrollContainer/HBoxContainer")
 
-[node name="templateCellHolder" type="Control" parent="bottomBar/gearBar/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
+[node name="templateCellHolder" type="Control" parent="gearBar/mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
 process_mode = 4
 visible = false
 custom_minimum_size = Vector2(10, 10)
@@ -457,7 +433,7 @@ offset_right = 10.0
 offset_bottom = 10.0
 mouse_filter = 2
 
-[node name="background" type="ColorRect" parent="bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
+[node name="background" type="ColorRect" parent="gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -468,13 +444,13 @@ mouse_filter = 2
 color = Color(0.905882, 0.690196, 0.619608, 1)
 metadata/highlight_color = Color(0.644911, 0.786938, 0.712107, 1)
 
-[node name="Area2D" type="Area2D" parent="bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
+[node name="Area2D" type="Area2D" parent="gearBar/mirrorContainerGearNodesToNode/templateCellHolder"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="bottomBar/gearBar/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="gearBar/mirrorContainerGearNodesToNode/templateCellHolder/Area2D"]
 position = Vector2(5, 5)
 shape = SubResource("RectangleShape2D_ssi3t")
 
-[node name="MarginContainer" type="MarginContainer" parent="bottomBar/gearBar"]
+[node name="MarginContainer" type="MarginContainer" parent="gearBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -487,14 +463,14 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="bottomBar/gearBar/MarginContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="gearBar/MarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 theme = SubResource("Theme_nk3tk")
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="bottomBar/gearBar/MarginContainer/ScrollContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="gearBar/MarginContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2

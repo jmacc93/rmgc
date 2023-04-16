@@ -76,9 +76,7 @@ zoom = Vector2(4, 4)
 [node name="moveCharacterOnAction" parent="." instance=ExtResource("6_fwpbx")]
 
 [node name="healthStats" parent="." instance=ExtResource("7_icdjc")]
-initial_max_hp = 1000.0
-initial_hp = 1000.0
-initial_hp_regen = 10.0
+initial_hp_regen = 5.0
 
 [node name="equipmentRestrictions" parent="." instance=ExtResource("9_p37en")]
 
@@ -97,4 +95,26 @@ position = Vector2(0.40524, -9.375)
 
 [node name="basicArmor" parent="." instance=ExtResource("16_rm1a6")]
 
-[node name="playerUi" parent="." instance=ExtResource("17_lq81o")]
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -140.0
+offset_top = -80.0
+offset_right = 139.0
+offset_bottom = 78.0
+
+[node name="playerUi" parent="Control" instance=ExtResource("17_lq81o")]
+custom_minimum_size = Vector2(0, 9)
+layout_mode = 1
+offset_top = -9.0
+
+[node name="HBoxContainer" parent="Control/playerUi/hpMpStatHomeBar/MarginContainer" index="0"]
+size_flags_horizontal = 4
+
+[node name="MarginContainer" parent="Control/playerUi/gearBar" index="1"]
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 3
+
+[editable path="Control/playerUi"]

@@ -44,10 +44,10 @@ func attack(user_object: Object) -> void:
     get_viewport().add_child(shot)
     
     #set shot parent object (the shot's creator)
-    Watch.set_object_meta(shot, 'source_object', user_object)
+    Comp.set_prop(shot, 'source_object', user_object)
     
-    var dmg = shot.get_meta('dmg', 1.0)
-    Watch.set_object_meta(shot, 'dmg', dmg * damage_mod)
+    var dmg = Comp.get_prop(shot, 'dmg', 1.0)
+    Comp.set_prop(shot, 'dmg', dmg * damage_mod)
     
     #try shooting toward target if it exists
     var target_point = Comp.get_object_meta(user_object, 'target_point', null)

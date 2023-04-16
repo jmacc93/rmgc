@@ -1,13 +1,26 @@
-[gd_scene load_steps=10 format=3 uid="uid://bn4b3ukcc2bdv"]
+[gd_scene load_steps=22 format=3 uid="uid://b2dabup1mq6mi"]
 
 [ext_resource type="PackedScene" uid="uid://n7p1mynbtqe2" path="res://environment/worlds/devRealm/devRealm.tscn" id="1_8cqxu"]
 [ext_resource type="PackedScene" uid="uid://cbdlhd2682nf2" path="res://characters/playableCharacters/genericClass.tscn" id="2_ct547"]
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="5_l30hf"]
+[ext_resource type="Texture2D" uid="uid://c1bqceo63l5kg" path="res://environment/chest.png" id="8_8wi3l"]
 [ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="11_3edqv"]
+[ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://items/destroyContainerOnEmpty.tscn" id="11_rddws"]
+[ext_resource type="PackedScene" uid="uid://circ26mol7hsg" path="res://items/flaskOfPain.tscn" id="12_m0vpe"]
+[ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="12_o62jj"]
+[ext_resource type="PackedScene" uid="uid://cnkbrh3ihf3x5" path="res://abilities/dev-armor.tscn" id="13_7oxlg"]
 [ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="13_42vnk"]
+[ext_resource type="PackedScene" uid="uid://byypr3minse8e" path="res://abilities/weapons/crew_gun.tscn" id="13_e51y4"]
+[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://items/containerInventoryDisplay.tscn" id="13_j0oet"]
+[ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="16_knh61"]
+[ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="17_n810x"]
+[ext_resource type="PackedScene" uid="uid://cguieshd00n62" path="res://environment/smallBush.tscn" id="18_2or23"]
 [ext_resource type="PackedScene" uid="uid://cfe01o3bqox5e" path="res://environment/worldPortal.tscn" id="18_d1gl8"]
-[ext_resource type="PackedScene" uid="uid://b4wm1mjolckxd" path="res://enemies/dustMote2.tscn" id="19_rmfwx"]
+[ext_resource type="PackedScene" uid="uid://b4wm1mjolckxd" path="res://enemies/dustMote.tscn" id="19_rmfwx"]
 [ext_resource type="PackedScene" uid="uid://dt0l2qsjnfbnb" path="res://items/basicLootBag.tscn" id="20_0vsro"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jx8xe"]
+size = Vector2(6, 6)
 
 [sub_resource type="GDScript" id="GDScript_jbbkt"]
 script/source = "extends Node
@@ -57,6 +70,9 @@ func handle_left_clicked(event: InputEventMouse):
 
 "
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vyrgn"]
+size = Vector2(61.1742, 63.6997)
+
 [node name="testWorld" type="Node2D" groups=["game_world"]]
 
 [node name="devRealm" parent="." instance=ExtResource("1_8cqxu")]
@@ -97,6 +113,40 @@ offset_right = 29.36
 offset_bottom = 217.265
 text = "Fan shooting enemy"
 
+[node name="devChest" type="Node2D" parent="." groups=["container", "gear_container"]]
+position = Vector2(24.3341, 24.3171)
+metadata/ui_gear_cells = 10
+metadata/accepts_gear_drops = true
+
+[node name="Sprite2D" type="Sprite2D" parent="devChest"]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("8_8wi3l")
+
+[node name="containerDestroyOnEmpty" parent="devChest" instance=ExtResource("11_rddws")]
+
+[node name="visibilityTogglerArea2D" type="Area2D" parent="devChest"]
+scale = Vector2(0.75, 0.75)
+collision_layer = 0
+collision_mask = 3
+metadata/target_node_path = NodePath("")
+
+[node name="toggleVisibilityOfTargetOnPlayerWalkOver" parent="devChest/visibilityTogglerArea2D" instance=ExtResource("12_o62jj")]
+target_node_path = NodePath("../../inventoryDisplay")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="devChest/visibilityTogglerArea2D"]
+shape = SubResource("RectangleShape2D_jx8xe")
+
+[node name="inventoryDisplay" parent="devChest" instance=ExtResource("13_j0oet")]
+
+[node name="flaskOfPain" parent="devChest" instance=ExtResource("12_m0vpe")]
+editor_description = "Hurts the user"
+damage = 50
+max_uses = -1
+
+[node name="devArmor" parent="devChest" instance=ExtResource("13_7oxlg")]
+
+[node name="gunCREW" parent="devChest" instance=ExtResource("13_e51y4")]
+
 [node name="basicLootBag" parent="." instance=ExtResource("20_0vsro")]
 position = Vector2(41.7174, -41.0777)
 metadata/_edit_group_ = true
@@ -136,6 +186,30 @@ metadata/world_name = "The Ashlands"
 position = Vector2(-25.0948, -39.699)
 metadata/world_file = "res://environment/worlds/homeWorld/homeWorld.tscn"
 metadata/world_name = "Home World"
+
+[node name="ash" type="ColorRect" parent="."]
+offset_left = 77.8825
+offset_top = -30.5206
+offset_right = 139.882
+offset_bottom = 34.4794
+
+[node name="StaticBody2D" type="StaticBody2D" parent="ash"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ash/StaticBody2D"]
+position = Vector2(31.2005, 32.7325)
+shape = SubResource("RectangleShape2D_vyrgn")
+
+[node name="scatterObjectPlacer" parent="ash" instance=ExtResource("16_knh61")]
+position = Vector2(30.8677, 33.9545)
+spread = 50.0
+count = 200
+
+[node name="rockScenes" type="ResourcePreloader" parent="ash/scatterObjectPlacer"]
+resources = [PackedStringArray("smallRock1"), [ExtResource("17_n810x")]]
+
+[node name="bushScenes" type="ResourcePreloader" parent="ash/scatterObjectPlacer"]
+resources = [PackedStringArray("smallBush"), [ExtResource("18_2or23")]]
+metadata/generation_bias = -2.0
 
 [editable path="genericEnemy"]
 [editable path="fanShootingEnemy"]

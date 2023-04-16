@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bqtm2kgmesrsj"]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://compositeNode.gd" id="1_wg4p3"]
 [ext_resource type="Script" path="res://characters/makeBasicDamagePopups.gd" id="3"]
@@ -6,12 +6,12 @@
 [ext_resource type="Script" path="res://setTargetPointToTargetObject.gd" id="4"]
 [ext_resource type="Script" path="res://characters/walkTowardTargetedObject.gd" id="4_27hon"]
 [ext_resource type="Script" path="res://characters/randomlyWalk.gd" id="5_0gob7"]
-[ext_resource type="Script" path="res://targetNearestNonfaction.gd" id="7"]
+[ext_resource type="Script" path="res://targetNearestNonfaction-old.gd" id="7"]
 [ext_resource type="Script" path="res://characters/shootConstantlyAtTargetObject.gd" id="8_hek0o"]
 [ext_resource type="Texture2D" uid="uid://btel35amx7ar0" path="res://white_point.png" id="9_pks3n"]
 [ext_resource type="Script" path="res://characters/dieOnZeroHp.gd" id="10_7fhrc"]
 [ext_resource type="Script" path="res://characters/freeOnDie.gd" id="11_mjcr8"]
-[ext_resource type="Script" path="res://characters/healthStats.gd" id="13_1n334"]
+[ext_resource type="Script" path="res://characters/healthStats-old.gd" id="13_1n334"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(8, 8)
@@ -70,5 +70,3 @@ script = ExtResource("11_mjcr8")
 [node name="healthStats" type="Node" parent="."]
 script = ExtResource("13_1n334")
 
-[connection signal="body_entered" from="targetNearestNonfaction" to="targetNearestNonfaction" method="_on_targetNearestNonfaction_body_entered"]
-[connection signal="body_exited" from="targetNearestNonfaction" to="targetNearestNonfaction" method="_on_targetNearestNonfaction_body_exited"]

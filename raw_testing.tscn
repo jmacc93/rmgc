@@ -1,4 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://dbqubeqit7wdk"]
+[gd_scene load_steps=3 format=3 uid="uid://dbqubeqit7wdk"]
+
+[ext_resource type="PackedScene" uid="uid://c8d0w262o4sk" path="res://test-node.tscn" id="1_xghlx"]
 
 [sub_resource type="GDScript" id="GDScript_p7w2r"]
 script/source = "extends Node
@@ -28,3 +30,13 @@ func _process(asdf):
 
 [node name="Node" type="Node" parent="."]
 script = SubResource("GDScript_p7w2r")
+
+[node name="test-node" parent="." instance=ExtResource("1_xghlx")]
+metadata/root_metadata = "zzzzzzzz"
+
+[node name="Node" parent="test-node" index="0"]
+property = 8888
+property2 = "mmmmmmmm"
+metadata/metdata = "999"
+
+[editable path="test-node"]

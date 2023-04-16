@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgfcrjlit1rnt"]
+
+[sub_resource type="GDScript" id="GDScript_rnupt"]
+script/source = "extends Node
+
+@export var source_object_property_name = 'source_object'
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      if not parent.has_method('add_collision_exception_with'):
+        return #cant add collision exceptions
+      Comp.call_on_set_prop_and_now(parent, source_object_property_name, on_set_source_object)
+    NOTIFICATION_UNPARENTED:
+      Comp.stop_calling_on_set_prop(parent, source_object_property_name, on_set_source_object)
+
+
+func on_set_source_object():
+  var parent = get_parent() as PhysicsBody2D
+  
+  var source_object = Comp.get_prop(parent, source_object_property_name)
+  if source_object != null:
+    parent.add_collision_exception_with(source_object)
+"
+
+[node name="parentObjectCollisionException" type="Node"]
+script = SubResource("GDScript_rnupt")

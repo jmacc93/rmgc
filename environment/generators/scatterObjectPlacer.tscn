@@ -18,16 +18,15 @@ script/source = "extends Node2D
 @export var scene_pool : Array
 var bias_list: Array
 
+@export var dont_place_in_walls = true
+
 func _ready():
   if process_mode == PROCESS_MODE_DISABLED:
     return
   
-  if scene_pool.size() == 0:
-    push_error('Empty scene pool')
-    return
-  
   (func():
 #    add_children_to_scene_pool()
+    add_preloader_scenes_to_pool()
     
     if scene_pool.size() == 0:
       return
@@ -35,7 +34,7 @@ func _ready():
     calculate_bias_list()
     
     for i in range(0, count):
-      generate_one_child()
+      try_generating_one_child()
     
   ).call_deferred()
 
@@ -49,10 +48,20 @@ func _ready():
 #    remove_child(child)
 
 
+func add_preloader_scenes_to_pool():
+  var preloader_children = Lib.get_immediate_children_with_class(self, 'ResourcePreloader')
+  for preloader in preloader_children:
+    var resource_name_list = preloader.get_resource_list()
+    for resource_name in resource_name_list:
+      var resource = preloader.get_resource(resource_name)
+      var bias = Comp.get_prop(preloader, 'generation_bias', 0)
+      scene_pool.push_back([resource, bias])
+
+
 func calculate_bias_list():
   bias_list = []
   var bias_sum = 0.0
-  for resource_obj in scene_pool: #resource_obj is either resource, or [resource, bias value on [-inf, inf]]
+  for resource_obj in scene_pool: #resource_obj is either resource, or [resource, bias value on (-inf, inf)]
     if resource_obj is Array:
       bias_sum += exp(resource_obj[1])
     else:
@@ -64,7 +73,36 @@ func calculate_bias_list():
       bias_list.push_back(1.0 / bias_sum)
 
 
-func generate_one_child():
+func position_is_free(placement_position: Vector2) -> bool:
+  if not dont_place_in_walls:
+    return true #dont_place_in_walls is false, so don't have to test for walls at the placement point
+  #set up the query for walls at the placement point
+  var query_point = PhysicsPointQueryParameters2D.new()
+  query_point.collide_with_areas = false
+  query_point.position = global_position + placement_position
+  var query_results = get_viewport().world_2d.direct_space_state.intersect_point(query_point, 8)
+  #is there a wall in the results list?
+  for result in query_results:
+    var collider = result.collider
+    if collider.get_collision_layer_value(1): #layer 1 is for walls
+      return false
+  return true #no walls found in the loop above
+
+
+func try_generating_one_child(retry_count = 256):
+  if retry_count <= 0:
+    return #couldn't find a free position
+  var placement_position
+  match distribution:
+    \"Binormal\": placement_position = Lib.rand_binormal_vec(spread, binormal_exp)
+    \"Uniform\":  placement_position = Lib.rand_vec(spread)
+  if position_is_free(placement_position):
+    generate_one_child(placement_position)
+  else:
+    try_generating_one_child.call_deferred(retry_count - 1)
+
+
+func generate_one_child(placement_position: Vector2):
   var random_selection = Lib.random_index_with_probs(bias_list)
   var template_or_array = scene_pool[random_selection]
   var template
@@ -95,9 +133,7 @@ func generate_one_child():
       else:
         add_child(new_scene)
   
-  match distribution:
-    \"Binormal\": new_scene.global_position = global_position + Lib.rand_binormal_vec(spread, binormal_exp)
-    \"Uniform\":  new_scene.global_position = global_position + Lib.rand_vec(spread)
+  new_scene.global_position = global_position + placement_position
   
   Watch.notify(self, 'object_generated', [new_scene])
   

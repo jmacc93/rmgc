@@ -40,9 +40,10 @@ func on_gear_exit_tree():
 
 
 func make_ui_cell():
-  if get_parent().name == 'produceShotGear':
-    prints('produceShotGear makeGearUiCell')
-  var cell = $templateGearCell.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+  var template_node = get_node_or_null('templateGearCell')
+  if template_node == null: #look for sibling if template isnt a child
+    template_node = get_node_or_null('../templateGearCell')
+  var cell = template_node.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
   cell.process_mode = Node.PROCESS_MODE_INHERIT
   cell.visible = true
   Comp.set_prop(cell, 'handle_left_clicked', handle_left_clicked)

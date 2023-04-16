@@ -2,76 +2,16 @@
 
 [ext_resource type="Texture2D" uid="uid://nprr321ewwia" path="res://items/basic-armor-1.png" id="1_gwgdr"]
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="2_6l0hm"]
+[ext_resource type="PackedScene" uid="uid://cij85rvrrn2a7" path="res://items/armorGearBehavior.tscn" id="2_nlc2n"]
 [ext_resource type="PackedScene" uid="uid://7rctdalryyyp" path="res://ui/allowTogglingUiCell.tscn" id="3_62cip"]
 
-[sub_resource type="GDScript" id="GDScript_6q75d"]
-script/source = "extends Node
-
-@export var adef = 10
-
-
-func _notification(what):
-  match what:
-    NOTIFICATION_UNPARENTED:
-      toggle_equipped(false)
-
-
-func toggle_equipped(state: Variant = null):
-  var user_object = get_parent()
-  
-  var current_adef = Comp.get_prop(user_object, 'adef')
-  if current_adef == null:
-    return
-  var new_equipped_status = (not is_in_group('equipped')) if (state == null) else state
-  if new_equipped_status:
-    var can_equip = Comp.call_method_or(user_object, 'can_equip', [self], true)
-    if not can_equip:
-      return
-    add_to_group('equipped')
-    Comp.set_prop(user_object, 'adef', current_adef + adef)
-  else:
-    remove_from_group('equipped')
-    Comp.set_prop(user_object, 'adef', current_adef - adef)
-    
-  var toggleable_gear_cell_maker = $makeGearUiCell
-  if toggleable_gear_cell_maker != null:
-    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [new_equipped_status])
-  
-
-func handle_left_clicked(event: InputEventMouse):
-  get_viewport().set_input_as_handled()
-  if Lib.is_dragging:
-    return
-  if not (event is InputEventMouseButton):
-    return
-  if event.pressed:
-    return
-  if event.shift_pressed:
-    return
-  if event.button_index != MOUSE_BUTTON_LEFT:
-    return
-  if get_parent() != Lib.player_character:
-    return
-  #only when not dragging, as child of player character, and left button just released:
-  toggle_equipped()
-
-
-
-
-
-
-
-
-
-
-"
-
 [node name="basicArmor" type="Node" groups=["gear"]]
-script = SubResource("GDScript_6q75d")
 metadata/ui_cell_left_click = "toggle_equipped"
 metadata/ui_cell_display = ExtResource("1_gwgdr")
 metadata/equipment_classes = ["armor"]
 metadata/gear_removed = "unequip"
+
+[node name="armorGearBehavior" parent="." instance=ExtResource("2_nlc2n")]
 
 [node name="makeGearUiCell" parent="." instance=ExtResource("2_6l0hm")]
 

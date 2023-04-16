@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3 uid="uid://dne3brtefeibj"]
+
+[sub_resource type="GDScript" id="GDScript_084mp"]
+script/source = "extends Node
+
+@export_range(0, 100, 1) var count: int = 1
+@export var scene_pool: Array
+@export var object_init_props: Dictionary
+
+var bias_list: Array
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      calculate_bias_list()
+      if scene_pool.size() == 0:
+        push_error('No scene pool items given')
+        return
+      (func():
+        make_nodes()
+        queue_free()
+      ).call_deferred()
+
+
+func calculate_bias_list():
+  bias_list = []
+  var bias_sum = 0.0
+  for resource_obj in scene_pool: #resource_obj is either resource, or [resource, bias value on [-inf, inf]]
+    if resource_obj is Array:
+      bias_sum += exp(resource_obj[1])
+    else:
+      bias_sum += 1.0
+  for resource_obj in scene_pool:
+    if resource_obj is Array:
+      bias_list.push_back(exp(resource_obj[1]) / bias_sum)
+    else:
+      bias_list.push_back(1.0 / bias_sum)
+
+
+func make_nodes():
+  for i in range(0, count):
+    var new_node = generate_one_node()
+    add_sibling(new_node)
+
+
+func generate_one_node():
+  var random_selection = Lib.random_index_with_probs(bias_list)
+  var template_or_array = scene_pool[random_selection]
+  var template
+  if template_or_array is Array:
+    template = template_or_array[0]
+  else:
+    template = template_or_array
+
+  var new_scene
+  if template is PackedScene:
+    new_scene = template.instantiate()
+  elif template is Node2D:
+    new_scene = template.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
+  
+  for key in object_init_props.keys():
+    var value = object_init_props.get(key)
+    Comp.set_prop(new_scene, key, value)
+  
+  Watch.notify(self, 'object_generated', [new_scene])
+  
+  return new_scene
+  
+
+
+
+"
+
+[node name="instanceNodesAsSiblings" type="Node"]
+script = SubResource("GDScript_084mp")

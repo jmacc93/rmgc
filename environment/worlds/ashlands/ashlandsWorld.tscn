@@ -1,15 +1,17 @@
-[gd_scene load_steps=23 format=3 uid="uid://dxyw0xj7631nd"]
+[gd_scene load_steps=23 format=3 uid="uid://cikldlpxo5h13"]
 
 [ext_resource type="Texture2D" uid="uid://5g8lyh7kkut7" path="res://environment/backgrounds/ash-1.png" id="1_ccvxq"]
 [ext_resource type="PackedScene" uid="uid://61atbwqqn8h0" path="res://hideInGame.tscn" id="2_rp0lg"]
 [ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="2_xjlp7"]
 [ext_resource type="PackedScene" uid="uid://c0caw2af1m1en" path="res://environment/generators/maintainScatteredObjectPopulation.tscn" id="3_co7e3"]
-[ext_resource type="PackedScene" uid="uid://b4wm1mjolckxd" path="res://enemies/dustMote2.tscn" id="3_gv3bu"]
+[ext_resource type="PackedScene" uid="uid://b4wm1mjolckxd" path="res://enemies/dustMote.tscn" id="3_gv3bu"]
 [ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://enemies/ash-mote-1.png" id="5_febj0"]
 [ext_resource type="Texture2D" uid="uid://cd68mt87qk5x5" path="res://environment/worlds/ashlands/square-room-1.png" id="7_2mda5"]
-[ext_resource type="PackedScene" uid="uid://b3eiv4ilejtvw" path="res://environment/worlds/ashlands/ashBeast.tscn" id="8_hqdh1"]
+[ext_resource type="PackedScene" uid="uid://c463k4ub7hb5y" path="res://environment/worlds/ashlands/ashBeast.tscn" id="8_hqdh1"]
 [ext_resource type="PackedScene" uid="uid://d3ffms5y4ng4q" path="res://items/hpFlaskGear.tscn" id="9_5ue0p"]
+[ext_resource type="PackedScene" uid="uid://dne3brtefeibj" path="res://instanceScenesAsSiblings.tscn" id="9_lmp5u"]
 [ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="12_ldtx5"]
+[ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="14_cj5fe"]
 [ext_resource type="Texture2D" uid="uid://c1bqceo63l5kg" path="res://environment/chest.png" id="15_0l8tv"]
 [ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://items/destroyContainerOnEmpty.tscn" id="16_ssrdk"]
 [ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://items/containerInventoryDisplay.tscn" id="18_lq42t"]
@@ -19,7 +21,7 @@
 script/source = "extends Node2D
 
 
-func move_character_into(character: Node, world: Node):
+func move_character_into(character: Node, _world: Node):
   character.reparent(self)
   Comp.run_method(character, 'changed_worlds', [])
   
@@ -39,121 +41,8 @@ normal = Vector2(0, 1)
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_wqeem"]
 
-[sub_resource type="GDScript" id="GDScript_084mp"]
-script/source = "extends Node
-
-@export_range(0, 100, 1) var count: int = 1
-@export var scene_pool: Array
-@export var object_init_props: Dictionary
-
-var bias_list: Array
-
-func _notification(what):
-  match what:
-    NOTIFICATION_PARENTED:
-      calculate_bias_list()
-      if scene_pool.size() == 0:
-        push_error('No scene pool items given')
-        return
-      (func():
-        make_nodes()
-        queue_free()
-      ).call_deferred()
-
-
-func calculate_bias_list():
-  bias_list = []
-  var bias_sum = 0.0
-  for resource_obj in scene_pool: #resource_obj is either resource, or [resource, bias value on [-inf, inf]]
-    if resource_obj is Array:
-      bias_sum += exp(resource_obj[1])
-    else:
-      bias_sum += 1.0
-  for resource_obj in scene_pool:
-    if resource_obj is Array:
-      bias_list.push_back(exp(resource_obj[1]) / bias_sum)
-    else:
-      bias_list.push_back(1.0 / bias_sum)
-
-
-func make_nodes():
-  for i in range(0, count):
-    var new_node = generate_one_node()
-    add_sibling(new_node)
-
-
-func generate_one_node():
-  var random_selection = Lib.random_index_with_probs(bias_list)
-  var template_or_array = scene_pool[random_selection]
-  var template
-  if template_or_array is Array:
-    template = template_or_array[0]
-  else:
-    template = template_or_array
-
-  var new_scene
-  if template is PackedScene:
-    new_scene = template.instantiate()
-  elif template is Node2D:
-    new_scene = template.duplicate(DUPLICATE_GROUPS & DUPLICATE_SCRIPTS & DUPLICATE_SIGNALS)
-  
-  for key in object_init_props.keys():
-    var value = object_init_props.get(key)
-    Comp.set_prop(new_scene, key, value)
-  
-  Watch.notify(self, 'object_generated', [new_scene])
-  
-  return new_scene
-  
-
-
-
-"
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_p0jne"]
 size = Vector2(6, 6)
-
-[sub_resource type="GDScript" id="GDScript_n32kp"]
-script/source = "extends Node
-
-@export var target_node_path : NodePath
-
-
-func _notification(what):
-  match what:
-    NOTIFICATION_PARENTED:
-      var parent = get_parent()
-      parent.body_entered.connect(on_body_entered)
-      parent.body_exited.connect(on_body_exited)
-    NOTIFICATION_UNPARENTED:
-      var parent = get_parent()
-      parent.body_entered.disconnect(on_body_entered)
-      parent.body_exited.disconnect(on_body_exited)
-
-
-func on_body_entered(body: Node2D):
-  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
-    return
-  
-  var target_node = get_node(target_node_path)
-  if target_node == null:
-    push_error('Could not find target node with given path ', target_node_path)
-    return
-  target_node.visible = true
-  target_node.process_mode = PROCESS_MODE_INHERIT
-
-
-func on_body_exited(body: Node2D):
-  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
-    return
-  
-  var target_node = get_node(target_node_path)
-  if target_node == null:
-    push_error('Could not find target node with given path ', target_node_path)
-    return
-  target_node.visible = false
-  target_node.process_mode = Node.PROCESS_MODE_DISABLED
-"
 
 [node name="ashlandsWorld" type="Node2D" groups=["game_world"]]
 script = SubResource("GDScript_16yok")
@@ -272,7 +161,6 @@ texture = ExtResource("5_febj0")
 position = Vector2(-157, 102)
 scale = Vector2(0.131525, 0.131525)
 spread = 80.0
-count = 5
 scene_pool = [ExtResource("3_gv3bu")]
 
 [node name="Sprite2D" type="Sprite2D" parent="scatterAshMotes4"]
@@ -305,28 +193,27 @@ position = Vector2(-162, -4)
 metadata/ui_gear_cells = 10
 metadata/accepts_gear_drops = true
 
-[node name="instanceNodesAsSiblings" type="Node" parent="ashRoom1/basicChest"]
-script = SubResource("GDScript_084mp")
-count = 3
-scene_pool = [ExtResource("9_5ue0p"), ExtResource("12_ldtx5")]
-
 [node name="Sprite2D" type="Sprite2D" parent="ashRoom1/basicChest"]
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("15_0l8tv")
 
+[node name="instanceScenesAsSiblings" parent="ashRoom1/basicChest" instance=ExtResource("9_lmp5u")]
+count = 3
+scene_pool = [ExtResource("9_5ue0p"), ExtResource("12_ldtx5")]
+
 [node name="containerDestroyOnEmpty" parent="ashRoom1/basicChest" instance=ExtResource("16_ssrdk")]
 
-[node name="displayVisibilityArea2D" type="Area2D" parent="ashRoom1/basicChest"]
+[node name="visibilityTogglerArea2D" type="Area2D" parent="ashRoom1/basicChest"]
 scale = Vector2(0.75, 0.75)
 collision_layer = 0
 collision_mask = 3
+metadata/target_node_path = NodePath("")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ashRoom1/basicChest/displayVisibilityArea2D"]
-shape = SubResource("RectangleShape2D_p0jne")
-
-[node name="toggleVisibilityOnPlayerWalkOver" type="Node" parent="ashRoom1/basicChest/displayVisibilityArea2D"]
-script = SubResource("GDScript_n32kp")
+[node name="toggleVisibilityOfTargetOnPlayerWalkOver" parent="ashRoom1/basicChest/visibilityTogglerArea2D" instance=ExtResource("14_cj5fe")]
 target_node_path = NodePath("../../inventoryDisplay")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ashRoom1/basicChest/visibilityTogglerArea2D"]
+shape = SubResource("RectangleShape2D_p0jne")
 
 [node name="inventoryDisplay" parent="ashRoom1/basicChest" instance=ExtResource("18_lq42t")]
 

@@ -175,7 +175,7 @@ func _enter_tree():
 collision_layer = 2
 motion_mode = 1
 metadata/_edit_group_ = true
-metadata/factions = "enemies"
+metadata/factions = ["enemies"]
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 visible = false
@@ -193,8 +193,6 @@ metadata/faction_array = ["enemies"]
 [node name="randomlyWalk" parent="." instance=ExtResource("5_0krto")]
 
 [node name="targetNearestEnemy" parent="." instance=ExtResource("6_24563")]
-collision_layer = 0
-collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="targetNearestEnemy"]
 shape = SubResource("RectangleShape2D_fsmxm")

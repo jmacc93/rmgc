@@ -3,8 +3,8 @@
 [sub_resource type="GDScript" id="GDScript_q74se"]
 script/source = "extends Node
 
-func _notification(notification):
-  match notification:
+func _notification(what):
+  match what:
     NOTIFICATION_PARENTED:  
       get_parent().visible = false
 

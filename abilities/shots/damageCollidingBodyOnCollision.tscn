@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3 uid="uid://bpguy8ol74pes"]
+
+[sub_resource type="GDScript" id="GDScript_ajm2v"]
+script/source = "extends Node
+
+@export var except_source_object = true
+@export var hurt_everyone = false
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(get_parent(), 'collision', on_collision)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(get_parent(), 'collision', on_collision)
+
+
+func damage_body(body):
+  var parent = get_parent()
+  
+  #damage by method
+  var dmg = Comp.get_prop(parent, 'dmg', 1)
+  if Comp.run_method(body, \"hurt_by\", [dmg, parent]):
+    return
+  
+  #damage by directly changing health
+  var hp = Comp.get_prop(body, 'hp')
+  if hp != null:
+    Comp.set_prop(body, 'hp', hp - dmg)
+
+
+func on_collision(collision):
+  if not collision:
+    return
+  var body = collision.get_collider()
+  var parent = get_parent()
+  
+  #hurt source?
+  var source = Comp.get_prop(parent, 'source_object')
+  if source and (source == body) and except_source_object:
+    return #dont hurt source object
+  
+  if hurt_everyone:
+    damage_body(body)
+  
+  if not source:
+    return
+  
+  #is body an enemy?
+  var body_faction = Comp.get_prop(body, 'factions', 'default')
+  var source_faction = Comp.get_prop(source, 'factions', 'default')
+  var factions_agree = Game.check_factions_agree(source_faction, body_faction)
+  if not factions_agree:
+    damage_body(body)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="damageCollidingBodyOnCollision" type="Node"]
+script = SubResource("GDScript_ajm2v")

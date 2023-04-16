@@ -33,13 +33,12 @@ func object_exited(object: Node):
         return #object was reparented in the last 10 ms
       object_deref.tree_exited.disconnect(object_exited.bind(object_deref))
     Lib.call_after(respawn_delay_in_milliseconds, func():
-      prints('respawning enemy')
       if not self.is_inside_tree():
         return
       var parent = get_parent()
       if not parent.is_inside_tree():
         return
-      parent.generate_one_child()
+      parent.try_generating_one_child()
     )
   )
 

@@ -1,0 +1,99 @@
+[gd_scene load_steps=2 format=3 uid="uid://cij85rvrrn2a7"]
+
+[sub_resource type="GDScript" id="GDScript_0r3ts"]
+script/source = "extends Node
+
+#For use as a child of an armor-like gear node
+
+var grandparent
+@export var adef = 10
+@export var mdef = 1.0
+
+func _init():
+  tree_entered.connect(on_tree_entered)
+  tree_exited.connect(on_tree_exited)
+
+
+func on_tree_entered():
+  var new_grandparent = Lib.get_grandparent(self)
+  if new_grandparent == grandparent:
+    return #unparented from grandparent
+  grandparent = new_grandparent
+  
+
+func on_tree_exited():
+  var new_grandparent = Lib.get_grandparent(self)
+  if new_grandparent == grandparent:
+    return #not unparented from grandparent
+  grandparent = null
+  toggle_equipped(false)
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.set_prop(get_parent(), 'handle_left_clicked', handle_left_clicked)
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(get_parent(), 'handle_left_clicked')
+
+
+func toggle_equipped(state: Variant = null):
+  var parent = get_parent()
+  var user_object = Lib.get_grandparent(self)
+  if user_object == null:
+    return
+  
+  var current_adef = Comp.get_prop(user_object, 'adef')
+  var current_mdef = Comp.get_prop(user_object, 'mdef')
+  var new_equipped_status = (not parent.is_in_group('equipped')) if (state == null) else state
+  if new_equipped_status:
+    var can_equip = Comp.call_method_or(user_object, 'can_equip', [parent], true)
+    if not can_equip:
+      return
+    parent.add_to_group('equipped')
+    if current_adef != null:
+      Comp.set_prop(user_object, 'adef', current_adef + adef)
+    if current_mdef != null:
+      Comp.set_prop(user_object, 'mdef', current_adef + mdef)
+  else:
+    parent.remove_from_group('equipped')
+    if current_adef != null:
+      Comp.set_prop(user_object, 'adef', current_adef - adef)
+    if current_mdef != null:
+      Comp.set_prop(user_object, 'mdef', current_adef - mdef)
+    
+  var toggleable_gear_cell_maker = parent.get_node(\"makeGearUiCell\")
+  if toggleable_gear_cell_maker != null:
+    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [new_equipped_status])
+  
+
+func handle_left_clicked(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  if Lib.is_dragging:
+    return
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if event.shift_pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  if grandparent != Lib.player_character:
+    return
+  #only when not dragging, as child of player character, and left button just released:
+  toggle_equipped()
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="armorGearBehavior" type="Node"]
+script = SubResource("GDScript_0r3ts")

@@ -11,45 +11,70 @@ var character_parent : Node
 @export var stat = 'hp'
 @export var max_stat = ''
 
+@export var hide_on_no_stat_target: NodePath
 
-func _notification(what):
-  match what:
-    NOTIFICATION_ENTER_TREE:
-      character_parent = Lib.get_parent_in_group(self, 'character')
-      if character_parent == null:
-        return
-      
-      Comp.call_on_set_prop(character_parent, stat, on_stat_change)
-      if max_stat != '':
-        Comp.call_on_set_prop(character_parent, max_stat, on_max_stat_change)
-    
-      #set initial values on next idle  
-      (func():
-        on_stat_change(Comp.get_prop(character_parent, stat))
-        if max_stat != '':
-          on_max_stat_change(Comp.get_prop(character_parent, max_stat))
-      ).call_deferred()
-      
-    NOTIFICATION_EXIT_TREE:
-      var current_character_parent = Lib.get_parent_in_group(self, 'character')
-      if current_character_parent != null:
-        return #ui not unparented from character
-      Comp.stop_calling_on_set_prop(character_parent, stat, on_stat_change)
-      if max_stat != '':
-        Comp.stop_calling_on_set_prop(character_parent, max_stat, on_max_stat_change)
-      character_parent = null
+func _init():
+  tree_entered.connect(on_enter_tree)
+  tree_exited.connect(on_exited_tree)
 
 
-func on_stat_change(new_stat_value):
-  var range_parent = get_parent()
-  if new_stat_value is float:
-    range_parent.set_value(new_stat_value)
+func on_enter_tree():
+  var current_character_parent = Lib.get_parent_in_group(self, 'character')
+  if current_character_parent == character_parent:
+    return #probably moved worlds or something
+  character_parent = current_character_parent
+  
+  #set initial values on next idle  
+  (func():
+    Comp.call_on_set_prop_and_now(character_parent, stat, on_stat_change)
+    if max_stat != '':
+      Comp.call_on_set_prop_and_now(character_parent, max_stat, on_max_stat_change)
+  ).call_deferred()
+
+func on_exited_tree():
+  var current_character_parent = Lib.get_parent_in_group(self, 'character')
+  if current_character_parent == character_parent:
+    return #ui not unparented from character
+  Comp.stop_calling_on_set_prop(character_parent, stat, on_stat_change)
+  if max_stat != '':
+    Comp.stop_calling_on_set_prop(character_parent, max_stat, on_max_stat_change)
+  character_parent = null
 
 
-func on_max_stat_change(new_max_stat_value):
-  var range_parent = get_parent()
-  if new_max_stat_value is float:
-    range_parent.set_max(new_max_stat_value)
+func reveal_hide_target(visibility):
+  if hide_on_no_stat_target.is_empty():
+    return
+  var hide_target = get_node(hide_on_no_stat_target)
+  if hide_target == null:
+    return
+  hide_target.visible = visibility
+
+
+func on_stat_change():
+  var range_parent = get_parent() as Range
+  var stat_value = Comp.get_prop(character_parent, stat)
+  if stat_value == null:
+    reveal_hide_target(false)
+  else:
+    reveal_hide_target(true)
+    range_parent.set_value(stat_value)
+
+
+func on_max_stat_change():
+  var range_parent = get_parent() as Range
+  var stat_value = Comp.get_prop(character_parent, max_stat)
+  if stat_value == null:
+    return
+  range_parent.set_max(stat_value)
+
+
+
+
+
+
+
+
+
 
 "
 

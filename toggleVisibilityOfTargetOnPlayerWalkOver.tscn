@@ -1,0 +1,49 @@
+[gd_scene load_steps=2 format=3 uid="uid://dcao3y338305p"]
+
+[sub_resource type="GDScript" id="GDScript_n32kp"]
+script/source = "extends Node
+
+#requires Area2D parent
+
+@export var target_node_path : NodePath
+
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      var parent = get_parent()
+      assert(parent is Area2D)
+      parent.body_entered.connect(on_body_entered)
+      parent.body_exited.connect(on_body_exited)
+    NOTIFICATION_UNPARENTED:
+      var parent = get_parent()
+      parent.body_entered.disconnect(on_body_entered)
+      parent.body_exited.disconnect(on_body_exited)
+
+
+func on_body_entered(body: Node2D):
+  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
+    return
+  
+  var target_node = get_node(target_node_path)
+  if target_node == null:
+    push_error('Could not find target node with given path ', target_node_path)
+    return
+  target_node.visible = true
+  target_node.process_mode = PROCESS_MODE_INHERIT
+
+
+func on_body_exited(body: Node2D):
+  if not ((body == Lib.player_character) or Lib.is_child_of(Lib.player_character, body)):
+    return
+  
+  var target_node = get_node(target_node_path)
+  if target_node == null:
+    push_error('Could not find target node with given path ', target_node_path)
+    return
+  target_node.visible = false
+  target_node.process_mode = Node.PROCESS_MODE_DISABLED
+"
+
+[node name="toggleVisibilityOfTargetOnPlayerWalkOver" type="Node"]
+script = SubResource("GDScript_n32kp")

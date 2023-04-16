@@ -76,4 +76,6 @@ func on_body_exited(body):
 "
 
 [node name="targetNearestEnemy" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
 script = SubResource("GDScript_g4we8")

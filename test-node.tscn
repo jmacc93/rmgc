@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8d0w262o4sk"]
+
+[sub_resource type="GDScript" id="GDScript_lbwsn"]
+script/source = "extends Node
+
+@export var asdf = 65754457
+"
+
+[sub_resource type="GDScript" id="GDScript_cfcne"]
+script/source = "extends Node
+
+@export var property = 567
+@export var property2 = \"asdf\"
+"
+
+[node name="test-node" type="Node"]
+script = SubResource("GDScript_lbwsn")
+metadata/root_metadata = "wertserty"
+
+[node name="dsfg" type="Node" parent="."]
+script = SubResource("GDScript_cfcne")
+metadata/metdata = "123"

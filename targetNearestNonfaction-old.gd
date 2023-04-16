@@ -8,6 +8,7 @@ var target_object
 
 
 func _enter_tree():
+  assert(false)
   composite = Lib.get_parent_with_method(self, 'new_getter')
   if not composite:
     push_error('No composite parent found')
@@ -65,6 +66,7 @@ func test_and_switch_target_to_body(body):
 
 #target characters and factioned objects that enter
 func _on_targetNearestNonfaction_body_entered(body):
+  assert(false)
   #dont do anything if already have target
   if target_object != null:
     return
