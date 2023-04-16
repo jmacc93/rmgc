@@ -1,0 +1,184 @@
+[gd_scene load_steps=22 format=3]
+
+[ext_resource type="PackedScene" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_qty8s"]
+[ext_resource type="Script" path="res://characters/walkAbility.gd" id="2_2dd2w"]
+[ext_resource type="Script" path="res://characters/playableCharacters/moveCharacterOnAction.gd" id="3_o7gey"]
+[ext_resource type="Script" path="res://characters/healthStats-old.gd" id="4_ax72c"]
+[ext_resource type="Script" path="res://characters/dieOnZeroHp.gd" id="5_v42ew"]
+[ext_resource type="Script" path="res://characters/inSingleFaction.gd" id="6_hgwka"]
+[ext_resource type="Script" path="res://characters/playableCharacters/mainAttackOnAction.gd" id="7_h1hi8"]
+[ext_resource type="Script" path="res://characters/playableCharacters/setTargetPointToMouseLocation.gd" id="8_4hisn"]
+[ext_resource type="Texture2D" uid="uid://b03kf4gmcmdm7" path="res://gear/weapons/sprites/basicSword.png" id="9_23v4p"]
+[ext_resource type="Script" path="res://compositeNode.gd" id="10_0pxpy"]
+[ext_resource type="Script" path="res://basicWeaponAttackAbility.gd" id="11_ttuan"]
+[ext_resource type="PackedScene" path="res://shots/basicSwipe_old.tscn" id="12_qbcmd"]
+[ext_resource type="Script" path="res://characters/makeBasicDamagePopups.gd" id="13_lk6ju"]
+[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="14_ujkxl"]
+[ext_resource type="Script" path="res://ui/syncRangeToCharacterStat-old.gd" id="15_uxw2t"]
+[ext_resource type="PackedScene" path="res://enemies/genericEnemy1-old.tscn" id="16_vy3ne"]
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="17_v0xfd"]
+[ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://characters/sprites/ash-mote-1.png" id="18_640ki"]
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sxir6"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_111xn"]
+bg_color = Color(0.831373, 0, 0.937255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2h0ii"]
+bg_color = Color(1, 0, 0, 1)
+
+[node name="character_templates" type="Node"]
+
+[node name="playerCharacterSimpleUI" parent="." instance=ExtResource("1_qty8s")]
+visible = false
+metadata/ui_gear_cells = 3
+
+[node name="walkAbility" type="Node" parent="playerCharacterSimpleUI"]
+script = ExtResource("2_2dd2w")
+
+[node name="moveCharacterOnAction" type="Node" parent="playerCharacterSimpleUI/walkAbility"]
+script = ExtResource("3_o7gey")
+
+[node name="healthStats" type="Node" parent="playerCharacterSimpleUI"]
+script = ExtResource("4_ax72c")
+max_hp = 1000.0
+hp = 500.0
+
+[node name="dieOnZeroHp" type="Node" parent="playerCharacterSimpleUI/healthStats"]
+script = ExtResource("5_v42ew")
+
+[node name="inSingleFaction" type="Node" parent="playerCharacterSimpleUI"]
+script = ExtResource("6_hgwka")
+faction = "players"
+
+[node name="shootOnAction" type="Node" parent="playerCharacterSimpleUI"]
+script = ExtResource("7_h1hi8")
+
+[node name="setCharacterTargetToMouseLocation" type="Node" parent="playerCharacterSimpleUI"]
+script = ExtResource("8_4hisn")
+
+[node name="basicSword" type="Sprite2D" parent="playerCharacterSimpleUI" groups=["gear", "main_attack"]]
+z_index = 1
+texture_filter = 1
+position = Vector2(4, 0)
+texture = ExtResource("9_23v4p")
+script = ExtResource("10_0pxpy")
+metadata/ui_cell_display = ExtResource("9_23v4p")
+
+[node name="basicWeaponAttackAbility" type="Node" parent="playerCharacterSimpleUI/basicSword" groups=["ability"]]
+script = ExtResource("11_ttuan")
+cast_speed = 80.0
+max_attack_rate = 40
+shot_resource = ExtResource("12_qbcmd")
+
+[node name="makeBasicDamagePopups" type="Node2D" parent="playerCharacterSimpleUI"]
+position = Vector2(0, -8)
+script = ExtResource("13_lk6ju")
+
+[node name="Camera2D" type="Camera2D" parent="playerCharacterSimpleUI"]
+zoom = Vector2(4, 4)
+
+[node name="mpBar" type="Control" parent="playerCharacterSimpleUI"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 71.111
+offset_top = 65.0
+offset_right = 135.111
+offset_bottom = 74.0
+
+[node name="mpBackground" type="NinePatchRect" parent="playerCharacterSimpleUI/mpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("14_ujkxl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="playerCharacterSimpleUI/mpBar"]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 447.552
+offset_bottom = 64.0
+scale = Vector2(0.143, 0.138)
+theme_override_colors/font_color = Color(0.411765, 0, 0.541176, 1)
+theme_override_font_sizes/font_size = 46
+theme_override_styles/background = SubResource("StyleBoxFlat_sxir6")
+theme_override_styles/fill = SubResource("StyleBoxFlat_111xn")
+value = 100.0
+
+[node name="syncRangeToCharacterStat2" type="Node" parent="playerCharacterSimpleUI/mpBar/ProgressBar"]
+script = ExtResource("15_uxw2t")
+stat = "mp"
+max_stat = "max_mp"
+
+[node name="hpBar" type="Control" parent="playerCharacterSimpleUI"]
+z_index = 1000
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -133.989
+offset_top = 65.0
+offset_right = -69.989
+offset_bottom = 74.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="hpBackground" type="NinePatchRect" parent="playerCharacterSimpleUI/hpBar"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("14_ujkxl")
+region_rect = Rect2(0, 0, 16, 10)
+patch_margin_left = 6
+patch_margin_top = 3
+patch_margin_right = 6
+patch_margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="playerCharacterSimpleUI/hpBar"]
+layout_mode = 0
+offset_right = 284.444
+offset_bottom = 40.0
+scale = Vector2(0.224581, 0.224581)
+theme_override_colors/font_color = Color(0.52549, 0, 0.0666667, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/background = SubResource("StyleBoxFlat_sxir6")
+theme_override_styles/fill = SubResource("StyleBoxFlat_2h0ii")
+value = 100.0
+
+[node name="syncRangeToCharacterStat" type="Node" parent="playerCharacterSimpleUI/hpBar/ProgressBar"]
+script = ExtResource("15_uxw2t")
+max_stat = "max_hp"
+
+[node name="basicEnemy" parent="." groups=["character"] instance=ExtResource("16_vy3ne")]
+visible = false
+
+[node name="targetNearestNonfaction" parent="basicEnemy" index="3"]
+visible = false
+
+[node name="Sprite2D" type="Sprite2D" parent="basicEnemy"]
+texture_filter = 1
+material = ExtResource("17_v0xfd")
+texture = ExtResource("18_640ki")
+region_rect = Rect2(0, 0, 10, 10)
+
+[node name="basicWeaponAttackAbility" type="Node" parent="basicEnemy" groups=["ability", "main_attack"]]
+script = ExtResource("11_ttuan")
+cast_speed = 60.0
+shot_resource = ExtResource("12_qbcmd")
+
+[editable path="basicEnemy"]

@@ -1,0 +1,196 @@
+[gd_scene load_steps=3 format=3 uid="uid://d0l3po3tbdq1j"]
+
+[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="2_u8n5e"]
+
+[sub_resource type="GDScript" id="GDScript_jbjgw"]
+script/source = "extends Node
+
+@export var cast_speed = 5.0
+@export var damage_mod = 1.0
+
+@export var max_attack_rate = 20
+@onready var attack_delay = int(float(10000) / float(max_attack_rate))
+var next_attack_time = 0
+
+#note: multiple shots only valid when shot scene has 
+@export var shot_count : int = 1
+@export var multi_shot_angle = 45.0
+@export_enum(\"Fan\", \"Random\", \"Cloud\") var multi_shot_type = \"Fan\"
+
+@export var cloud_multishot_max_speedup_ratio = 0.1
+
+@export var individual_shot_angle_spread = 0.0
+
+
+var generic_shot_scene: PackedScene = preload(\"res://shots/genericShot.tscn\")
+@export var shot_file: String
+var shot_file_scene_cache = [null, ''] #[loaded scene, cached file name]
+#shot_file as a .tscn file: use an instance of that scene
+#shot_file as a .png, etc file: use a generic shot and replae texture
+#shot_file is anything else: use a generic shot with generic texture
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      pass
+    NOTIFICATION_UNPARENTED:
+      if self.is_in_group('main_attack'):
+        self.remove_from_group('main_attack')
+      if self.is_in_group('equipped'):
+        self.remove_from_group('equipped')
+
+
+func make_shot_instance() -> Node:
+  #instance a scene if given a .tscn as the shot_file
+  #, or instance genericShot and set its texture if given a .png as the shot_file
+  if shot_file.ends_with('.tscn'):
+    var ret_scene
+    #do we have the scene cached?
+    if shot_file_scene_cache[1] == shot_file:
+      #use previous load so we don't need to load(..) each time
+      if shot_file_scene_cache[0] == null:
+        push_error('Bad shot_file given')
+        return null
+      ret_scene = shot_file_scene_cache[0].instatiate()
+    else: #load and set cache
+      var file_resource = load(shot_file)
+      shot_file_scene_cache = [file_resource, shot_file]
+      if file_resource == null:
+        push_error('Bad shot_file given')
+        return null
+      if not (file_resource is PackedScene):
+        push_error('Given shot_file isnt a scene file')
+        return null
+      ret_scene = file_resource.instantiate()
+    return ret_scene
+  else: #shot_file is .png
+    var ret_scene = generic_shot_scene.instantiate()
+    if shot_file.ends_with('.png'):
+      var file_texture2d = load(shot_file)
+      ret_scene.get_node('Sprite2D').texture = file_texture2d
+    return ret_scene
+
+
+func shoot_one(user_object: Object, origin: Vector2, dir: Vector2):
+  var shot = make_shot_instance()
+  if shot == null:
+    return #probably bad shot_file given
+  
+  shot.global_position = origin
+  
+  get_viewport().add_child(shot)
+  
+  #set shot parent object (the shot's creator)
+  Comp.set_prop(shot, 'source_object', user_object)
+  
+  var dmg = Comp.get_prop(shot, 'dmg', 1.0)
+  Comp.set_prop(shot, 'dmg', dmg * damage_mod)
+  
+  var cast_vec = dir * cast_speed
+  
+  #try casting via method
+  if Comp.run_method(shot, 'cast_in_dir', [cast_vec]):
+    return
+  
+  #fallback to setting velocity (if possible)
+  Comp.set_prop(shot, 'velocity', cast_vec)
+  
+
+#shoot new shot toward target point / target object with shoot delay
+func attack(user_object: Object) -> void:
+  var current_time = Time.get_ticks_msec()
+  if next_attack_time > current_time:
+    return #can't attack yet
+  
+  next_attack_time = current_time + attack_delay
+  
+  #get shot origin
+  var origin_position = Comp.get_prop(user_object, 'shot_origin', null)
+  if origin_position == null:
+    origin_position = user_object.get_prop('shot_origin') if user_object.has_method('get_prop') else null
+    if origin_position == null:
+      origin_position = user_object.global_position if ('global_position' in user_object) else null
+      if origin_position == null:
+        origin_position = Lib.get_parent_with_property(self, 'global_position').global_position
+  
+  #get target point
+  var target_point = Comp.get_prop(user_object, 'target_point', null)
+  if origin_position == null:
+    origin_position = Comp.get_prop(user_object, 'target_point') 
+    if target_point == null:
+      var target_object = Comp.get_prop(user_object, 'target_object')
+      if target_object != null:
+        target_point = target_object.global_position
+  
+  var shoot_dir = (target_point - origin_position).normalized()
+  
+  if shot_count == 1:
+    var spread_angle = randf_range(-1, 1) * individual_shot_angle_spread * (PI / 180)
+    var final_shoot_dir = shoot_dir.rotated(spread_angle)
+    shoot_one(user_object, origin_position, final_shoot_dir)
+  else: #multiple shots
+    match multi_shot_type:
+      \"Fan\":
+        var angle_step = 2.0 * multi_shot_angle / float(shot_count)
+        for i in range(0, shot_count):
+          var shot_angle = - multi_shot_angle + float(i) * angle_step
+          var spread_angle = (shot_angle + randf_range(-1, 1) * individual_shot_angle_spread) * (PI / 180)
+          var final_shoot_dir = shoot_dir.rotated(spread_angle)
+          shoot_one(user_object, origin_position, final_shoot_dir)
+      \"Random\":
+        for i in range(0, shot_count):
+          var spread_angle = randf_range(-1.0, 1.0) * multi_shot_angle * (PI / 180)
+          var final_shoot_dir = shoot_dir.rotated(spread_angle)
+          shoot_one(user_object, origin_position, final_shoot_dir)
+      \"Cloud\":
+        for i in range(0, shot_count):
+          var spread_angle = randf_range(-1.0, 1.0) * multi_shot_angle * (PI / 180)
+          var final_shoot_dir = shoot_dir.rotated(spread_angle) * (1 + randf_range(-1, 1) * cloud_multishot_max_speedup_ratio)
+          shoot_one(user_object, origin_position, final_shoot_dir)
+
+
+func toggle_equipped(_user_object: Object) -> void:
+  var group_status = is_in_group('main_attack')
+  if group_status:  
+    remove_from_group('main_attack')
+  else:
+    add_to_group('main_attack')
+  var toggleable_gear_cell_maker = $makeGearUiCell
+  if toggleable_gear_cell_maker != null:
+    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [not group_status])
+  
+
+func handle_left_clicked(event: InputEventMouse):
+  get_viewport().set_input_as_handled()
+  if Lib.is_dragging:
+    return
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if event.button_index != MOUSE_BUTTON_LEFT:
+    return
+  if get_parent() != Lib.player_character:
+    return
+  #only when not dragging, as child of player character, and left button just released:
+  toggle_equipped(Lib.player_character)
+
+
+
+
+
+
+
+
+
+
+
+
+"
+
+[node name="produceShot" type="Node" groups=["ability", "gear", "main_attack"]]
+script = SubResource("GDScript_jbjgw")
+cast_speed = 80.0
+max_attack_rate = 40
+metadata/ui_cell_display = ExtResource("2_u8n5e")
+metadata/ui_cell_left_click = "equip"

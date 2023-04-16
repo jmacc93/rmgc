@@ -1,0 +1,58 @@
+[gd_scene load_steps=6 format=3 uid="uid://beumcjhqn6r4t"]
+
+[ext_resource type="Texture2D" uid="uid://nprr321ewwia" path="res://gear/armors/basic-armor-1.png" id="1_qly1u"]
+[ext_resource type="PackedScene" uid="uid://cij85rvrrn2a7" path="res://gear/armors/armorGearBehavior.tscn" id="2_5hi6d"]
+[ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="3_xslaf"]
+[ext_resource type="PackedScene" uid="uid://7rctdalryyyp" path="res://ui/allowTogglingUiCell.tscn" id="4_daccv"]
+[ext_resource type="Texture2D" uid="uid://dkrpx05q63ryv" path="res://gear/armors/dev-armor.png" id="5_2sdwu"]
+
+[node name="devArmor" type="Node" groups=["gear"]]
+metadata/ui_cell_left_click = "toggle_equipped"
+metadata/ui_cell_display = ExtResource("1_qly1u")
+metadata/equipment_classes = ["armor"]
+metadata/gear_removed = "unequip"
+
+[node name="armorGearBehavior" parent="." instance=ExtResource("2_5hi6d")]
+adef = 1000
+mdef = 10.0
+
+[node name="makeGearUiCell" parent="." instance=ExtResource("3_xslaf")]
+
+[node name="allowTogglingUiCell" parent="makeGearUiCell" instance=ExtResource("4_daccv")]
+
+[node name="templateGearCell" type="Control" parent="."]
+process_mode = 4
+visible = false
+z_index = 10
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="textureRect" type="TextureRect" parent="templateGearCell"]
+process_mode = 4
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_2sdwu")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="toggledOn" type="ColorRect" parent="templateGearCell"]
+visible = false
+z_index = -1
+layout_mode = 0
+offset_left = 1.0
+offset_top = -1.0
+offset_right = 9.0
+offset_bottom = 11.0
+color = Color(0.478431, 0.541176, 1, 0.592157)

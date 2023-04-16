@@ -1,0 +1,50 @@
+[gd_scene load_steps=12 format=3 uid="uid://b6ak0nvcxovfq"]
+
+[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="1_8myq8"]
+[ext_resource type="PackedScene" uid="uid://bpguy8ol74pes" path="res://shots/damageCollidingBodyOnCollision.tscn" id="2_081jh"]
+[ext_resource type="PackedScene" uid="uid://bsewvrl0lv0rl" path="res://shots/destroySelfOnCollision.tscn" id="3_ibanq"]
+[ext_resource type="PackedScene" uid="uid://cytk41j43tol1" path="res://shots/destroySelfOnWallCollision.tscn" id="4_88dwn"]
+[ext_resource type="PackedScene" uid="uid://dkwrrt4jbugnu" path="res://shots/destroySelfOnTimeout.tscn" id="5_nxw78"]
+[ext_resource type="PackedScene" uid="uid://c3ft2rqe8ivkd" path="res://shots/moveAndSlideWithVelocity.tscn" id="6_mjmgd"]
+[ext_resource type="PackedScene" uid="uid://bijx5noked2or" path="res://shots/castTowardMethod.tscn" id="7_fejy0"]
+[ext_resource type="PackedScene" uid="uid://dgfcrjlit1rnt" path="res://shots/parentObjectCollisionException.tscn" id="8_lre01"]
+[ext_resource type="PackedScene" uid="uid://bxrs5t27l8n5a" path="res://shots/addAlignmentCollisionExceptionsOnTouch.tscn" id="9_g2h50"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(5, 5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o3p08"]
+size = Vector2(40, 40)
+
+[node name="genericShot" type="CharacterBody2D" groups=["shot"]]
+editor_description = "define meta `dmg` to set damage"
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+metadata/dmg = 10.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("1_8myq8")
+
+[node name="damageCollidingBodyOnCollision" parent="." instance=ExtResource("2_081jh")]
+
+[node name="destroySelfOnCollision" parent="." instance=ExtResource("3_ibanq")]
+
+[node name="destroySelfOnWallCollision" parent="." instance=ExtResource("4_88dwn")]
+
+[node name="destroySelfOnTimeout" parent="." instance=ExtResource("5_nxw78")]
+
+[node name="moveAndSlideWithVelocity" parent="." instance=ExtResource("6_mjmgd")]
+
+[node name="castTowardMethod" parent="." instance=ExtResource("7_fejy0")]
+
+[node name="parentObjectCollisionException" parent="." instance=ExtResource("8_lre01")]
+
+[node name="addAlignmentCollisionExceptionsOnTouch" parent="." instance=ExtResource("9_g2h50")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="addAlignmentCollisionExceptionsOnTouch"]
+shape = SubResource("RectangleShape2D_o3p08")

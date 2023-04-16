@@ -1,18 +1,19 @@
 [gd_scene load_steps=17 format=3]
 
-[ext_resource type="PackedScene" uid="uid://cobqy5hc38ufe" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_iqv0x"]
+[ext_resource type="PackedScene" path="res://characters/playableCharacters/genericAdventurer.tscn" id="1_iqv0x"]
 [ext_resource type="Script" path="res://characters/dieOnZeroHp_old.gd" id="2_oajsk"]
 [ext_resource type="Script" path="res://characters/playableCharacters/moveCharacterOnAction.gd" id="3_rxun8"]
 [ext_resource type="Script" path="res://characters/playableCharacters/characterShootOnAction.gd" id="4_yxuav"]
 [ext_resource type="Script" path="res://characters/playableCharacters/setCharacterTargetToMouseLocation.gd" id="5_7wl11"]
-[ext_resource type="Texture2D" uid="uid://b03kf4gmcmdm7" path="res://abilities/weapons/basicSword.png" id="6_jhbxc"]
+[ext_resource type="Texture2D" uid="uid://b03kf4gmcmdm7" path="res://gear/weapons/sprites/basicSword.png" id="6_jhbxc"]
 [ext_resource type="Script" path="res://basicWeaponAttackAbility_old.gd" id="7_xn0q6"]
-[ext_resource type="PackedScene" path="res://abilities/shots/basicSwipe_old.tscn" id="8_3m2th"]
+[ext_resource type="PackedScene" path="res://shots/basicSwipe_old.tscn" id="8_3m2th"]
 [ext_resource type="Script" path="res://characters/makeBasicDamagePopups_old.gd" id="9_yhn1d"]
-[ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="10_yk2ub"]
+[ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://gear/usables/sprites/hp-flask.png" id="10_yk2ub"]
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="11_fbcl6"]
 [ext_resource type="Script" path="res://ui/syncRangeToCharacterStat-old.gd" id="12_7u3vu"]
 [ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="13_bxdqi"]
+
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i1h43"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
