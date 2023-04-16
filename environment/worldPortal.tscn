@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://cfe01o3bqox5e"]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Texture2D" uid="uid://clpocpxfts7x5" path="res://environment/small_world_portal.png" id="1_wjl8m"]
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="2_wpaav"]
 [ext_resource type="PackedScene" uid="uid://cltmch762lqa4" path="res://ui/mirrorNodePropToParentLabel.tscn" id="3_7c8na"]
-[ext_resource type="PackedScene" uid="uid://ceomcg1jw817h" path="res://showGrandparentOnPlayerTouching.tscn" id="3_wtt6d"]
+[ext_resource type="PackedScene" uid="uid://ceomcg1jw817h" path="res://scripts/showGrandparentOnPlayerTouching.tscn" id="3_wtt6d"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2x3t2"]
 size = Vector2(12, 8)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://b2dabup1mq6mi"]
+[gd_scene load_steps=22 format=3 uid="uid://bhdo6gf8hksmp"]
 
 [ext_resource type="PackedScene" uid="uid://n7p1mynbtqe2" path="res://environment/worlds/devRealm/devRealm.tscn" id="1_8cqxu"]
 [ext_resource type="PackedScene" uid="uid://cbdlhd2682nf2" path="res://characters/playableCharacters/genericClass.tscn" id="2_ct547"]
@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://items/hp-flask.png" id="11_3edqv"]
 [ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://items/destroyContainerOnEmpty.tscn" id="11_rddws"]
 [ext_resource type="PackedScene" uid="uid://circ26mol7hsg" path="res://items/flaskOfPain.tscn" id="12_m0vpe"]
-[ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="12_o62jj"]
+[ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://scripts/toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="12_o62jj"]
 [ext_resource type="PackedScene" uid="uid://cnkbrh3ihf3x5" path="res://abilities/dev-armor.tscn" id="13_7oxlg"]
 [ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://items/basicArmor1.tscn" id="13_42vnk"]
 [ext_resource type="PackedScene" uid="uid://byypr3minse8e" path="res://abilities/weapons/crew_gun.tscn" id="13_e51y4"]
@@ -15,7 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="16_knh61"]
 [ext_resource type="PackedScene" uid="uid://dt2kb2yrwlot0" path="res://environment/smallRock1.tscn" id="17_n810x"]
 [ext_resource type="PackedScene" uid="uid://cguieshd00n62" path="res://environment/smallBush.tscn" id="18_2or23"]
-[ext_resource type="PackedScene" uid="uid://cfe01o3bqox5e" path="res://environment/worldPortal.tscn" id="18_d1gl8"]
+[ext_resource type="PackedScene" path="res://environment/worldPortal.tscn" id="18_d1gl8"]
 [ext_resource type="PackedScene" uid="uid://b4wm1mjolckxd" path="res://enemies/dustMote.tscn" id="19_rmfwx"]
 [ext_resource type="PackedScene" uid="uid://dt0l2qsjnfbnb" path="res://items/basicLootBag.tscn" id="20_0vsro"]
 
