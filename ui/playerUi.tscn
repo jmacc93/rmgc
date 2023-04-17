@@ -1,11 +1,11 @@
-[gd_scene load_steps=24 format=3 uid="uid://b0kbpv2w4ustw"]
+[gd_scene load_steps=24 format=3]
 
-[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="1_i3w13"]
-[ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/expander.png" id="2_gtiv0"]
-[ext_resource type="PackedScene" uid="uid://dn8ekob6hhfv4" path="res://ui/syncRangeToCharacterStat.tscn" id="3_5kha5"]
-[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="4_vmx2j"]
-[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/mirrorContainerGearNodesToNode.tscn" id="5_22xy8"]
-[ext_resource type="Texture2D" uid="uid://hbf5i88n16ce" path="res://ui/home-icon.png" id="5_ni8lo"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/sprites/ui-box-2.png" id="1_i3w13"]
+[ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/sprites/expander.png" id="2_gtiv0"]
+[ext_resource type="PackedScene" uid="uid://dn8ekob6hhfv4" path="res://ui/scripts/syncRangeToCharacterStat.tscn" id="3_5kha5"]
+[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/sprites/hp-bar-1.png" id="4_vmx2j"]
+[ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/scripts/mirrorContainerGearNodesToNode.tscn" id="5_22xy8"]
+[ext_resource type="Texture2D" uid="uid://hbf5i88n16ce" path="res://ui/sprites/home-icon.png" id="5_ni8lo"]
 
 [sub_resource type="SystemFont" id="SystemFont_mtb06"]
 font_names = PackedStringArray("Sans-Serif")

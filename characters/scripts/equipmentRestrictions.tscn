@@ -24,7 +24,6 @@ func can_equip(equipment_object):
       continue
     var count = count_in_class(metaname)
     var max_count = get_meta(metaname)
-    prints('equipmentRestrictions', count, max_count)
     return count < max_count
   return true
 

@@ -13,7 +13,7 @@
 [ext_resource type="Script" path="res://basicWeaponAttackAbility.gd" id="11_ttuan"]
 [ext_resource type="PackedScene" path="res://shots/basicSwipe_old.tscn" id="12_qbcmd"]
 [ext_resource type="Script" path="res://characters/makeBasicDamagePopups.gd" id="13_lk6ju"]
-[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/hp-bar-1.png" id="14_ujkxl"]
+[ext_resource type="Texture2D" uid="uid://xowd1blkqofx" path="res://ui/sprites/hp-bar-1.png" id="14_ujkxl"]
 [ext_resource type="Script" path="res://ui/syncRangeToCharacterStat-old.gd" id="15_uxw2t"]
 [ext_resource type="PackedScene" path="res://enemies/genericEnemy1-old.tscn" id="16_vy3ne"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="17_v0xfd"]

@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3 uid="uid://di1kujpbli74g"]
+
+[sub_resource type="GDScript" id="GDScript_um228"]
+script/source = "extends Node2D
+
+var damage_amount : int = 0
+
+@export var lifespan_msec = 750
+@onready var timeout_time = Time.get_ticks_msec() + lifespan_msec
+
+@export var float_distance = 5.0
+@onready var float_speed : float = 1000 * float_distance / lifespan_msec
+
+func set_damage(new_damage):
+  var label = $Label
+  damage_amount = int(ceil(new_damage))
+  if new_damage > 0:
+    label.text = '+' + str(damage_amount)
+    label.modulate = Color.LIGHT_GREEN
+  else:
+    label.text = str(damage_amount)
+    label.modulate = Color.LIGHT_CORAL
+
+func _process(delta):
+  var current_time = Time.get_ticks_msec()
+  if current_time > timeout_time:
+    queue_free()
+    return
+  
+  $Label.position += Vector2(0, - float_speed * delta)
+"
+
+[node name="damagePopup" type="Node2D"]
+script = SubResource("GDScript_um228")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -18.0
+offset_top = -5.0
+offset_right = 144.0
+offset_bottom = 35.0
+scale = Vector2(0.214553, 0.214553)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 27
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1

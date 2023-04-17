@@ -1,10 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://dn0mah7vftwme"]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://gear/weapons/produceShot.tscn" id="1_bc4f2"]
-[ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="2_7xdd8"]
+[ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/scripts/makeGearUiCell.tscn" id="2_7xdd8"]
 [ext_resource type="Texture2D" uid="uid://bhju63nbelq67" path="res://gear/weapons/sprites/crew-gun.png" id="2_626nt"]
 [ext_resource type="Texture2D" uid="uid://pgf1kdf600nq" path="res://shots/sprites/ultraviolet-laser.png" id="2_eq0x3"]
-[ext_resource type="PackedScene" uid="uid://7rctdalryyyp" path="res://ui/allowTogglingUiCell.tscn" id="3_jfq1b"]
+[ext_resource type="PackedScene" uid="uid://7rctdalryyyp" path="res://ui/scripts/allowTogglingUiCell.tscn" id="3_jfq1b"]
 
 [node name="gunCREW" instance=ExtResource("1_bc4f2")]
 cast_speed = 400.0

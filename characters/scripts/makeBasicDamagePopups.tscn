@@ -5,7 +5,7 @@ script/source = "extends Node2D
 
 var composite
 
-var damage_popup_resource : PackedScene = preload(\"res://scripts/damagePopup.tscn\")
+var damage_popup_resource : PackedScene = preload(\"res://characters/damagePopup.tscn\")
 
 var prev_hp = 0
 

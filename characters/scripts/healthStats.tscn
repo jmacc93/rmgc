@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://dqwhlkv5tkjbw"]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/ui-box-2.png" id="1_1ncad"]
+[ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/sprites/ui-box-2.png" id="1_1ncad"]
+
 
 [sub_resource type="GDScript" id="GDScript_ukxk7"]
 script/source = "extends Node
@@ -107,7 +108,6 @@ func make_stat_display_element():
       return
     var max_hp = Comp.get_prop(parent, 'max_hp')
     max_hp_label.text = str(max_hp)
-    prints(max_hp)
   )
   
   var hp_regen_label = element.get_node('regenHBox/hpRegenLabel')

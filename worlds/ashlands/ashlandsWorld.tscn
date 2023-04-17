@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dimhlp5ofgeu0"]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Texture2D" uid="uid://5g8lyh7kkut7" path="res://environment/backgrounds/ash-1.png" id="1_ccvxq"]
 [ext_resource type="PackedScene" uid="uid://61atbwqqn8h0" path="res://scripts/hideInGame.tscn" id="2_rp0lg"]
@@ -13,8 +13,8 @@
 [ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="12_ldtx5"]
 [ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://scripts/toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="14_cj5fe"]
 [ext_resource type="Texture2D" uid="uid://c1bqceo63l5kg" path="res://environment/loot_containers/sprites/chest.png" id="15_0l8tv"]
-[ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://gear/containers/destroyContainerOnEmpty.tscn" id="16_ssrdk"]
-[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://gear/containers/containerInventoryDisplay.tscn" id="18_lq42t"]
+[ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://environment/loot_containers/scripts/destroyContainerOnEmpty.tscn" id="16_ssrdk"]
+[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://environment/loot_containers/scripts/containerInventoryDisplay.tscn" id="18_lq42t"]
 [ext_resource type="PackedScene" uid="uid://dngr8bfbfujbe" path="res://environment/ground_spot_textures/lavaDecoration.tscn" id="19_dqysu"]
 
 [sub_resource type="GDScript" id="GDScript_16yok"]

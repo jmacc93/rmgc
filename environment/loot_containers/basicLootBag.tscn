@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Texture2D" uid="uid://2ik0r18qqcdc" path="res://environment/loot_containers/sprites/basic-loot-bag.png" id="1_dnb7g"]
-[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://gear/containers/containerInventoryDisplay.tscn" id="3_uwonn"]
+[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://environment/loot_containers/scripts/containerInventoryDisplay.tscn" id="3_uwonn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qvo24"]
 size = Vector2(6, 6)

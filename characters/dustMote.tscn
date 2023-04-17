@@ -1,15 +1,18 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=19 format=3 uid="uid://b2ngopv0ax3jp"]
 
 [ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://scripts/copyMetaToParent.tscn" id="1_l6m3r"]
-[ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
+[ext_resource type="PackedScene" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
 [ext_resource type="PackedScene" uid="uid://dcexsoo05r476" path="res://characters/scripts/walkAbility.tscn" id="3_6jhww"]
 [ext_resource type="PackedScene" uid="uid://q6hdeppfpvc1" path="res://characters/scripts/walkTowardTargetedObject.tscn" id="4_gyl1g"]
 [ext_resource type="PackedScene" uid="uid://bauq12gu6bg3d" path="res://characters/scripts/randomlyWalk.tscn" id="5_v7joo"]
 [ext_resource type="PackedScene" uid="uid://drxk8u12y05af" path="res://characters/scripts/targetNearestEnemy.tscn" id="6_5knmn"]
+[ext_resource type="PackedScene" uid="uid://dli120vxqfrx5" path="res://characters/scripts/setTargetPointToTargetObject.tscn" id="7_6fyqu"]
 [ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/scripts/dieOnZeroHp.tscn" id="7_ansut"]
-[ext_resource type="PackedScene" path="res://environment/loot_containers/basicLootBag.tscn" id="8_cn5hm"]
-[ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="9_sgsrd"]
+[ext_resource type="PackedScene" uid="uid://qmkeouvfdesc" path="res://characters/scripts/shootConstantlyAtTargetObject.tscn" id="8_oytdw"]
+[ext_resource type="PackedScene" uid="uid://cydlabqo6mon2" path="res://characters/scripts/makeBasicDamagePopups.tscn" id="9_dgqci"]
+[ext_resource type="PackedScene" uid="uid://bubcpxvk0saty" path="res://characters/scripts/dropLootOnDeath.tscn" id="10_3ybs3"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="10_knlm0"]
+[ext_resource type="PackedScene" uid="uid://bjpo2lo7pg3h5" path="res://characters/scripts/freeOnDeath.tscn" id="11_njaj4"]
 [ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://characters/sprites/ash-mote-1.png" id="11_xc3lv"]
 [ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://gear/weapons/produceShot.tscn" id="12_n6led"]
 [ext_resource type="Texture2D" uid="uid://b3fmws27p7ut3" path="res://shots/sprites/dustball.png" id="13_0q87s"]
@@ -19,156 +22,6 @@ size = Vector2(8, 8)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fsmxm"]
 size = Vector2(100, 100)
-
-[sub_resource type="GDScript" id="GDScript_p77ub"]
-script/source = "extends Node
-
-
-func _notification(what):
-  match what:
-    NOTIFICATION_PARENTED:
-      Comp.call_on_set_prop(get_parent(), 'target_object', mirror_target_object)
-    NOTIFICATION_UNPARENTED:
-      Comp.stop_calling_on_set_prop(get_parent(), 'target_object', mirror_target_object)
-
-
-#this is for performance purposes: we use target_object every frame in _process
-var mirrored_target_object
-func mirror_target_object():
-  mirrored_target_object = Comp.get_prop(get_parent(), 'target_object')
-
-
-func _process(_delta):
-  if (mirrored_target_object != null) and ('global_position' in mirrored_target_object):
-    var target_point = mirrored_target_object.global_position
-    Comp.set_prop(get_parent(), 'target_point', target_point)
-    var debug_point = get_node_or_null('DebugPoint')
-    if debug_point != null:
-      debug_point.global_position = target_point
-
-"
-
-[sub_resource type="GDScript" id="GDScript_gsacq"]
-script/source = "extends Node
-
-@export var disabled = false
-
-@export var msecs_between_attacks = 200
-var next_attack_time = 0
-
-
-func find_main_attack_ability_and_attack():
-  var parent = get_parent()
-  var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
-  for attack_node in main_attack_node_list:
-    if Comp.run_method(attack_node, 'attack', [parent]):
-      return
-
-
-func _process(_delta):
-  if disabled:
-    return
-  
-  var current_time = Time.get_ticks_msec()
-  if next_attack_time > current_time:
-    return
-  
-  #shoot if character has target
-  var parent = get_parent()
-  var target_object = Comp.get_prop(parent, 'target_object')
-  if (target_object == null) or (not is_instance_valid(target_object)):
-    return
-  
-  next_attack_time = current_time + msecs_between_attacks
-  find_main_attack_ability_and_attack()
-  
-"
-
-[sub_resource type="GDScript" id="GDScript_67g1a"]
-script/source = "extends Node2D
-
-var composite
-
-var damage_popup_resource : PackedScene = preload(\"res://scripts/damagePopup.tscn\")
-
-var prev_hp = 0
-
-func _enter_tree():
-  var parent = get_parent()
-  Comp.call_on_set_prop(parent, 'hp', func():
-    var hp = Comp.get_prop(parent, 'hp')
-    var change = hp - prev_hp
-    if change == 0:
-      return
-    var damage_popup = damage_popup_resource.instantiate()
-    damage_popup.set_damage(change)
-    call_deferred('add_child', damage_popup)
-    prev_hp = hp
-  )
-
-
-func _ready():
-  prev_hp = Comp.get_prop(get_parent(), 'hp')
-"
-
-[sub_resource type="GDScript" id="GDScript_m1ony"]
-script/source = "extends Node
-
-@export var bag_scene: PackedScene
-
-@export var guaranteed_loot_scenes: Array
-@export var random_loot_scenes: Array
-@export var random_drop_count = 0
-
-@export var drop_chance = 0.1
-
-func _enter_tree():
-  var parent = get_parent()
-  var game_world = Lib.get_parent_in_group(self, 'game_world')
-  var global_position_parent = Lib.get_parent_with_property(self, 'global_position')
-  Watch.call_on_notify(parent, 'die', func():
-    if randf() > drop_chance:
-      return
-    var bag_instance = bag_scene.instantiate()
-    game_world.add_child(bag_instance)
-    bag_instance.global_position = global_position_parent.global_position
-    
-    #add guaranteed drops
-    for loot_scene_obj in guaranteed_loot_scenes:
-      if not loot_scene_obj.has_method('instantiate'):
-        continue
-      var loot_instance = loot_scene_obj.instantiate()
-      bag_instance.add_child(loot_instance)
-    
-    #add random drops
-    for i in range(0, random_drop_count):
-      var random_loot_scene_obj = random_loot_scenes.pick_random()
-      if not random_loot_scene_obj.has_method('instantiate'):
-        continue
-      var loot_instance = random_loot_scene_obj.instantiate()
-      bag_instance.add_child(loot_instance)
-  )
-
-
-
-
-
-
-
-
-
-
-"
-
-[sub_resource type="GDScript" id="GDScript_u32rb"]
-script/source = "extends Node
-
-func _enter_tree():
-  var parent = get_parent()
-  Watch.call_on_notify(parent, 'die', func():
-    parent.queue_free()
-  )
-"
 
 [node name="genericEnemy" type="CharacterBody2D"]
 collision_layer = 2
@@ -196,25 +49,18 @@ metadata/faction_array = ["enemies"]
 [node name="CollisionShape2D" type="CollisionShape2D" parent="targetNearestEnemy"]
 shape = SubResource("RectangleShape2D_fsmxm")
 
-[node name="setTargetPointToTargetObject" type="Node" parent="."]
-script = SubResource("GDScript_p77ub")
+[node name="setTargetPointToTargetObject" parent="." instance=ExtResource("7_6fyqu")]
 
-[node name="shootConstantlyAtTargetObject" type="Node" parent="."]
-script = SubResource("GDScript_gsacq")
+[node name="shootConstantlyAtTargetObject" parent="." instance=ExtResource("8_oytdw")]
 
-[node name="makeBasicDamagePopups" type="Node2D" parent="."]
+[node name="makeBasicDamagePopups" parent="." instance=ExtResource("9_dgqci")]
 position = Vector2(0, -8)
-script = SubResource("GDScript_67g1a")
 
 [node name="dieOnZeroHp" parent="." instance=ExtResource("7_ansut")]
 
-[node name="dropLootOnDie" type="Node" parent="."]
-script = SubResource("GDScript_m1ony")
-bag_scene = ExtResource("8_cn5hm")
-guaranteed_loot_scenes = [ExtResource("9_sgsrd")]
+[node name="dropLootOnDeath" parent="." instance=ExtResource("10_3ybs3")]
 
-[node name="freeOnDie" type="Node" parent="."]
-script = SubResource("GDScript_u32rb")
+[node name="freeOnDeath" parent="." instance=ExtResource("11_njaj4")]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1

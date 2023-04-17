@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/makeGearUiCell.tscn" id="1_ila11"]
+[ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/scripts/makeGearUiCell.tscn" id="1_ila11"]
 [ext_resource type="Texture2D" uid="uid://c38t710t7iqak" path="res://gear/usables/sprites/pain-flask.png" id="2_t0v81"]
 
 

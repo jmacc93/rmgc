@@ -1,11 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dngr8bfbfujbe"]
+[gd_scene load_steps=7 format=3 uid="uid://bfc8uclt1cu2h"]
 
 [ext_resource type="Texture2D" uid="uid://wfnaaksk22j1" path="res://environment/ground_spot_textures/sprites/lava/lava.png" id="1_sy5va"]
-[ext_resource type="PackedScene" uid="uid://denlwjbxajghs" path="res://environment/scripts/alphaMaskParentWithShaderAndMaskFromFile.tscn" id="2_ovl1w"]
+[ext_resource type="PackedScene" uid="uid://denlwjbxajghs" path="res://scripts/alphaMaskParentWithShaderAndMaskFromFile.tscn" id="2_ovl1w"]
 [ext_resource type="PackedScene" uid="uid://d5bgsg02xi7f" path="res://scripts/rotateParentOnceByN90Degs.tscn" id="3_2y185"]
 [ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="4_8e6ev"]
 [ext_resource type="Texture2D" uid="uid://cce4gd011c55g" path="res://environment/ground_spot_textures/sprites/ash/ash1.png" id="5_7jpvs"]
-[ext_resource type="PackedScene" uid="uid://cyifxvgub25jr" path="res://environment/scripts/randomMaskedGroundDecoration.tscn" id="6_t6kps"]
+[ext_resource type="PackedScene" uid="uid://cm4panbqhuipf" path="res://environment/ground_spot_textures/scripts/randomMaskedGroundDecoration.tscn" id="6_t6kps"]
 
 [node name="lavaDecoration" type="Sprite2D"]
 z_index = -10
