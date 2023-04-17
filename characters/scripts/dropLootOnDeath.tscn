@@ -1,8 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://bubcpxvk0saty"]
 
-[ext_resource type="PackedScene" uid="uid://dt0l2qsjnfbnb" path="res://gear/containers/basicLootBag.tscn" id="1_wydod"]
-[ext_resource type="PackedScene" uid="uid://c1r4djsndgyme" path="res://gear/armors/basicArmor1.tscn" id="2_hyeb0"]
-
+[ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="2_hyeb0"]
 
 [sub_resource type="GDScript" id="GDScript_m1ony"]
 script/source = "extends Node
@@ -55,5 +53,4 @@ func _enter_tree():
 
 [node name="dropLootOnDeath" type="Node"]
 script = SubResource("GDScript_m1ony")
-bag_scene = ExtResource("1_wydod")
 guaranteed_loot_scenes = [ExtResource("2_hyeb0")]

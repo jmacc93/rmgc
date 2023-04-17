@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://1skc88idltxg"]
 
 [ext_resource type="PackedScene" uid="uid://con7anbdmqj31" path="res://scripts/gameUniverseSubViewport.tscn" id="1_vn6w6"]
-[ext_resource type="PackedScene" uid="uid://hkm27psr0pvq" path="res://worlds/testingWorld.tscn" id="2_d4ch1"]
+[ext_resource type="PackedScene" uid="uid://iwy6pijnylb1" path="res://worlds/testingWorld.tscn" id="2_d4ch1"]
 
 [sub_resource type="GDScript" id="GDScript_be2qu"]
 script/source = "extends Control

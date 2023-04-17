@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://c3g1asnhn1qqp" path="res://environment/backgrounds/grass-2.png" id="1_61dlm"]
 [ext_resource type="Texture2D" uid="uid://cgsqsyge1qyiu" path="res://worlds/homeWorld/home_world_center.png" id="2_ct2ub"]
-[ext_resource type="PackedScene" path="res://environment/smallRock1.tscn" id="3_ckn3p"]
+[ext_resource type="PackedScene" uid="uid://d3gksmssny2u7" path="res://environment/obstacles/smallRock1.tscn" id="3_ckn3p"]
 [ext_resource type="Texture2D" uid="uid://wmc3fefjdvni" path="res://worlds/homeWorld/big-tile.png" id="4_va0vf"]
 [ext_resource type="Texture2D" uid="uid://tr5ianfyrwno" path="res://worlds/homeWorld/tiled_walkway.png" id="5_tvdio"]
 [ext_resource type="PackedScene" path="res://environment/worldPortal.tscn" id="6_l15ug"]

@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://cai47vimxom8t"]
+
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="2_0h0ug"]
+[ext_resource type="Texture2D" uid="uid://d4kbe6xikkoo8" path="res://environment/obstacles/sprites/small-bush-1.png" id="2_8lvlx"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(8, 8)
+
+[node name="smallRock1" type="StaticBody2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+material = ExtResource("2_0h0ug")
+texture = ExtResource("2_8lvlx")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
+shape = SubResource("1")

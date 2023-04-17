@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://cwspnccfll4l6"]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://scripts/copyMetaToParent.tscn" id="1_l6m3r"]
 [ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bauq12gu6bg3d" path="res://characters/scripts/randomlyWalk.tscn" id="5_v7joo"]
 [ext_resource type="PackedScene" uid="uid://drxk8u12y05af" path="res://characters/scripts/targetNearestEnemy.tscn" id="6_5knmn"]
 [ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/scripts/dieOnZeroHp.tscn" id="7_ansut"]
-[ext_resource type="PackedScene" path="res://gear/containers/basicLootBag.tscn" id="8_cn5hm"]
+[ext_resource type="PackedScene" path="res://environment/loot_containers/basicLootBag.tscn" id="8_cn5hm"]
 [ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="9_sgsrd"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="10_knlm0"]
 [ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://characters/sprites/ash-mote-1.png" id="11_xc3lv"]

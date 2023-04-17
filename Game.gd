@@ -2,7 +2,7 @@ extends Node
 
 
 
-var default_loot_bag: PackedScene = preload("res://gear/containers/basicLootBag.tscn")
+var default_loot_bag: PackedScene = preload("res://environment/loot_containers/basicLootBag.tscn")
 
 
 func get_game_world(node: Node):

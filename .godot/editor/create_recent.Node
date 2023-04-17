@@ -1,3 +1,4 @@
+ResourcePreloader
 Sprite2D
 CollisionShape2D
 StaticBody2D
@@ -6,7 +7,6 @@ Node
 MarginContainer
 HBoxContainer
 NinePatchRect
-ResourcePreloader
 Control
 Area2D
 Label

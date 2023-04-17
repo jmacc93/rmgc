@@ -12,7 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://gear/weapons/produceShot.tscn" id="7_pr37c"]
 [ext_resource type="PackedScene" uid="uid://qmkeouvfdesc" path="res://characters/scripts/shootConstantlyAtTargetObject.tscn" id="7_yhxeq"]
 [ext_resource type="PackedScene" uid="uid://cydlabqo6mon2" path="res://characters/scripts/makeBasicDamagePopups.tscn" id="8_84yo7"]
-[ext_resource type="PackedScene" path="res://characters/scripts/dropLootOnDeath.tscn" id="10_158pc"]
+[ext_resource type="PackedScene" uid="uid://bubcpxvk0saty" path="res://characters/scripts/dropLootOnDeath.tscn" id="10_158pc"]
 [ext_resource type="PackedScene" uid="uid://bjpo2lo7pg3h5" path="res://characters/scripts/freeOnDeath.tscn" id="11_ynd7c"]
 [ext_resource type="Texture2D" uid="uid://b3fmws27p7ut3" path="res://shots/sprites/dustball.png" id="15_bg2ub"]
 [ext_resource type="Texture2D" uid="uid://xy6boealtiba" path="res://shots/sprites/spark1.png" id="16_uhtsl"]
