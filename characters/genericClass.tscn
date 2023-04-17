@@ -64,6 +64,9 @@ shape = SubResource("1")
 script = SubResource("GDScript_cdjwg")
 
 [node name="callFirstTouchingColliderInteractMethodOnInteract" parent="." instance=ExtResource("3_yypxc")]
+editor_description = "When you press 'e', or whatever the 'interact' action is set to, this runs the `interact` method on the first touching CollisionBody2D's (ie: Area2D's, CharacterBody2D's, etc)
+
+Requires a CollisionShape2D as a child to function"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="callFirstTouchingColliderInteractMethodOnInteract"]
 shape = SubResource("RectangleShape2D_ngsae")

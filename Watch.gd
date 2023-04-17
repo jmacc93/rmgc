@@ -1,72 +1,27 @@
 extends Node
 
-
-#var ui_notifier: Node = Node.new()
-
-
-#func call_on_set_meta(obj: Object, key: String, fn: Callable):
-#  var callable_array
-#  if not obj.has_meta('watch_call_on_set_meta'):
-#    obj.set_meta('watch_call_on_set_meta', {})
-#    callable_array = obj.get_meta('watch_call_on_set_meta')
-#  else:
-#    callable_array = obj.get_meta('watch_call_on_set_meta')
-#  add_callable_to_dict(callable_array, key, fn)
-  
-#func stop_calling_on_set_meta(obj: Object, key: String, fn: Callable):
-#  if not obj.has_meta('watch_call_on_set_meta'):
-#    return
-#  var callable_array = obj.get_meta('watch_call_on_set_meta')
-#  remove_callable_from_dict(callable_array, key, fn)
-  
-#func set_object_meta(obj: Object, key: String, value: Variant):
-#  obj.set_meta(key, value)
-#  if not obj.has_meta('watch_call_on_set_meta'):
-#    return
-#  var callable_array = obj.get_meta('watch_call_on_set_meta')
-#  call_callable(callable_array, key, [])
+#This library is primarily for the function `notify` below, and is probably deprecateable 
 
 
-
-func call_on_remove_meta(obj: Object, key: String, fn: Callable):
-  var callable_array
-  if not obj.has_meta('watch_call_on_remove_meta'):
-    obj.set_meta('watch_call_on_remove_meta', {})
-    callable_array = obj.get_meta('watch_call_on_remove_meta')
-  else:
-    callable_array = obj.get_meta('watch_call_on_remove_meta')
-  Lib.add_callable_to_dict(callable_array, key, fn)
-  
-func stop_calling_on_remove_meta(obj: Object, key: String, fn: Callable):
-  if not obj.has_meta('watch_call_on_remove_meta'):
-    return
-  var callable_array = obj.get_meta('watch_call_on_remove_meta')
-  Lib.remove_callable_from_dict(callable_array, key, fn)
-
-func remove_object_meta(obj: Object, key: String):
-  obj.remove_meta(key)
-  if not obj.has_meta('watch_call_on_remove_meta'):
-    return
-  var callable_array = obj.get_meta('watch_call_on_remove_meta')
-  Lib.call_callable(callable_array, key, [])
-
-
-
+#Call the given function fn when `notify(obj, notename, [...])` is called
+#This is analogous to connecting a function with a signal
+#eg: Watch.call_on_notify(get_parent(), 'die', explode_on_death)
 func call_on_notify(obj: Object, notename: String, fn: Callable):
-  var callable_array
   if not obj.has_meta('watch_call_on_notify'):
-    callable_array = {}
-    obj.set_meta('watch_call_on_notify', callable_array)
-  else:
-    callable_array = obj.get_meta('watch_call_on_notify')
+    #Create the `watch_call_on_notify` metadata property since it doesnt exist
+    obj.set_meta('watch_call_on_notify', {})
+  var callable_array = obj.get_meta('watch_call_on_notify')
   Lib.add_callable_to_dict(callable_array, notename, fn)
-  
+
+#Stop future calls to given fn when `notify` is called
 func stop_calling_on_notify(obj: Object, notename: String, fn: Callable):
   if not obj.has_meta('watch_call_on_notify'):
     return
   var callable_array = obj.get_meta('watch_call_on_notify')
   Lib.remove_callable_from_dict(callable_array, notename, fn)
   
+#Call all `call_on_notify`-registered functions registered with the given `notename`
+#eg: if hp <= 0: Watch.notify(get_parent(), 'die', [])
 func notify(obj: Object, notename: String, args: Array = []):
   if not obj.has_meta('watch_call_on_notify'):
     return
@@ -74,6 +29,8 @@ func notify(obj: Object, notename: String, args: Array = []):
   Lib.call_callable(callable_array, notename, args)
 
 
+#The remaining functions aren't used, but the *could* be!
+#Registering signals to emit when adding / removing child nodes (ie: children of composite nodes) could be useful
 
 func call_on_child_added_to_group(obj: Object, groupname: String, fn: Callable):
   var callable_array

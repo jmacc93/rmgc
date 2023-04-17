@@ -18,6 +18,7 @@ func check_and_die():
   var parent = get_parent()
   var hp = Comp.get_prop(parent, 'hp')
   if hp <= 0:
+    Watch.notify(parent, 'die', [])
     if Comp.run_method(parent, 'die', []):
       return
     else:
@@ -25,4 +26,5 @@ func check_and_die():
 "
 
 [node name="dieOnZeroHp" type="Node"]
+editor_description = "Calls the 'die' method on the parent node when the parent nodes 'hp' property is zero or negative. If no 'die' method is found, then it `queue_free`s the parent"
 script = SubResource("GDScript_qwhlc")

@@ -22,6 +22,7 @@ func _input(event: InputEvent):
 "
 
 [node name="callFirstTouchingColliderInteractMethodOnInteract" type="Area2D"]
+editor_description = "When you press 'e', or whatever the 'interact' action is set to, this runs the `interact` method on the first touching CollisionBody2D's (ie: Area2D's, CharacterBody2D's, etc)"
 collision_layer = 2
 collision_mask = 3855
 script = SubResource("GDScript_2u4m4")

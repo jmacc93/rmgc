@@ -49,3 +49,5 @@ res://characters/scripts/healthStats.tscn
 res://Lib.gd
 res://overall_architecture.md
 res://environment/loot_containers/scripts/toggleLootDisplayVisibilityOnClick.tscn
+res://characters/scripts/callFirstTouchingColliderInteractMethodOnInteract.tscn
+res://characters/scripts/dieOnZeroHp.tscn

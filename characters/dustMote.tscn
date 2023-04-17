@@ -1,7 +1,7 @@
 [gd_scene load_steps=19 format=3 uid="uid://b2ngopv0ax3jp"]
 
 [ext_resource type="PackedScene" uid="uid://da7i3slogkmdi" path="res://scripts/copyMetaToParent.tscn" id="1_l6m3r"]
-[ext_resource type="PackedScene" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
+[ext_resource type="PackedScene" uid="uid://cxxukg5ewaud1" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
 [ext_resource type="PackedScene" uid="uid://dcexsoo05r476" path="res://characters/scripts/walkAbility.tscn" id="3_6jhww"]
 [ext_resource type="PackedScene" uid="uid://q6hdeppfpvc1" path="res://characters/scripts/walkTowardTargetedObject.tscn" id="4_gyl1g"]
 [ext_resource type="PackedScene" uid="uid://bauq12gu6bg3d" path="res://characters/scripts/randomlyWalk.tscn" id="5_v7joo"]
@@ -57,8 +57,17 @@ shape = SubResource("RectangleShape2D_fsmxm")
 position = Vector2(0, -8)
 
 [node name="dieOnZeroHp" parent="." instance=ExtResource("7_ansut")]
+editor_description = "Sends the 'die' notification to the parent and calls the 'die' method on the parent node when the parent nodes 'hp' property is zero or negative. If no 'die' method is found, then it `queue_free`s the parent
+
+The `die` notification is meant for effects when the composite parent dies, the `die` method is meant to destroy the object"
 
 [node name="dropLootOnDeath" parent="." instance=ExtResource("10_3ybs3")]
+editor_description = "Drops a loot bag (an instance of the given `bag_scene`) with a number of instanced `gear` nodes in it
+
+The `guaranteed_loot_scenes` is a list of `PackedScene` resources from `.tscn` files, and are all always included
+The `random_loot_scenes` is the same as the guaranteed but randomly selected from. `random_drop_count` is an integer and is the number of items selected from `random_loot_scenes` to place in the bag
+
+`drop_chance` is the probability that the bag will be dropped"
 
 [node name="freeOnDeath" parent="." instance=ExtResource("11_njaj4")]
 
