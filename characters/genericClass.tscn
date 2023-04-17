@@ -12,8 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://cydlabqo6mon2" path="res://characters/scripts/makeBasicDamagePopups.tscn" id="11_3m5t7"]
 [ext_resource type="PackedScene" uid="uid://nddvfrwny2x2" path="res://characters/scripts/setTargetToMouseLocation.tscn" id="12_lmr86"]
 [ext_resource type="PackedScene" uid="uid://b8oc4qapcpigw" path="res://characters/scripts/mainAttackOnAction.tscn" id="13_4wfma"]
+[ext_resource type="PackedScene" uid="uid://dxgjnenr42pay" path="res://gear/weapons/basicSword.tscn" id="14_j5uwh"]
 [ext_resource type="PackedScene" path="res://gear/usables/hpFlaskGear.tscn" id="14_xkami"]
-[ext_resource type="PackedScene" uid="uid://bmfs0w4j8k22g" path="res://gear/weapons/basicShotProducer.tscn" id="15_1gvf0"]
 [ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="16_rm1a6"]
 [ext_resource type="PackedScene" uid="uid://b0kbpv2w4ustw" path="res://ui/playerUi.tscn" id="17_lq81o"]
 
@@ -91,7 +91,7 @@ position = Vector2(0.40524, -9.375)
 
 [node name="hpFlaskGear" parent="." instance=ExtResource("14_xkami")]
 
-[node name="basicShotProducer" parent="." instance=ExtResource("15_1gvf0")]
+[node name="basicSword" parent="." instance=ExtResource("14_j5uwh")]
 
 [node name="basicArmor" parent="." instance=ExtResource("16_rm1a6")]
 

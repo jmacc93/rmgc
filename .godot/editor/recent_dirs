@@ -1,7 +1,7 @@
+res://gear/weapons
 res://gear/armors
 res://gear/usables
 res://abilities
-res://items
 res://
 res://characters
 res://ui
@@ -9,5 +9,4 @@ res://environment
 res://environment/generators
 res://masks/noise_blob_masks_x64/circle_rough
 C:/Users/user/Desktop/misc/rotmg-clone
-res://saved
 C:/Users/user/Downloads

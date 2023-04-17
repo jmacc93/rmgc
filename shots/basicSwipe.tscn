@@ -1,23 +1,25 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3 uid="uid://di823n8tlffqx"]
 
 [ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="2_0r0nv"]
-[ext_resource type="PackedScene" uid="uid://bpguy8ol74pes" path="res://shots/damageCollidingBodyOnCollision.tscn" id="2_jpbxj"]
-[ext_resource type="PackedScene" uid="uid://bsewvrl0lv0rl" path="res://shots/destroySelfOnCollision.tscn" id="3_ssue5"]
-[ext_resource type="PackedScene" uid="uid://dkwrrt4jbugnu" path="res://shots/destroySelfOnTimeout.tscn" id="4_w15f4"]
-[ext_resource type="PackedScene" uid="uid://cytk41j43tol1" path="res://shots/destroySelfOnWallCollision.tscn" id="5_681rg"]
-[ext_resource type="PackedScene" uid="uid://c3ft2rqe8ivkd" path="res://shots/moveAndSlideWithVelocity.tscn" id="6_83c6r"]
-[ext_resource type="PackedScene" uid="uid://bijx5noked2or" path="res://shots/castTowardMethod.tscn" id="7_duo3o"]
-[ext_resource type="PackedScene" uid="uid://dgfcrjlit1rnt" path="res://shots/parentObjectCollisionException.tscn" id="8_ky30p"]
-
+[ext_resource type="PackedScene" uid="uid://bpguy8ol74pes" path="res://shots/scripts/damageCollidingBodyOnCollision.tscn" id="2_jpbxj"]
+[ext_resource type="PackedScene" uid="uid://bsewvrl0lv0rl" path="res://shots/scripts/destroySelfOnCollision.tscn" id="3_ssue5"]
+[ext_resource type="PackedScene" uid="uid://dkwrrt4jbugnu" path="res://shots/scripts/destroySelfOnTimeout.tscn" id="4_w15f4"]
+[ext_resource type="PackedScene" uid="uid://cytk41j43tol1" path="res://shots/scripts/destroySelfOnWallCollision.tscn" id="5_681rg"]
+[ext_resource type="PackedScene" uid="uid://c3ft2rqe8ivkd" path="res://shots/scripts/moveAndSlideWithVelocity.tscn" id="6_83c6r"]
+[ext_resource type="PackedScene" uid="uid://bijx5noked2or" path="res://shots/scripts/castTowardMethod.tscn" id="7_duo3o"]
+[ext_resource type="PackedScene" uid="uid://dgfcrjlit1rnt" path="res://shots/scripts/parentObjectCollisionException.tscn" id="8_ky30p"]
+[ext_resource type="PackedScene" uid="uid://bxrs5t27l8n5a" path="res://shots/scripts/addAlignmentCollisionExceptionsOnTouch.tscn" id="9_n0p6v"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(5, 5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tn82p"]
+size = Vector2(40, 40)
 
 [node name="basicSwipe" type="CharacterBody2D" groups=["shot"]]
 editor_description = "define meta `dmg` to set damage"
 collision_layer = 4
 collision_mask = 3
-metadata/dmg = 10.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("1")
@@ -39,3 +41,8 @@ texture = ExtResource("2_0r0nv")
 [node name="castTowardMethod" parent="." instance=ExtResource("7_duo3o")]
 
 [node name="parentObjectCollisionException" parent="." instance=ExtResource("8_ky30p")]
+
+[node name="addAlignmentCollisionExceptionsOnTouch" parent="." instance=ExtResource("9_n0p6v")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="addAlignmentCollisionExceptionsOnTouch"]
+shape = SubResource("RectangleShape2D_tn82p")

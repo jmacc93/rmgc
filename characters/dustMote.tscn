@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://v7i7qdtvsed1"]
+[gd_scene load_steps=21 format=3 uid="uid://cwspnccfll4l6"]
 
 [ext_resource type="PackedScene" uid="uid://gc6pi05kuktp" path="res://scripts/copyMetaToParent.tscn" id="1_l6m3r"]
 [ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
@@ -11,7 +11,8 @@
 [ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="9_sgsrd"]
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="10_knlm0"]
 [ext_resource type="Texture2D" uid="uid://b52jquxvluu7v" path="res://characters/sprites/ash-mote-1.png" id="11_xc3lv"]
-[ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://shots/produceShot.tscn" id="12_n6led"]
+[ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://gear/weapons/produceShot.tscn" id="12_n6led"]
+[ext_resource type="Texture2D" uid="uid://b3fmws27p7ut3" path="res://shots/sprites/dustball.png" id="13_0q87s"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lhxg7"]
 size = Vector2(8, 8)
@@ -60,9 +61,7 @@ func find_main_attack_ability_and_attack():
   var parent = get_parent()
   var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
   for attack_node in main_attack_node_list:
-    if attack_node.has_method('attack'):
-      attack_node.attack(parent)
-    elif Comp.run_method(parent, 'attack', [parent]):
+    if Comp.run_method(attack_node, 'attack', [parent]):
       return
 
 
@@ -223,5 +222,10 @@ material = ExtResource("10_knlm0")
 texture = ExtResource("11_xc3lv")
 region_rect = Rect2(0, 0, 10, 10)
 
-[node name="produceShotAbility" parent="." instance=ExtResource("12_n6led")]
-shot_file = "res://shots/sprites/dustball.png"
+[node name="produceShotAbility" parent="." groups=["main_attack"] instance=ExtResource("12_n6led")]
+cast_speed = 40.0
+damage = 5.0
+shot_count = 2
+multi_shot_type = "Cloud"
+cloud_multishot_max_speedup_ratio = 0.5
+shot_file = ExtResource("13_0q87s")

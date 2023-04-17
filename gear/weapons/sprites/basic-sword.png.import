@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://nprr321ewwia"
-path="res://.godot/imported/basic-armor-1.png-d0792cc16060e8a1e0158af5d63f36cc.ctex"
+uid="uid://hlpk4n7sl6bv"
+path="res://.godot/imported/basic-sword.png-438c8350059c05d9a5f3c91e5bd8354d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://gear/armors/basic-armor-1.png"
-dest_files=["res://.godot/imported/basic-armor-1.png-d0792cc16060e8a1e0158af5d63f36cc.ctex"]
+source_file="res://gear/weapons/sprites/basic-sword.png"
+dest_files=["res://.godot/imported/basic-sword.png-438c8350059c05d9a5f3c91e5bd8354d.ctex"]
 
 [params]
 

@@ -1,12 +1,12 @@
 [gd_scene load_steps=3 format=3 uid="uid://d0l3po3tbdq1j"]
 
-[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="2_u8n5e"]
+[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="1_3x2uy"]
 
 [sub_resource type="GDScript" id="GDScript_jbjgw"]
 script/source = "extends Node
 
 @export var cast_speed = 5.0
-@export var damage_mod = 1.0
+@export var damage = 1.0
 
 @export var max_attack_rate = 20
 @onready var attack_delay = int(float(10000) / float(max_attack_rate))
@@ -21,9 +21,11 @@ var next_attack_time = 0
 
 @export var individual_shot_angle_spread = 0.0
 
+@export var shot_instance_properties: Dictionary = {}
+
 
 var generic_shot_scene: PackedScene = preload(\"res://shots/genericShot.tscn\")
-@export var shot_file: String
+@export var shot_file: Resource
 var shot_file_scene_cache = [null, ''] #[loaded scene, cached file name]
 #shot_file as a .tscn file: use an instance of that scene
 #shot_file as a .png, etc file: use a generic shot and replae texture
@@ -41,34 +43,15 @@ func _notification(what):
 
 
 func make_shot_instance() -> Node:
-  #instance a scene if given a .tscn as the shot_file
-  #, or instance genericShot and set its texture if given a .png as the shot_file
-  if shot_file.ends_with('.tscn'):
-    var ret_scene
-    #do we have the scene cached?
-    if shot_file_scene_cache[1] == shot_file:
-      #use previous load so we don't need to load(..) each time
-      if shot_file_scene_cache[0] == null:
-        push_error('Bad shot_file given')
-        return null
-      ret_scene = shot_file_scene_cache[0].instatiate()
-    else: #load and set cache
-      var file_resource = load(shot_file)
-      shot_file_scene_cache = [file_resource, shot_file]
-      if file_resource == null:
-        push_error('Bad shot_file given')
-        return null
-      if not (file_resource is PackedScene):
-        push_error('Given shot_file isnt a scene file')
-        return null
-      ret_scene = file_resource.instantiate()
+  if shot_file is PackedScene:
+    var ret_scene = shot_file.instantiate()
     return ret_scene
-  else: #shot_file is .png
+  elif shot_file is Texture: #shot_file is .png
     var ret_scene = generic_shot_scene.instantiate()
-    if shot_file.ends_with('.png'):
-      var file_texture2d = load(shot_file)
-      ret_scene.get_node('Sprite2D').texture = file_texture2d
+    ret_scene.get_node('Sprite2D').texture = shot_file
     return ret_scene
+  else:
+    return
 
 
 func shoot_one(user_object: Object, origin: Vector2, dir: Vector2):
@@ -83,8 +66,7 @@ func shoot_one(user_object: Object, origin: Vector2, dir: Vector2):
   #set shot parent object (the shot's creator)
   Comp.set_prop(shot, 'source_object', user_object)
   
-  var dmg = Comp.get_prop(shot, 'dmg', 1.0)
-  Comp.set_prop(shot, 'dmg', dmg * damage_mod)
+  Comp.set_prop(shot, 'dmg', damage)
   
   var cast_vec = dir * cast_speed
   
@@ -188,9 +170,8 @@ func handle_left_clicked(event: InputEventMouse):
 
 "
 
-[node name="produceShot" type="Node" groups=["ability", "gear", "main_attack"]]
+[node name="produceShot" type="Node" groups=["gear"]]
 script = SubResource("GDScript_jbjgw")
-cast_speed = 80.0
 max_attack_rate = 40
-metadata/ui_cell_display = ExtResource("2_u8n5e")
+metadata/ui_cell_display = ExtResource("1_3x2uy")
 metadata/ui_cell_left_click = "equip"

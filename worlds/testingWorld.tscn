@@ -8,15 +8,15 @@
 [ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://gear/containers/destroyContainerOnEmpty.tscn" id="11_rddws"]
 [ext_resource type="PackedScene" path="res://gear/usables/flaskOfPain.tscn" id="12_m0vpe"]
 [ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://scripts/toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="12_o62jj"]
-[ext_resource type="PackedScene" uid="uid://beumcjhqn6r4t" path="res://gear/armors/dev-armor.tscn" id="13_7oxlg"]
+[ext_resource type="PackedScene" path="res://gear/armors/dev-armor.tscn" id="13_7oxlg"]
 [ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="13_42vnk"]
-[ext_resource type="PackedScene" uid="uid://cyrvrff54r2mx" path="res://gear/weapons/crew_gun.tscn" id="13_e51y4"]
+[ext_resource type="PackedScene" uid="uid://dn0mah7vftwme" path="res://gear/weapons/crew_gun.tscn" id="13_e51y4"]
 [ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://gear/containers/containerInventoryDisplay.tscn" id="13_j0oet"]
 [ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="16_knh61"]
 [ext_resource type="PackedScene" path="res://environment/smallRock1.tscn" id="17_n810x"]
 [ext_resource type="PackedScene" path="res://environment/smallBush.tscn" id="18_2or23"]
 [ext_resource type="PackedScene" path="res://environment/worldPortal.tscn" id="18_d1gl8"]
-[ext_resource type="PackedScene" uid="uid://v7i7qdtvsed1" path="res://characters/dustMote.tscn" id="19_rmfwx"]
+[ext_resource type="PackedScene" uid="uid://cwspnccfll4l6" path="res://characters/dustMote.tscn" id="19_rmfwx"]
 [ext_resource type="PackedScene" path="res://gear/containers/basicLootBag.tscn" id="20_0vsro"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jx8xe"]
@@ -83,7 +83,11 @@ size = Vector2(61.1742, 63.6997)
 position = Vector2(232.4, 183.569)
 
 [node name="produceShotAbility" parent="genericEnemy" index="14"]
+shot_count = 1
+multi_shot_type = "Fan"
+cloud_multishot_max_speedup_ratio = 0.1
 individual_shot_angle_spread = 22.5
+shot_file = null
 
 [node name="Label" type="Label" parent="."]
 z_index = -100
@@ -102,7 +106,6 @@ collision_mask = 7
 
 [node name="produceShotAbility" parent="fanShootingEnemy" index="14"]
 shot_count = 3
-multi_shot_type = "Cloud"
 cloud_multishot_max_speedup_ratio = 0.8
 
 [node name="Label2" type="Label" parent="."]

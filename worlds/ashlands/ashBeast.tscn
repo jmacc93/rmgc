@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dgyavsk82u48e"]
+[gd_scene load_steps=19 format=3 uid="uid://dwq233a6qwglf"]
 
 [ext_resource type="PackedScene" uid="uid://dqwhlkv5tkjbw" path="res://characters/scripts/healthStats.tscn" id="1_kiy7q"]
 [ext_resource type="PackedScene" uid="uid://b4w5idye15i38" path="res://characters/scripts/dieOnZeroHp.tscn" id="2_e6x1d"]
@@ -9,11 +9,13 @@
 [ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="5_jc044"]
 [ext_resource type="Texture2D" uid="uid://j306k5w1vmoh" path="res://worlds/ashlands/ashbeast.png" id="6_acbhi"]
 [ext_resource type="PackedScene" uid="uid://dli120vxqfrx5" path="res://characters/scripts/setTargetPointToTargetObject.tscn" id="6_gmkqx"]
-[ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://shots/produceShot.tscn" id="7_pr37c"]
+[ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://gear/weapons/produceShot.tscn" id="7_pr37c"]
 [ext_resource type="PackedScene" uid="uid://qmkeouvfdesc" path="res://characters/scripts/shootConstantlyAtTargetObject.tscn" id="7_yhxeq"]
 [ext_resource type="PackedScene" uid="uid://cydlabqo6mon2" path="res://characters/scripts/makeBasicDamagePopups.tscn" id="8_84yo7"]
 [ext_resource type="PackedScene" path="res://characters/scripts/dropLootOnDeath.tscn" id="10_158pc"]
 [ext_resource type="PackedScene" uid="uid://bjpo2lo7pg3h5" path="res://characters/scripts/freeOnDeath.tscn" id="11_ynd7c"]
+[ext_resource type="Texture2D" uid="uid://b3fmws27p7ut3" path="res://shots/sprites/dustball.png" id="15_bg2ub"]
+[ext_resource type="Texture2D" uid="uid://xy6boealtiba" path="res://shots/sprites/spark1.png" id="16_uhtsl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0dbsv"]
 size = Vector2(21, 26)
@@ -68,15 +70,18 @@ material = ExtResource("5_jc044")
 texture = ExtResource("6_acbhi")
 region_rect = Rect2(0, 0, 10, 10)
 
-[node name="ashShooter" parent="." instance=ExtResource("7_pr37c")]
+[node name="ashShooter" parent="." groups=["main_attack"] instance=ExtResource("7_pr37c")]
+cast_speed = 60.0
+damage = 5.0
 max_attack_rate = 80
+shot_count = 5
 multi_shot_type = "Cloud"
 cloud_multishot_max_speedup_ratio = 0.5
-shot_file = "res://abilities/shots/dustball.png"
+shot_file = ExtResource("15_bg2ub")
 
-[node name="starShooter" parent="." instance=ExtResource("7_pr37c")]
+[node name="starShooter" parent="." groups=["main_attack"] instance=ExtResource("7_pr37c")]
 cast_speed = 200.0
-damage_mod = 4.0
+damage = 10.0
 max_attack_rate = 20
 shot_count = 4
-shot_file = "res://shots/sprites/spark1.png"
+shot_file = ExtResource("16_uhtsl")

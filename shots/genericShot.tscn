@@ -1,14 +1,14 @@
-[gd_scene load_steps=12 format=3 uid="uid://b6ak0nvcxovfq"]
+[gd_scene load_steps=12 format=3 uid="uid://hv1xvawhebiw"]
 
 [ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="1_8myq8"]
-[ext_resource type="PackedScene" uid="uid://bpguy8ol74pes" path="res://shots/damageCollidingBodyOnCollision.tscn" id="2_081jh"]
-[ext_resource type="PackedScene" uid="uid://bsewvrl0lv0rl" path="res://shots/destroySelfOnCollision.tscn" id="3_ibanq"]
-[ext_resource type="PackedScene" uid="uid://cytk41j43tol1" path="res://shots/destroySelfOnWallCollision.tscn" id="4_88dwn"]
-[ext_resource type="PackedScene" uid="uid://dkwrrt4jbugnu" path="res://shots/destroySelfOnTimeout.tscn" id="5_nxw78"]
-[ext_resource type="PackedScene" uid="uid://c3ft2rqe8ivkd" path="res://shots/moveAndSlideWithVelocity.tscn" id="6_mjmgd"]
-[ext_resource type="PackedScene" uid="uid://bijx5noked2or" path="res://shots/castTowardMethod.tscn" id="7_fejy0"]
-[ext_resource type="PackedScene" uid="uid://dgfcrjlit1rnt" path="res://shots/parentObjectCollisionException.tscn" id="8_lre01"]
-[ext_resource type="PackedScene" uid="uid://bxrs5t27l8n5a" path="res://shots/addAlignmentCollisionExceptionsOnTouch.tscn" id="9_g2h50"]
+[ext_resource type="PackedScene" uid="uid://bpguy8ol74pes" path="res://shots/scripts/damageCollidingBodyOnCollision.tscn" id="2_081jh"]
+[ext_resource type="PackedScene" uid="uid://bsewvrl0lv0rl" path="res://shots/scripts/destroySelfOnCollision.tscn" id="3_ibanq"]
+[ext_resource type="PackedScene" uid="uid://cytk41j43tol1" path="res://shots/scripts/destroySelfOnWallCollision.tscn" id="4_88dwn"]
+[ext_resource type="PackedScene" uid="uid://dkwrrt4jbugnu" path="res://shots/scripts/destroySelfOnTimeout.tscn" id="5_nxw78"]
+[ext_resource type="PackedScene" uid="uid://c3ft2rqe8ivkd" path="res://shots/scripts/moveAndSlideWithVelocity.tscn" id="6_mjmgd"]
+[ext_resource type="PackedScene" uid="uid://bijx5noked2or" path="res://shots/scripts/castTowardMethod.tscn" id="7_fejy0"]
+[ext_resource type="PackedScene" uid="uid://dgfcrjlit1rnt" path="res://shots/scripts/parentObjectCollisionException.tscn" id="8_lre01"]
+[ext_resource type="PackedScene" uid="uid://bxrs5t27l8n5a" path="res://shots/scripts/addAlignmentCollisionExceptionsOnTouch.tscn" id="9_g2h50"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(5, 5)
