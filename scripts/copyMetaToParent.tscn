@@ -1,21 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://gc6pi05kuktp"]
+[gd_scene load_steps=2 format=3 uid="uid://da7i3slogkmdi"]
 
 [sub_resource type="GDScript" id="GDScript_cfiei"]
 script/source = "extends Node
 
 @export var remove_on_exit_tree = false
+@export var metaname: String
 
 func _enter_tree():
   var parent = get_parent()
   for metaname in get_meta_list():
-    Watch.set_object_meta(parent, metaname, get_meta(metaname))
+    Comp.set_prop(parent, metaname, metaname)
 
 func _exit_tree():
   if not remove_on_exit_tree:
     return
   var parent = get_parent()
   for metaname in get_meta_list():
-    Watch.set_object_meta(parent, metaname, null)
+    Comp.set_prop(parent, metaname, null)
 "
 
 [node name="copyMetaToParent" type="Node"]

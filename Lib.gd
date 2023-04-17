@@ -160,6 +160,58 @@ func get_first_immediate_child_texture(start_node: Node) -> Texture2D:
   return null
 
 
+func callables_are_equals(callable1: Callable, callable2: Callable) -> bool:
+  if callable1.get_object() != callable2.get_object():
+    return false
+  if callable1.get_method() != callable2.get_method():
+    return false
+  if callable1.get_bound_arguments_count() != callable2.get_bound_arguments_count():
+    return false
+  if callable1.get_bound_arguments() != callable2.get_bound_arguments():
+    return false
+  return true
+
+
+func add_callable_to_dict(dict: Dictionary, key: String, value: Callable) -> bool:
+  var existing_callable_array = dict.get(key)
+  if existing_callable_array:
+    if existing_callable_array.has(value):
+      return false
+    else:
+      existing_callable_array.push_back(value)
+      return true
+  else:
+    var new_callable_array = [value]
+    dict[key] = new_callable_array
+    return true
+
+
+func remove_callable_from_dict(dict: Dictionary, key: String, value: Callable) -> bool:
+  var existing_callable_array: Array = dict.get(key)
+  if existing_callable_array:
+    for i in range(0, existing_callable_array.size()):
+      var existing_callable = existing_callable_array[i]
+      if callables_are_equals(value, existing_callable):
+        existing_callable_array.remove_at(i)
+        break
+    return true
+  else:
+    return false
+
+
+func call_callable(dict: Dictionary, signalers_name: String, args: Array):
+  var callable_array = dict.get(signalers_name)
+  if callable_array == null:
+    return
+  var i = callable_array.size()-1
+  while i >= 0: #reverse interation so can delete elements
+    var callable = callable_array[i]
+    callable.callv(args)
+    i -= 1
+
+
+
+
 func cs_vec(angle: float):
   return Vector2(cos(angle), sin(angle))
 

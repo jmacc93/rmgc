@@ -35,7 +35,7 @@ func count_in_class(classname: String) -> int:
     var is_equipped = gear_child.is_in_group('equipped')
     if not is_equipped:
       continue
-    var equipment_classes = Comp.get_object_meta(gear_child, 'equipment_classes')
+    var equipment_classes = Comp.get_prop(gear_child, 'equipment_classes', null)
     if equipment_classes == null:
       continue
     var index = equipment_classes.find(classname) #eg ['armor', 'weapon'].find('armor') != -1

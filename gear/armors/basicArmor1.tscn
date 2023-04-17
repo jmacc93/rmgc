@@ -1,10 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://dyoejqkml0t11"]
 
 [ext_resource type="Texture2D" uid="uid://nprr321ewwia" path="res://gear/armors/sprites/basic-armor-1.png" id="1_gwgdr"]
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/scripts/makeGearUiCell.tscn" id="2_6l0hm"]
 [ext_resource type="PackedScene" uid="uid://cij85rvrrn2a7" path="res://gear/armors/armorGearBehavior.tscn" id="2_nlc2n"]
 [ext_resource type="PackedScene" uid="uid://7rctdalryyyp" path="res://ui/scripts/allowTogglingUiCell.tscn" id="3_62cip"]
-
 
 [node name="basicArmor" type="Node" groups=["gear"]]
 metadata/ui_cell_left_click = "toggle_equipped"

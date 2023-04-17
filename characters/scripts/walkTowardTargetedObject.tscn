@@ -27,7 +27,7 @@ func _process(_delta):
   var parent = get_parent()
   
   #is there a target?
-  var target_object = Comp.get_object_meta(parent, 'target_object')
+  var target_object = Comp.get_prop(parent, 'target_object', null)
   if (target_object == null) or (not is_instance_valid(target_object)) or (not ('global_position' in target_object)):
     return
   

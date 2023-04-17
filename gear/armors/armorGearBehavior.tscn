@@ -7,7 +7,7 @@ script/source = "extends Node
 
 var grandparent
 @export var adef = 10
-@export var mdef = 1.0
+@export var mdef = 0.0
 
 func _init():
   tree_entered.connect(on_tree_entered)
@@ -54,13 +54,13 @@ func toggle_equipped(state: Variant = null):
     if current_adef != null:
       Comp.set_prop(user_object, 'adef', current_adef + adef)
     if current_mdef != null:
-      Comp.set_prop(user_object, 'mdef', current_adef + mdef)
+      Comp.set_prop(user_object, 'mdef', current_mdef + mdef)
   else:
     parent.remove_from_group('equipped')
     if current_adef != null:
       Comp.set_prop(user_object, 'adef', current_adef - adef)
     if current_mdef != null:
-      Comp.set_prop(user_object, 'mdef', current_adef - mdef)
+      Comp.set_prop(user_object, 'mdef', current_mdef - mdef)
     
   var toggleable_gear_cell_maker = parent.get_node(\"makeGearUiCell\")
   if toggleable_gear_cell_maker != null:

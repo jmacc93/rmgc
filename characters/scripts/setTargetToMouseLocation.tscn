@@ -18,11 +18,11 @@ func _enter_tree():
     queue_free()
     return
   
-  Watch.set_object_meta(parent, 'target_point', Vector2(0, 0))
+  Comp.set_prop(parent, 'target_point', Vector2(0, 0))
 
 
 func _process(_delta):
-  Watch.set_object_meta(get_parent(), 'target_point', mouse_position_source.get_global_mouse_position())
+  Comp.set_prop(get_parent(), 'target_point', mouse_position_source.get_global_mouse_position())
 "
 
 [node name="setTargetToMouseLocation" type="Node"]

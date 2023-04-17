@@ -25,7 +25,7 @@ func on_collision(collision):
   
   var parent = get_parent()
   var body = collision.get_collider()
-  var source_object = Comp.get_object_meta(parent, 'source_object')
+  var source_object = Comp.get_prop(parent, 'source_object', null)
   
   #body has collision layer
   if not body.has_method('get_collision_layer_value'):
