@@ -3,8 +3,18 @@
 [sub_resource type="GDScript" id="GDScript_lfij1"]
 script/source = "extends Node
 
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      set_physics_process(true)
+    NOTIFICATION_UNPARENTED:
+      set_physics_process(false)
+
 func _physics_process(_delta):
   var parent = get_parent()
+  if parent == null:
+    return
   
   var movement_direction = Vector2(0, 0)
   var did_move = false
@@ -27,4 +37,7 @@ func _physics_process(_delta):
 "
 
 [node name="moveCharacterOnAction" type="Node"]
+editor_description = "Calls the parent composite's `walk_by` method when the `move_*` (eg: `move_left`) actions are pressed. This is for the player-character, generally
+
+Note: actually moving the character is controlled elsewhere"
 script = SubResource("GDScript_lfij1")

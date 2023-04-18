@@ -11,34 +11,11 @@ var character_composite
 var pressed = false
 
 
-func _notification(what):
-  var parent = get_parent()
-  match what:
-    NOTIFICATION_PARENTED:
-      Comp.set_prop(parent, 'equip_weapon', Callable(self, \"equip_weapon\"))
-      Comp.set_prop(parent, 'toggle_weapon_equip', Callable(self, \"equip_weapon\"))
-    
-    NOTIFICATION_UNPARENTED:
-      Comp.remove_prop(parent, 'equip_weapon')
-      Comp.remove_prop(parent, 'toggle_weapon_equip')
-      
-
-func equip_weapon(weapon_node: Node, _toggle_state: bool = true):
-  if weapon_node.is_in_group('main_attack'):
-    weapon_node.remove_from_group('main_attack')
-    return
-
-
 func find_main_attack_abilities_and_attack():
   var parent = get_parent()
   var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
   for attack_node in main_attack_node_list:
-    if attack_node.has_method('attack'):
-      attack_node.attack(parent)
-    elif attack_node.has_method('run_method'): #its a classic composite object
-      attack_node.run_method('attack', [parent])
-    elif Comp.run_method(parent, 'attack', []): #its a metadata composite object
-      return
+    Comp.run_method(attack_node, 'attack', [parent])
 
 
 func _unhandled_input(_event):
@@ -55,4 +32,7 @@ func _process(_delta):
 "
 
 [node name="mainAttackOnAction" type="Node"]
+editor_description = "On unhandled action press (ie: mouse press over the background, nothing, etc) this finds all `main_attack` group sibling nodes and calls their `attack` method. When the `repeatedly` property is true (the default), as long as the action is pressed it continues to call siblings' `attack` methods. The sibling `main_attack` group nodes should limit their fire rate
+
+The `action` property here is which action should be pressed to fire. It defaults to `shoot`, and that's what it probably should stay at. The mouse should be bound to the `shoot` action by default"
 script = SubResource("GDScript_14qsd")

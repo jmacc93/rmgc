@@ -3,12 +3,20 @@
 [sub_resource type="GDScript" id="GDScript_u32rb"]
 script/source = "extends Node
 
-func _enter_tree():
-  var parent = get_parent()
-  Watch.call_on_notify(parent, 'die', func():
-    parent.queue_free()
-  )
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      Watch.call_on_notify(get_parent(), 'die', free_parent)
+    NOTIFICATION_UNPARENTED:
+      Watch.stop_calling_on_notify(get_parent(), 'die', free_parent)
+
+func free_parent():
+  get_parent().queue_free()
 "
 
 [node name="freeOnDeath" type="Node"]
+editor_description = "Calls queue_free on its composite parent when the `die` signal is emitted on the composite parent. So, it just removes the parent when the parent has the `die` signal
+
+Note: this uses Watch signals, not built-in signals"
 script = SubResource("GDScript_u32rb")

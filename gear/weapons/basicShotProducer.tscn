@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://cey7wg4e3xv7g"]
 
 [ext_resource type="PackedScene" uid="uid://d0l3po3tbdq1j" path="res://gear/weapons/produceShot.tscn" id="1_xjf3g"]
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/scripts/makeGearUiCell.tscn" id="2_b7aju"]

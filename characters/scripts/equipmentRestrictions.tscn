@@ -13,6 +13,8 @@ func _notification(what):
       Comp.remove_prop(get_parent(), 'can_equip', null)
 
 
+#Counts the parent's `gear` and `equipped` group nodes in the given equipment_object's classes
+#If the count is currently equal or greater the max allowed for that class, then returns false, else true
 func can_equip(equipment_object):
   var equipment_classes = Comp.get_prop(equipment_object, 'equipment_classes')
   if equipment_classes == null:
@@ -21,10 +23,10 @@ func can_equip(equipment_object):
   for metaname in get_meta_list():
     var index = equipment_classes.find(metaname)
     if index == -1:
-      continue
+      continue #didn't find this one of self's registered classes in given object's equipment classes
     var count = count_in_class(metaname)
     var max_count = get_meta(metaname)
-    return count < max_count
+    return count < max_count #Note: this short-circuits remaining class evaluation, only the first found matters
   return true
 
 
@@ -47,7 +49,13 @@ func count_in_class(classname: String) -> int:
 "
 
 [node name="equipmentRestrictions" type="Node"]
-editor_description = "meta are like `equipment_class = max_equipped_gear_in_that_class`"
+editor_description = "This provides `can_equip` to a parent composite node. Do `var can_equip = Comp.call_method(parent_composite, 'can_equip', [gear_node])` to test whether `parent_composite` can equip `gear_node`. Here, `gear_node` must have the property `equipment_classes` which should be an array of strings like `[\"weapon\"]`. Also, any currently equipped gear node children of `parent_composite` must be in the group `equipped`. And, only nodes in `gear` are checked
+
+So, again:
+  * `can_equip` checks its parent for `gear` group nodes which are also in to `equipped` group
+  * If a `gear` + `equipped` group node has a `equipment_classes` property, that is used to determine if it should be counted in an equipment class count
+
+This requires metadata properties like `equipment_class = max_equipped_gear_in_that_class` to set the maximum equipped number for each equipment class. See a fresh equipmentRestrictions.tscn instance for an example"
 script = SubResource("GDScript_jiatt")
 metadata/armor = 1
 metadata/weapon = 1

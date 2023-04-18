@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://scripts/toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="12_o62jj"]
 [ext_resource type="PackedScene" path="res://gear/armors/dev-armor.tscn" id="13_7oxlg"]
 [ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="13_42vnk"]
-[ext_resource type="PackedScene" uid="uid://dn0mah7vftwme" path="res://gear/weapons/crew_gun.tscn" id="13_e51y4"]
+[ext_resource type="PackedScene" uid="uid://dn0mah7vftwme" path="res://gear/weapons/crewGun.tscn" id="13_e51y4"]
 [ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://environment/loot_containers/scripts/containerInventoryDisplay.tscn" id="13_j0oet"]
 [ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="16_knh61"]
 [ext_resource type="PackedScene" uid="uid://d3gksmssny2u7" path="res://environment/obstacles/smallRock1.tscn" id="17_50koj"]

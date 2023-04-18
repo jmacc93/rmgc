@@ -27,6 +27,19 @@ To solve these problems:
 
 ---
 
+A note about connections between functionality-providing children and composite nodes:
+
+In these child nodes' scripts, I use `_notification` with the `NOTIFICATION_PARENTED` and `NOTIFICATION_UNPARENTED` enums to check for when to add the child's functionality to its immediate compose node parent. For an example of this, look at the file `res://characters/scripts/healthStats.tscn`
+
+However, this doesn't work when the composite isn't the immediate parent of a functionality-providing child node. In the case a f-p child node is a deep child of a composite node, I instead use the `tree_entered` and `tree_exited` signals, and in each I get the composite parent again to check the node tree topology between them is persevered. If the connection between the child and composite parent are maintained then I don't do anything, if its broken then I do the respective functionality adding / removing
+
+Why do this, instead of just getting parented / unparented notifications? Because parenting / unparenting notifications are only emitted when the child node is added as a child to a node, so if the child's parent isn't the target composite, but instead some other node, and that node is removed (taking the child node with it) then the child node's `NOTIFICATION_UNPARENTED` won't be emitted. So we have to use tree exit signals, but we can't use `_exit_tree` because its "Called when the node is *about* to leave the SceneTree", and so we can't test whether it was the parent composite that was removed from the tree (and thus the child shouldn't remove its functionality from the parent composite), or if it was a node between the child and composite parent that was removed. So, instead we use the `tree_exited` signal, and for consistency we use the `tree_entered` signal too (instead of `_enter_tree`). Check out `res://gear/armors/armorGearBehavior.tscn` for an example of this
+
+Note that a functionality-providing child may be a n-deep child of a composite like this because it is a child of a functionality-providing scene node that is the child of the composite parent. See `res://ui/playerUi.tscn` for an example of this
+
+
+---
+
 Another note: I generally preferred closures when a node has to be essentially shared between two different parent nodes. For example: gear ui cells are ui elements that appear in one location on the ui but they are basically owned by the gear node that is responsible for making them. So, when gear nodes are asked to create their ui cells through calls to their `make_ui_cell` methods, they internally create closures for the ui cells' methods like `handle_left_clicked`. So, calling methods like `handle_left_clicked` are really calling back to the gear node that created them
 
 See `makeGearUiCell` (which is a functionality-providing node for use as the child of a composite node) for the prototypical implementation of this behavior
@@ -39,7 +52,7 @@ The viewport in the `SubViewportContainer` and another viewport are switched whe
 
 Each viewport should have one game 'world' node in the group `game_world`
 
-
+---
 
 
 

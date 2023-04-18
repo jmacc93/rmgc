@@ -171,6 +171,27 @@ func _process(_delta):
 "
 
 [node name="healthStats" type="Node"]
+editor_description = "Provides:
+  * hp
+  * max_hp
+  * hp_regen
+  * mdef
+  * adef
+Properties. These are just basic stats most characters will have
+And, it provides:
+  * heal_by
+  * overheal_by
+  * hurt_by
+Methods
+
+Additionally, this changes `hp` by `hp_regen` on a fixed interval using a `_process` function
+
+`mdef` is the Multiplicative Defence value, and multiplies the amount of incoming damage. Like `real_dmg = dmg * mdef`
+`adef` is the Additive Defence value, and subtracts from the incoming damage. Like `real_dmg = dmg - adef`
+
+`overheal_by`  acts just like `heal_by` but doesn't stop the heal at `max_hp` and so can change `hp` by an unlimited amount
+
+"
 script = SubResource("GDScript_ukxk7")
 
 [node name="templateUiStatDisplayElement" type="Control" parent="."]

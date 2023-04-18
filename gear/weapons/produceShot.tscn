@@ -1,6 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://d0l3po3tbdq1j"]
-
-[ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="1_3x2uy"]
+[gd_scene load_steps=2 format=3 uid="uid://d0l3po3tbdq1j"]
 
 [sub_resource type="GDScript" id="GDScript_jbjgw"]
 script/source = "extends Node
@@ -131,15 +129,20 @@ func attack(user_object: Object) -> void:
           shoot_one(user_object, origin_position, final_shoot_dir)
 
 
-func toggle_equipped(_user_object: Object) -> void:
-  var group_status = is_in_group('main_attack')
-  if group_status:  
+func toggle_equipped(user_object: Object) -> void:
+  var equipped_status = is_in_group('equipped')
+  if equipped_status:  
     remove_from_group('main_attack')
+    remove_from_group('equipped')
   else:
+    var can_equip = Comp.call_method_or(user_object, 'can_equip', [self])
+    if not can_equip:
+      return
     add_to_group('main_attack')
+    add_to_group('equipped')
   var toggleable_gear_cell_maker = $makeGearUiCell
   if toggleable_gear_cell_maker != null:
-    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [not group_status])
+    Comp.run_method(toggleable_gear_cell_maker, 'toggle', [not equipped_status])
   
 
 func handle_left_clicked(event: InputEventMouse):
@@ -173,5 +176,4 @@ func handle_left_clicked(event: InputEventMouse):
 [node name="produceShot" type="Node" groups=["gear"]]
 script = SubResource("GDScript_jbjgw")
 max_attack_rate = 40
-metadata/ui_cell_display = ExtResource("1_3x2uy")
-metadata/ui_cell_left_click = "equip"
+metadata/equipment_classes = ["weapon"]

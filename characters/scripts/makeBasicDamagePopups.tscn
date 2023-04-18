@@ -9,24 +9,34 @@ var damage_popup_resource : PackedScene = preload(\"res://characters/damagePopup
 
 var prev_hp = 0
 
-func _enter_tree():
+
+func _notification(what):
   var parent = get_parent()
-  Comp.call_on_set_prop(parent, 'hp', func():
-    var hp = Comp.get_prop(parent, 'hp')
-    var change = hp - prev_hp
-    if change == 0:
-      return
-    var damage_popup = damage_popup_resource.instantiate()
-    damage_popup.set_damage(change)
-    call_deferred('add_child', damage_popup)
-    prev_hp = hp
-  )
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.call_when_has_prop(parent, 'hp', set_initial_hp)
+      Comp.call_on_set_prop(parent, 'hp', hp_changed)
+    NOTIFICATION_UNPARENTED:
+      Comp.stop_calling_when_has_prop(parent, 'hp', set_initial_hp)
+      Comp.stop_calling_on_set_prop(parent, 'hp', hp_changed)
 
 
-func _ready():
+func hp_changed():
+  var hp = Comp.get_prop(get_parent(), 'hp')
+  var change = hp - prev_hp
+  if change == 0:
+    return
+  var damage_popup = damage_popup_resource.instantiate()
+  damage_popup.set_damage(change)
+  call_deferred('add_child', damage_popup)
+  prev_hp = hp
+
+
+func set_initial_hp():
   prev_hp = Comp.get_prop(get_parent(), 'hp')
 "
 
 [node name="makeBasicDamagePopups" type="Node2D"]
+editor_description = "When the parent composite has its `hp` property changed, this instances a new `res://characters/damagePopup.tscn` node, which shows the damage done and slowly floats up and disappears after a moment"
 z_index = 100
 script = SubResource("GDScript_67g1a")
