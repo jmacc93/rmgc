@@ -27,5 +27,10 @@ func on_body_entered(body: CollisionObject2D):
 "
 
 [node name="addAlignmentCollisionExceptionsOnTouch" type="Area2D"]
+editor_description = "This checks the parent's `source_object`'s `factions` property against all touching `body`'s `factions` properties for alignment, and if they do agree, this adds a collision exception to the parent with those bodies. So, when a body enters this `Area2D`, its `factions` property is checked for alignment. If the body is aligned with this node's parent, then a collision exception with the body is added to the parent so the parent can't collide with the body
+
+This should be a child of shots which should pass through aligned characters
+
+Note: this needs a `CollisionShape2D` to function when instanced. This `CollisionShape2D` should be big enough so that the parent shot's position on the next physics frame will still be in the `CollisionShape2D`'s bounds. Otherwise the shot might hit something that was outside the `CollisionShape2D` and so didn't have an collision exception added yet"
 collision_mask = 7
 script = SubResource("GDScript_ygnts")

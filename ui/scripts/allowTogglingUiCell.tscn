@@ -27,7 +27,9 @@ func toggle(state: bool):
 "
 
 [node name="allowTogglingUiCell" type="Node"]
-editor_description = "Should be a child of a makeGearUiCell
-Gives makeGearUiCell parent a `toggle` method
-Toggle method alternates the visibility of templateGearCell's toggledOn and toggledOff children"
+editor_description = "Should be a child of a `makeGearUiCell`
+Gives `makeGearUiCell` parent a `toggle` method
+
+Toggle method alternates the visibility of templateGearCell's toggledOn and toggledOff children
+ie: when the new `toggle` method is called, it switches the visibility status of the`toggledOn` and `toggledOff` children of the `makeGearUiCells`'s `active_gear_cell` node (which is the `Control` produced by the `makeGearUiCell`'s `make_ui_cell` method for use in inventory displays). You can use this to make equippable gears' gear cells backgrounds change color when they're equipped"
 script = SubResource("GDScript_bp5rc")

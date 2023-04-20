@@ -6,6 +6,16 @@
 [ext_resource type="Texture2D" uid="uid://c3wtykrn61wf6" path="res://shots/sprites/basicSwipe.png" id="4_w4biv"]
 
 [node name="produceShot" instance=ExtResource("1_xjf3g")]
+editor_description = "`basicShotProducer.tscn` is the prototypical weapon gear node
+`produceShot.tscn` is a sort of quasi-gear node. Its for use in both npcs (which don't need to display gear cells) and the player character
+It just shoots the given `shot_file` (which is actually a `Scene` or `Texture`) at the user's `target_point`
+
+The `multi_shot_type` types are:
+	* Fan: shoots shots with equal angles between the shots across a total angle of `multi_shot_angle`. ie: It shoots a \"fan\" of shots
+	* Random: shoots `shot_count` number of shots with random angle between the shots, but a total spread of `multi_shot_angle`
+	* Cloud: like Random but with random speeds of the shots produced. The `cloud_multishot_max_speedup_ratio` is the +-% of the original speed to speed up or slow down. eg: a value of 0.5 would be anywhere from 50% to 150% of the original speed
+
+`max_attack_rate` is inversely proportional to the actual delay between attacks. eg: A higher `max_attack_rate` decreases the delay between attacks"
 
 [node name="templateGearCell" type="Control" parent="." index="0"]
 process_mode = 4

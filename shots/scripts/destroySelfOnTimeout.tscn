@@ -4,22 +4,26 @@
 script/source = "extends Node
 
 var timeout_time
-@export var max_age = 1.0
+@export var max_age_seconds = 1.0
 
 
 func _notification(what):
   match what:
     NOTIFICATION_PARENTED:
-      timeout_time = Time.get_ticks_msec() + max_age * 1000
+      timeout_time = Time.get_ticks_msec() + max_age_seconds * 1000
 
 
 func _process(_delta):
   var current_time = Time.get_ticks_msec()
   if (timeout_time < current_time):
     var parent = get_parent()
-    if not Comp.run_method(parent, 'kill', []):
+    Watch.notify(parent, 'die', [])
+    if not Comp.run_method(parent, 'die', []):
       parent.queue_free()
 "
 
 [node name="destroySelfOnTimeout" type="Node"]
+editor_description = "After `max_age_seconds` seconds from parenting this node, this calls the `die` `Watch` notification on the parent and either calls the `die` method on the parent or `queue_free`s the parent
+
+This is primarily for removing shots after a certain amount of time from when the shot is created"
 script = SubResource("GDScript_7qe0w")

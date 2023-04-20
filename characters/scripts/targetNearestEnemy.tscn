@@ -9,34 +9,6 @@ func _init():
   body_entered.connect(on_body_entered)
   body_exited.connect(on_body_exited)
 
-
-#does character love or hate obj?
-func is_hostile_faction_array(my_faction_array, obj_faction_array):
-  for my_faction in my_faction_array:
-    #if any of parent my factions are in obj's faction_array then they're best buds
-    var my_faction_in_object = (obj_faction_array.find(my_faction) != -1)
-    if my_faction_in_object:
-      return false #loves
-  return true #hates
-
-
-#is body an enemy? then target. Return true if targeted something
-func test_and_switch_target_to_body(body):
-  var parent = get_parent()
-  
-  #get factions and faction alignment  
-  var body_faction = Comp.get_prop(body, 'factions', 'default')
-  var my_faction = Comp.get_prop(parent, 'factions', 'default')
-  var factions_agree = Game.check_factions_agree(my_faction, body_faction)
-  
-  if not factions_agree:
-    Comp.set_prop(parent, 'target_object', body)
-    return true #true == has new target
-  
-  #no action taken
-  return false #false == no new target
-  
-
 #target characters and factioned objects that enter
 func on_body_entered(body):
   var parent = get_parent()
@@ -65,6 +37,34 @@ func on_body_exited(body):
       return
 
 
+#does character love or hate obj?
+func is_hostile_faction_array(my_faction_array, obj_faction_array):
+  for my_faction in my_faction_array:
+    #if any of parent my factions are in obj's faction_array then they're best buds
+    var my_faction_in_object = (obj_faction_array.find(my_faction) != -1)
+    if my_faction_in_object:
+      return false #loves
+  return true #hates
+
+
+#is body an enemy? then target. Return true if targeted something
+func test_and_switch_target_to_body(body):
+  var parent = get_parent()
+  
+  #get factions and faction alignment  
+  var body_faction = Comp.get_prop(body, 'factions', 'default')
+  var my_faction = Comp.get_prop(parent, 'factions', 'default')
+  var factions_agree = Game.check_factions_agree(my_faction, body_faction)
+  
+  if not factions_agree:
+    Comp.set_prop(parent, 'target_object', body)
+    return true #true == has new target
+  
+  #no action taken
+  return false #false == no new target
+  
+
+
 
 
 
@@ -76,6 +76,9 @@ func on_body_exited(body):
 "
 
 [node name="targetNearestEnemy" type="Area2D"]
+editor_description = "This sets the parent composite's `target_object` to `CollisionBody2D`s that enter this `Area2D` if the entered object has a `factions` prop which isn't aligned with the parent composite's `factions` prop. See `res://Game.gd` for details on faction alignment
+
+Parent composite must have a `factions`"
 collision_layer = 0
 collision_mask = 2
 script = SubResource("GDScript_g4we8")

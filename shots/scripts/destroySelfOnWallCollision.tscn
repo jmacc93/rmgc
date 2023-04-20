@@ -5,8 +5,6 @@ script/source = "extends Node
 
 @export var wall_bit = 1
 
-@export var except_source_object = false
-
 ## restrict to a particular group, or leave blank to not restrict to a group
 @export var group = ''
 
@@ -25,26 +23,22 @@ func on_collision(collision):
   
   var parent = get_parent()
   var body = collision.get_collider()
-  var source_object = Comp.get_prop(parent, 'source_object', null)
-  
-  #body has collision layer
-  if not body.has_method('get_collision_layer_value'):
-    return
   
   #only destroy self on collision with particular group?
   if (group != '') and (not body.is_in_group(group)):
+      return
+  
+  #body has collision layer
+  if not body.has_method('get_collision_layer_value'):
     return
   
   #body in collision layer?
   if not body.get_collision_layer_value(wall_bit):
     return
   
-  #is body the parent?
-  if except_source_object and source_object and (body == source_object):
-    return
-  
   #kill self
-  if not Comp.run_method(parent, 'kill', []):
+  Watch.notify(parent, 'die', [])
+  if not Comp.run_method(parent, 'die', []):
     parent.queue_free()
 
 
@@ -61,4 +55,8 @@ func on_collision(collision):
 "
 
 [node name="destroySelfOnWallCollision" type="Node"]
+editor_description = "This calls the `die` `Watch` notification on the parent and either calls the `die` method on the parent or `queue_free`s the parent when there is a `collision` `Watch` notification on the parent
+
+This is primarily for removing a shot when it collides with a wall (eg: a rock)
+"
 script = SubResource("GDScript_edgem")

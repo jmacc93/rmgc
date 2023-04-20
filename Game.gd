@@ -1,5 +1,6 @@
 extends Node
 
+#This is a library for highly game-specific stuff
 
 
 var default_loot_bag: PackedScene = preload("res://environment/loot_containers/basicLootBag.tscn")
@@ -9,8 +10,14 @@ func get_game_world(node: Node):
   return Lib.get_parent_in_group(node, 'game_world')
 
 
-
+#This has the following format:
+# {my_faction: {faction_i_wont_attack: true, faction_i_will_attack: false}, ...}
+#The "default" faction is used when a faction string isn't found in the dictionary
 var standard_faction_alignment = {
+  # "my_faction" : {
+  #   "faction_i_hate": false,
+  #   "faction_i_love": true
+  # }
   "players": {
     "players": true,
     "enemies": false,
@@ -28,6 +35,7 @@ var standard_faction_alignment = {
 
 
 #the asymmetric version of check_faction_agree
+#symmetric itc means f(x, y) == f(y, x)
 func check_faction_agrees_with_another(faction1: String, faction2: String) -> bool:
   #get 1's alignment dictionary, or get default alignment dict
   var faction1_alignment_dict = standard_faction_alignment.get(faction1, null)
@@ -50,6 +58,7 @@ func check_faction_strings_agree(faction1: String, faction2: String) -> bool:
   return alignment_of_1_with_2 and alignment_of_2_with_1
 
 
+#Turns "a, b, c" -> ["a", "b", "c"], and ["a", "b", "c"] -> ["a", "b", "c"]
 func normalize_faction_object(obj) -> Array:
   if obj is Array:
     return obj

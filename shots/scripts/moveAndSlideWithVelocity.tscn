@@ -3,27 +3,33 @@
 [sub_resource type="GDScript" id="GDScript_ygm6t"]
 script/source = "extends Node
 
-var body_parent: CharacterBody2D
-
 
 func _notification(what):
   match what:
     NOTIFICATION_PARENTED:
-      body_parent = get_parent() as CharacterBody2D
+      set_physics_process(true)
     NOTIFICATION_UNPARENTED:
-      body_parent = null
+      set_physics_process(false)
   
 
 func _physics_process(_delta):
-  if body_parent == null:
+  var parent = get_parent()
+  if parent == null:
     return
-  if body_parent.velocity.x == 0 and body_parent.velocity.y == 0:
+  if not ('velocity' in parent):
+    return
+  if parent.velocity.x == 0 and parent.velocity.y == 0:
     return
   
-  body_parent.move_and_slide()
-  for i in range(0, body_parent.get_slide_collision_count()):
-    Watch.notify(get_parent(), 'collision', [body_parent.get_slide_collision(i)])
+  parent.move_and_slide()
+  for i in range(0, parent.get_slide_collision_count()):
+    Watch.notify(get_parent(), 'collision', [parent.get_slide_collision(i)])
 "
 
 [node name="moveAndSlideWithVelocity" type="Node"]
+editor_description = "This makes the parent (which should be a `CharacterBody2D`) move based on its current `velocity` property. If it hits something, then the `collision` `Watch` notification is emitted on the parent
+
+This is primarily for shots, which generally just move in a straight line
+
+This is best paired with other scripts in the `res://shots/scripts` directory, which make use of the `collision` `Watch` notification"
 script = SubResource("GDScript_ygm6t")

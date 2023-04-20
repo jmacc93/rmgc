@@ -54,4 +54,10 @@ func _physics_process(_delta):
 "
 
 [node name="walkAbility" type="Node"]
+editor_description = "This provides the `spd` stat property and `walk_by` method to the parent composite
+
+The `spd` property is a multiplier for all walk direction vectors used as input in `walk_by`, and
+The `walk_by(vec)` method moves the parent composite in the given direction `vec`
+
+The parent composite must have a `velocity`  property and `move_and_slide()` method (which both are in `CharacterBody2D`s)"
 script = SubResource("GDScript_a6mdq")

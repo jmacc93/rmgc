@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://cm4panbqhuipf" path="res://environment/ground_spot_textures/scripts/randomMaskedGroundDecoration.tscn" id="6_t6kps"]
 
 [node name="lavaDecoration" type="Sprite2D"]
+editor_description = "This is a prototypical alpha-masked decorative texture"
 z_index = -10
 texture = ExtResource("1_sy5va")
 

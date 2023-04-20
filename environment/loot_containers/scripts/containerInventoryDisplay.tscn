@@ -1,14 +1,18 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://b611kh1x3w8rq"]
 
 [ext_resource type="PackedScene" uid="uid://dq74ovxo7ghob" path="res://ui/scripts/mirrorContainerGearNodesToNode.tscn" id="1_1edgh"]
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/sprites/ui-box-2.png" id="2_cxmtj"]
-
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2d47m"]
 size = Vector2(10, 10)
 
 [node name="inventoryDisplay" type="Control" groups=["loot_bag_display_popup"]]
 process_mode = 4
+editor_description = "This is intended for use in loot bags like `res://environment/loot_containers/basicLootBag.tscn`
+
+Via `mirrorContainerGearNodesToNode`, it calls `make_ui_cell` on all of the `gear`-group node children of its parent node
+
+This is like the analogous components of the `playerUi` scene node"
 visible = false
 z_index = 800
 layout_mode = 3
@@ -19,9 +23,8 @@ offset_right = 37.2212
 offset_bottom = -6.0
 mouse_filter = 2
 
-[node name="mirrorContainerGearNodesToNode" parent="." node_paths=PackedStringArray("cell_container", "parent_ui") instance=ExtResource("1_1edgh")]
+[node name="mirrorContainerGearNodesToNode" parent="." node_paths=PackedStringArray("cell_container") instance=ExtResource("1_1edgh")]
 cell_container = NodePath("../MarginContainer/ScrollContainer/FlowContainer")
-parent_ui = NodePath("..")
 
 [node name="templateCellHolder" type="Control" parent="mirrorContainerGearNodesToNode" groups=["ui_gear_cell_holder"]]
 process_mode = 4

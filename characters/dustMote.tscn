@@ -1,6 +1,5 @@
-[gd_scene load_steps=19 format=3 uid="uid://b2ngopv0ax3jp"]
+[gd_scene load_steps=18 format=3 uid="uid://b2ngopv0ax3jp"]
 
-[ext_resource type="PackedScene" uid="uid://da7i3slogkmdi" path="res://scripts/copyMetaToParent.tscn" id="1_l6m3r"]
 [ext_resource type="PackedScene" uid="uid://cxxukg5ewaud1" path="res://characters/scripts/healthStats.tscn" id="2_qvpju"]
 [ext_resource type="PackedScene" uid="uid://dcexsoo05r476" path="res://characters/scripts/walkAbility.tscn" id="3_6jhww"]
 [ext_resource type="PackedScene" uid="uid://q6hdeppfpvc1" path="res://characters/scripts/walkTowardTargetedObject.tscn" id="4_gyl1g"]
@@ -24,17 +23,15 @@ size = Vector2(8, 8)
 size = Vector2(100, 100)
 
 [node name="genericEnemy" type="CharacterBody2D"]
+editor_description = "This is the prototypical enemy NPC. You can copy or inherit this scene to a new file to make a new enemy. Generally that just means changing the `$Sprite2D.texture` and `$CollisionShape2D.shape` to match the new enemies appearance. Though, you may remove the `randomlyWalk` child node"
 collision_layer = 2
 motion_mode = 1
 metadata/_edit_group_ = true
 metadata/factions = ["enemies"]
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 visible = false
 shape = SubResource("RectangleShape2D_lhxg7")
-
-[node name="inFaction" parent="." instance=ExtResource("1_l6m3r")]
-metadata/faction_array = ["enemies"]
 
 [node name="healthStats" parent="." instance=ExtResource("2_qvpju")]
 

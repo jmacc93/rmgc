@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=22 format=3 uid="uid://w0ajkvwc04p4"]
 
 [ext_resource type="PackedScene" path="res://worlds/devRealm/devRealm.tscn" id="1_8cqxu"]
 [ext_resource type="PackedScene" uid="uid://boceh1bghq48v" path="res://characters/genericClass.tscn" id="2_ct547"]
@@ -8,16 +8,16 @@
 [ext_resource type="PackedScene" uid="uid://c85hm3mgk8xg7" path="res://environment/loot_containers/scripts/destroyContainerOnEmpty.tscn" id="11_rddws"]
 [ext_resource type="PackedScene" path="res://gear/usables/flaskOfPain.tscn" id="12_m0vpe"]
 [ext_resource type="PackedScene" uid="uid://dcao3y338305p" path="res://scripts/toggleVisibilityOfTargetOnPlayerWalkOver.tscn" id="12_o62jj"]
-[ext_resource type="PackedScene" path="res://gear/armors/dev-armor.tscn" id="13_7oxlg"]
-[ext_resource type="PackedScene" path="res://gear/armors/basicArmor1.tscn" id="13_42vnk"]
-[ext_resource type="PackedScene" uid="uid://dn0mah7vftwme" path="res://gear/weapons/crewGun.tscn" id="13_e51y4"]
-[ext_resource type="PackedScene" uid="uid://dau0p74mlw7o" path="res://environment/loot_containers/scripts/containerInventoryDisplay.tscn" id="13_j0oet"]
+[ext_resource type="PackedScene" uid="uid://c1h6ybbdlbu5x" path="res://gear/armors/dev-armor.tscn" id="13_7oxlg"]
+[ext_resource type="PackedScene" uid="uid://dyoejqkml0t11" path="res://gear/armors/basicArmor1.tscn" id="13_42vnk"]
+[ext_resource type="PackedScene" uid="uid://c3dgttni5uda1" path="res://gear/weapons/crewGun.tscn" id="13_e51y4"]
+[ext_resource type="PackedScene" uid="uid://b611kh1x3w8rq" path="res://environment/loot_containers/scripts/containerInventoryDisplay.tscn" id="13_j0oet"]
 [ext_resource type="PackedScene" uid="uid://ohxxvbakgamo" path="res://environment/generators/scatterObjectPlacer.tscn" id="16_knh61"]
-[ext_resource type="PackedScene" uid="uid://d3gksmssny2u7" path="res://environment/obstacles/smallRock1.tscn" id="17_50koj"]
+[ext_resource type="PackedScene" uid="uid://d3gksmssny2u7" path="res://environment/obstacles/smallRock.tscn" id="17_50koj"]
 [ext_resource type="PackedScene" uid="uid://cai47vimxom8t" path="res://environment/obstacles/smallBush.tscn" id="18_3pjxh"]
-[ext_resource type="PackedScene" uid="uid://dart1y5m1127o" path="res://environment/worldPortal.tscn" id="18_d1gl8"]
-[ext_resource type="PackedScene" path="res://characters/dustMote.tscn" id="19_rmfwx"]
-[ext_resource type="PackedScene" path="res://environment/loot_containers/basicLootBag.tscn" id="20_0vsro"]
+[ext_resource type="PackedScene" uid="uid://bbqcuwcrnem36" path="res://environment/worldPortal.tscn" id="18_d1gl8"]
+[ext_resource type="PackedScene" uid="uid://b2ngopv0ax3jp" path="res://characters/dustMote.tscn" id="19_rmfwx"]
+[ext_resource type="PackedScene" uid="uid://ci2fp124kftbr" path="res://environment/loot_containers/basicLootBag.tscn" id="20_0vsro"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jx8xe"]
 size = Vector2(6, 6)
@@ -82,13 +82,6 @@ size = Vector2(61.1742, 63.6997)
 [node name="genericEnemy" parent="." instance=ExtResource("19_rmfwx")]
 position = Vector2(232.4, 183.569)
 
-[node name="produceShotAbility" parent="genericEnemy" index="14"]
-shot_count = 1
-multi_shot_type = "Fan"
-cloud_multishot_max_speedup_ratio = 0.1
-individual_shot_angle_spread = 22.5
-shot_file = null
-
 [node name="Label" type="Label" parent="."]
 z_index = -100
 offset_left = 172.918
@@ -145,6 +138,7 @@ max_uses = -1
 
 [node name="basicLootBag" parent="." instance=ExtResource("20_0vsro")]
 position = Vector2(40, -40)
+metadata/ui_gear_cells = 5
 metadata/_edit_group_ = true
 
 [node name="hpFlaskGear2" type="Node" parent="basicLootBag" groups=["ability", "gear"]]
@@ -184,10 +178,10 @@ metadata/world_file = "res://worlds/homeWorld/homeWorld.tscn"
 metadata/world_name = "Home World"
 
 [node name="ash" type="ColorRect" parent="."]
-offset_left = 77.8825
-offset_top = -30.5206
-offset_right = 139.882
-offset_bottom = 34.4794
+offset_left = 136.0
+offset_top = -32.0
+offset_right = 198.0
+offset_bottom = 33.0
 
 [node name="StaticBody2D" type="StaticBody2D" parent="ash"]
 
@@ -206,5 +200,3 @@ resources = [PackedStringArray("smallRock1"), [ExtResource("17_50koj")]]
 [node name="bushScenes" type="ResourcePreloader" parent="ash/scatterObjectPlacer"]
 resources = [PackedStringArray("smallBush"), [ExtResource("18_3pjxh")]]
 metadata/generation_bias = -2.0
-
-[editable path="genericEnemy"]

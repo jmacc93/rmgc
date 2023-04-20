@@ -1,18 +1,17 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://db8li8w2rra1l"]
 
 [ext_resource type="PackedScene" uid="uid://bxq2rdalfohtw" path="res://ui/scripts/makeGearUiCell.tscn" id="1_68m8e"]
 [ext_resource type="Texture2D" uid="uid://cqkcdtutppkba" path="res://gear/usables/sprites/hp-flask.png" id="2_vo8cd"]
 
-
 [sub_resource type="GDScript" id="GDScript_jbbkt"]
 script/source = "extends Node
+
+@export var health = 25
+@export var max_uses = 1
 
 var use_count = 0
 
 func use_flask(user: Object):  
-  var health = get_meta('health', 25)
-  var max_uses = get_meta('max_uses', 1)
-  
   Comp.run_method(user, 'heal_by', [health])
   
   use_count += 1
@@ -53,10 +52,7 @@ func handle_left_clicked(event: InputEventMouse):
 "
 
 [node name="hpFlaskGear" type="Node" groups=["ability", "gear"]]
-editor_description = "meta:
-  health: how much healed by; default 25
-  max_uses: -1 for infinite, >0 for that many uses; default 1
-  "
+editor_description = "When its gear cell is clicked on, it heals the current player character (because they're the only one who clicks on anything)"
 script = SubResource("GDScript_jbbkt")
 
 [node name="makeGearUiCell" parent="." instance=ExtResource("1_68m8e")]

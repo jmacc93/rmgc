@@ -13,10 +13,7 @@ func find_main_attack_ability_and_attack():
   var parent = get_parent()
   var main_attack_node_list = Lib.get_children_in_group(parent, 'main_attack')
   for attack_node in main_attack_node_list:
-    if attack_node.has_method('attack'):
-      attack_node.attack(parent)
-    elif Comp.run_method(parent, 'attack', [parent]):
-      return
+    Comp.run_method(attack_node, 'attack', [parent])
 
 
 func _process(_delta):
@@ -39,4 +36,7 @@ func _process(_delta):
 "
 
 [node name="shootConstantlyAtTargetObject" type="Node"]
+editor_description = "This is the NPC analog of the `res://characters/scripts/mainAttackOnAction.tscn` script
+
+This repeatedly calls the `attack` method on all the parent composite's `main_attack` group nodes"
 script = SubResource("GDScript_gsacq")

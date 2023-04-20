@@ -15,31 +15,20 @@ var global_position_parent
 var move_to_point = Vector2(0.0, 0.0)
 var next_move_to_time = 0.0
 var next_move_point_delay_ms = 1000
-
-
-func _enter_tree():
-  global_position_parent = self if ('global_position' in self) else null
-  if global_position_parent == null:
-    global_position_parent = Lib.get_parent_with_property(self, 'global_position')
-  if not global_position_parent:
-    push_error('No global position parent found')
-    queue_free()    
-    return
  
 
 func _process(delta):
   if disabled:
     return
-  
   var parent = get_parent()
   
   #find a new point to move to if close or old point is old
   var current_time = Time.get_ticks_msec()
-  var move_to_vec = move_to_point - global_position_parent.global_position
+  var move_to_vec = move_to_point - parent.global_position
   if (current_time > next_move_to_time) or (move_to_vec.length() < 1.0):
-    move_to_point = global_position_parent.global_position + Lib.cs_vec(randf_range(0.0, 2*PI)) * move_to_radius
+    move_to_point = parent.global_position + Lib.cs_vec(randf_range(0.0, 2*PI)) * move_to_radius
     next_move_to_time = current_time + next_move_point_delay_ms
-    move_to_vec = move_to_point - global_position_parent.global_position
+    move_to_vec = move_to_point - parent.global_position
   
   #move toward that point
   Comp.call_method(parent, 'walk_by', [move_to_vec.normalized() * movement_rate * delta])
@@ -50,4 +39,11 @@ func _process(delta):
 "
 
 [node name="randomlyWalk" type="Node"]
+editor_description = "Calls the parent composite's `walk-by` method to move to a nearby randomly selected point. When it is finally close to that randomly selected point, it selects a new one
+
+The parent must have a `global_position` property 
+
+The `movement_rate` property multiplies the parent composite's `walk_by` speed. So, if the `walk_by` method multiplies its input by 2, and `movement_rate` is 2, then the final speed is `2 * 2 == 4`
+
+Points to move to are selected randomly on a *circle* (ie: the boundary of a disk) with radius `move_to_radius`. So, the distance between the current point and the newly selected point will always be `move_to_radius` distance away, but with any angle"
 script = SubResource("GDScript_r3k68")

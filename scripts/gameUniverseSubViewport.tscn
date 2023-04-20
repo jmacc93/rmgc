@@ -6,20 +6,28 @@ script/source = "extends Node
 var container: Container
 var parent: Viewport
 
+func _init():
+  tree_entered.connect(on_tree_entered)
+  tree_exited.connect(on_tree_exited)
 
-func _enter_tree():
-  container = Lib.get_parent_with_class(self, 'Container')
+
+func on_tree_entered():
+  var new_container = Lib.get_parent_with_class(self, 'Container')
+  if container == new_container:
+    return
+  container = new_container
   if container == null:
     return
   container.resized.connect(on_resized)
   on_resized()
 
 
-func _exit_tree():
-  container = Lib.get_parent_with_class(self, 'Container')
+func on_tree_exited():
+  var new_container = Lib.get_parent_with_class(self, 'Container')
   if container == null:
     return
   container.resized.disconnect(on_resized)
+  container = null
 
 
 func on_resized():
@@ -27,6 +35,7 @@ func on_resized():
 "
 
 [node name="SubViewport" type="SubViewport"]
+editor_description = "This is the template for a new viewports in `res://gameUniverse.tscn`. Its just a `SubViewport` that mimicks the dimensions of its parent `SubViewportContainer`"
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
 render_target_update_mode = 4

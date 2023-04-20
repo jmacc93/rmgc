@@ -46,4 +46,9 @@ func on_body_exited(body: Node2D):
 "
 
 [node name="toggleVisibilityOfTargetOnPlayerWalkOver" type="Node"]
+editor_description = "Requires an Area2D parent
+
+When the player character (ie: `Lib.player_character`) walks over the parent, this makes the node at `target_node_path` visible, when the player leaves it makes the `target_node_path` node invisible. This also toggles the process mode of the target node with its visibility
+
+Use this to show popup ui elements when the player walks into the area the popup should show in"
 script = SubResource("GDScript_n32kp")

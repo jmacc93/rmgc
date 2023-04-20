@@ -146,5 +146,7 @@ binormal_exp is parameter for binormal distribution, and is roughly how the dist
 
 scene_pool can have members like [scene, bias] where bias is the log of the unnormalized probability of that item being selected. Just think of it like a relative score, higher scores are much more likely to be selected
 
-The `where` property determines where the new generated children are placed. ParentGameWorld looks for the closest parent in the group `game_world` (there *should* always be one of these), and `Here` means add the children to the object placer itself"
+The `where` property determines where the new generated children are placed. ParentGameWorld looks for the closest parent in the group `game_world` (there *should* always be one of these), and `Here` means add the children to the object placer itself
+
+Another way to add scenes to pick from for generation is by adding `ResourcePreloader` children to the node, and dragging scene files to the bottom panel in the script editor on the `ResourcePreloader` tab. These `ResourcePreloader` children can have `generation_bias` metadata properties with float values that work just like the `bias` from the `[scene, bias]` form above"
 script = SubResource("GDScript_d0xty")

@@ -3,8 +3,6 @@
 [sub_resource type="GDScript" id="GDScript_vtxd2"]
 script/source = "extends Node
 
-@export var except_source_object = true
-
 ## restrict to a particular group, or leave blank to not restrict to a group
 @export var group = ''
 
@@ -22,22 +20,22 @@ func on_collision(collision):
     return
   
   var parent = get_parent()
-  var body = collision.get_collider()
-  var source_object = Comp.get_prop(parent, 'source_object')
   
   #only destroy self on collision with particular group?
-  if (group != '') and (not body.is_in_group(group)):
-    return
-  
-  #is body the parent?
-  if except_source_object and source_object and (body == source_object):
-    return
+  if group != '':
+    var body = collision.get_collider()
+    if not body.is_in_group(group):
+      return
   
   #kill self
-  if not Comp.run_method(parent, 'kill', []):
+  Watch.notify(parent, 'die', [])
+  if not Comp.run_method(parent, 'die', []):
     parent.queue_free()
   
 "
 
 [node name="destroySelfOnCollision" type="Node"]
+editor_description = "On a `collision` `Watch` notification on the parent, this calls the `collision` `Watch` notification and then either runs the parent's `die` method (which should `queue_free` the parent) or just `queue_free`s the parent
+
+This is primarily for removing a shot parent when it hits an obstact "
 script = SubResource("GDScript_vtxd2")

@@ -3,6 +3,7 @@
 [sub_resource type="GDScript" id="GDScript_fvlnl"]
 script/source = "extends Node
 
+#For use as the child of an Area2D
 
 func _notification(what):
   match what:
@@ -37,4 +38,9 @@ func on_body_exited(body: Node2D):
 "
 
 [node name="showGrandparentOnPlayerTouching" type="Node"]
+editor_description = "This is for use as a child of an Area2D
+
+When the player (ie: the `Lib.player_character` node) moves over the parent Area2D, it causes the Area2D's parent to turn visible. When the player character exists the Area2D, the Area2D's parent is turned invisible
+
+See `res://environment/worldPortal.tscn` for an example of its use"
 script = SubResource("GDScript_fvlnl")

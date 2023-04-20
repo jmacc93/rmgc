@@ -5,25 +5,28 @@
 [sub_resource type="GDScript" id="GDScript_hj66j"]
 script/source = "extends Node
 
-func _enter_tree():
-  var parent = get_parent()
-  
-  var init_prop = Comp.get_prop(parent, 'init_texture', null)
-  if init_prop == null:
-    push_error('No init_texture property given for parent ', parent)
-    return
-  
-  if init_prop is Array:
-    init_with_array(init_prop)
-  
-  elif init_prop is String: #assuming directory path string
-    init_with_directory(init_prop)
-  
-  elif init_prop is Texture2D:
-    init_with_texture(init_prop)
-  
-  else:
-    push_error('Unrecognized init_texture property ', init_prop, ' in ', parent)
+
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      var parent = get_parent()
+      
+      var init_prop = Comp.get_prop(parent, 'init_texture', null)
+      if init_prop == null:
+        push_error('No init_texture property given for parent ', parent)
+        return
+      
+      if init_prop is Array:
+        init_with_array(init_prop)
+      
+      elif init_prop is String: #assuming directory path string
+        init_with_directory(init_prop)
+      
+      elif init_prop is Texture2D:
+        init_with_texture(init_prop)
+      
+      else:
+        push_error('Unrecognized init_texture property ', init_prop, ' in ', parent)
 
 
 func init_with_array(array: Array):
@@ -54,6 +57,7 @@ func init_with_texture(texture: Texture2D):
 "
 
 [node name="randomFloorDecoration" type="Sprite2D"]
+editor_description = "This selects a random texture from its `init_texture` matadata property, which should be a string path to a texture resource (eg: a `.png`), a string path to a directory, or an array of string paths to texture resources. The textures are displayed  alpha-masked using a random mask from the `res://masks/noise_blob_masks_x64/circle_rough` directory"
 z_index = -10
 metadata/init_texture = "res://environment/ground_spot_textures/sprites/ash/"
 

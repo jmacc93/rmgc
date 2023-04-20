@@ -69,4 +69,7 @@ func on_collision(collision):
 "
 
 [node name="damageCollidingBodyOnCollision" type="Node"]
+editor_description = "On a `Watch` `collision` notification (which comes with the body the parent is colliding with) on the parent, this tries to damage the other body if it isn't aligned with the parent
+
+This is primarily used for shots, and it primarily just causes the parent shot to damage any enemy characters the shot touches"
 script = SubResource("GDScript_ajm2v")

@@ -13,9 +13,9 @@
 [ext_resource type="PackedScene" uid="uid://nddvfrwny2x2" path="res://characters/scripts/setTargetToMouseLocation.tscn" id="12_lmr86"]
 [ext_resource type="PackedScene" uid="uid://b8oc4qapcpigw" path="res://characters/scripts/mainAttackOnAction.tscn" id="13_4wfma"]
 [ext_resource type="PackedScene" path="res://gear/weapons/basicSword.tscn" id="14_j5uwh"]
-[ext_resource type="PackedScene" path="res://gear/usables/hpFlaskGear.tscn" id="14_xkami"]
+[ext_resource type="PackedScene" uid="uid://db8li8w2rra1l" path="res://gear/usables/hpFlaskGear.tscn" id="14_xkami"]
 [ext_resource type="PackedScene" uid="uid://dyoejqkml0t11" path="res://gear/armors/basicArmor1.tscn" id="16_rm1a6"]
-[ext_resource type="PackedScene" path="res://ui/playerUi.tscn" id="17_lq81o"]
+[ext_resource type="PackedScene" uid="uid://4niybvy3rrrx" path="res://ui/playerUi.tscn" id="17_lq81o"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(8, 8)
@@ -44,6 +44,12 @@ func parent_entered_tree():
 size = Vector2(12, 12)
 
 [node name="genericClass" type="CharacterBody2D" groups=["character", "gear_container"]]
+editor_description = "This is the prototypical player character class. Note that this is already set up to be a player character because it has `setAsPlayerCharacter`, `setVisibleWorldToParentWorld`, `callFirstTouchingColliderInteractMethodOnInteract`, `moveCharacterOnAction`, `setTargetToMouseLocation`, `mainAttackOnAction`, and `playerUi` nodes
+
+Note that `playerUi` scans all immediate child nodes of `genericClass` and:
+  * Calls all `make_stat_display_element` methods which return `Control`s that are placed in the stat area
+  * Call all `gear` group nodes' `make_ui_cell` (if they have them) which return `Control`s that are placed in the gear display area
+This is important because `make_stat_display_element` and `make_ui_cell` each should only be controlling one `Control` at a time, and the `Control` they're controlling is made and returned by the respective functions `make_stat_display_element` and `make_ui_cell`. So, you wouldn't want two `playerUi`s, for example, because this behavior would mess one of them up"
 collision_layer = 2
 metadata/ui_gear_cells = 6
 metadata/_edit_group_ = true

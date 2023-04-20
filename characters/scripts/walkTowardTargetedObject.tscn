@@ -2,22 +2,18 @@
 
 [sub_resource type="GDScript" id="GDScript_mc3c8"]
 script/source = "extends Node
-
-var global_position_parent
     
 @export var disabled = false
 
 @export var stay_distance = 50.0
 
 
-func _enter_tree():
-  global_position_parent = self if ('global_position' in self) else null
-  if global_position_parent == null:
-    global_position_parent = Lib.get_parent_with_property(self, 'global_position')
-  if not global_position_parent:
-    push_error('No global position parent found')
-    queue_free()    
-    return
+func _notification(what):
+  match what:
+    NOTIFICATION_PARENTED:
+      set_process(true)
+    NOTIFICATION_UNPARENTED:
+      set_process(false)
 
 
 func _process(_delta):
@@ -32,10 +28,10 @@ func _process(_delta):
     return
   
   var targets_position = target_object.global_position
-  var vec_to_target = global_position_parent.global_position - targets_position
+  var vec_to_target = parent.global_position - targets_position
   if vec_to_target.length() >= stay_distance:
     var adjusted_target_point = targets_position + vec_to_target.normalized() * stay_distance
-    var move_vec = (adjusted_target_point - global_position_parent.global_position).normalized()
+    var move_vec = (adjusted_target_point - parent.global_position).normalized()
     Comp.call_method(parent, 'walk_by', [move_vec])
   
 
@@ -44,4 +40,9 @@ func _process(_delta):
 "
 
 [node name="walkTowardTargetedObject" type="Node"]
+editor_description = "This calls the parent composite's `walk_by` method to move it toward the parent composite's `target_object` if it is non-null
+
+The `stay_distance` property is the distance requirement to cause the parent composite to walk toward the target object. If the current distance to the target object is less than `stay_distance` then the parent composite doesn't move. This causes the composite to move up to `stay_distance` away from its target then stop. Set this property to 0 to make the composite always approach its target
+
+The parent composite must have a `global_position` property"
 script = SubResource("GDScript_mc3c8")

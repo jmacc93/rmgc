@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3 uid="uid://m7puf84wht2"]
+
+[sub_resource type="GDScript" id="GDScript_6dji4"]
+script/source = "extends Node
+
+
+func _notification(what):
+  var parent = get_parent()
+  match what:
+    NOTIFICATION_PARENTED:
+      Comp.set_prop(parent, 'interact', interact)
+    NOTIFICATION_UNPARENTED:
+      Comp.remove_prop(parent, 'interact')
+
+
+func interact(character: Node):
+  var world_file_parent = Comp.get_parent_with_prop(self, 'world_file')
+  var world_file = Comp.get_prop(world_file_parent, 'world_file')
+  
+  var universe = Lib.get_parent_in_group(self, 'game_universe')
+  var world = universe.open_world(world_file)
+  
+  var this_world = Game.get_game_world(self)
+  if Comp.run_method(world, 'move_character_into', [character, this_world]):
+    return
+  
+  character.reparent(world)
+  
+
+"
+
+[node name="goToParentsWorldFileOnInteract" type="Node"]
+editor_description = "This adds an `interact` method to the parent composite which when called causes the character passed into the `interact` method to switch to the game world specified by the parent's `world_file` property
+
+Parent composite needs a `world_file` property that is a string path that points to a `game_world` group scene file"
+script = SubResource("GDScript_6dji4")

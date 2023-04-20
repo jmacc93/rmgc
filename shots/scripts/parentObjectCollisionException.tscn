@@ -26,4 +26,7 @@ func on_set_source_object():
 "
 
 [node name="parentObjectCollisionException" type="Node"]
+editor_description = "This adds a collision exception to theparent with the parent's `source_object` property, which should be a `CollisionObject2D`
+
+This is primarily meant for shots which are `CharacterBody2D`s that have `source_object` properties (which are set to the characters that produced them)"
 script = SubResource("GDScript_rnupt")

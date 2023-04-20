@@ -50,6 +50,7 @@ func make_ui_cell():
   Comp.set_prop(cell, 'get_gear_node', get_gear_node)
   Comp.set_prop(cell, 'retain_on_reparent_once', retain_on_reparent_once)
   active_gear_cell = cell
+  Watch.notify(self, 'gear_cell_created', [cell]) #this line is so additional behaviors can be added by other nodes
   return cell
 
 
@@ -66,12 +67,15 @@ func retain_on_reparent_once():
 "
 
 [node name="makeGearUiCell" type="Node"]
-editor_description = "Needs:
+editor_description = "This is the prototypical ui gear cell maker. It essentially just duplicates its child `templateGearCell` for display in containers (ie: loot bags) and the player's inventory
+
+This provides the closest parent `gear`-group composite  with a `make_ui_cell` method which will be called by inventories (ie: loot bags and player inventories) to display whatever `Control` object is returned by it
+
+The `Watch.call_on_notify` signal `gear_cell_created` is emitted when a new gear cell has been created. You can use this to extend `makeGearUiCell`'s behavior in another node, by using `Watch.call_on_notify(the_makeGearUiCell_node, \"gear_cell_created\", function_to_modify_the_gear_cell)`
+
+Needs:
   * Gear node as parent
-  * Character / container node as grandparent (parent gear node's parent)
   * Needs templateGearCell child which is process deactivated and not visible
 
-The templateGearCell child will be duplicated and inserted into the gear cell
-
-Grandparent container / character must have an add_gear_ui_cell method or metadata method"
+The `templateGearCell` child will be duplicated and inserted into the gear cell"
 script = SubResource("GDScript_d5dnm")

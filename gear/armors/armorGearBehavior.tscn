@@ -96,4 +96,14 @@ func handle_left_clicked(event: InputEventMouse):
 "
 
 [node name="armorGearBehavior" type="Node"]
+editor_description = "This provides the parent composite `gear`-group node with a `handle_left_clicked` function that toggles the equipped state as armor of the parent composite in ITS parent. So, when you click on the parent composite's ui gear cell it toggles the parent composite's equipped status, adds defence to the parent composite's character parent, etc
+
+The scene tree from the character to this node is like:
+Character (this node's grandparent)
+  * Armor gear (this node's parent)
+    * `armorGearBehavior` (this node)
+
+This is an example of 
+
+This is more or less explicitly meant for the player character's use (ie: the `Lib.player_character` node's use)"
 script = SubResource("GDScript_0r3ts")

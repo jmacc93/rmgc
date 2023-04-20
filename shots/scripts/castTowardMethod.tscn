@@ -8,10 +8,6 @@ func _notification(what):
   var parent = get_parent()
   match what:
     NOTIFICATION_PARENTED:
-      if not ('velocity' in parent):
-        push_error('Parent has no velocity')
-        return
-      
       Comp.set_prop(parent, 'cast_toward', cast_toward)
     
     NOTIFICATION_UNPARENTED:
@@ -20,9 +16,13 @@ func _notification(what):
 
 func cast_toward(toward_point: Vector2, speed: float):
   var parent = get_parent()
-  var parent_position = parent.global_position
-  parent.velocity = (toward_point - parent_position).normalized() * speed
+  var parent_position = Comp.get_prop(parent, 'global_position')
+  var new_velocity = (toward_point - parent_position).normalized() * speed
+  Comp.set_prop(parent, 'velocity', new_velocity)
 "
 
 [node name="castTowardMethod" type="Node"]
+editor_description = "This provides a `cast_toward` method to the parent composite. Primarily used for shots. This `cast_toward` method takes a point and speed and sets the parent's velocity to be going toward the point
+
+The parent composite should have a `global_position` property and the provided `cast_toward` method sets the parent composite's `velocity` property. Since the parent composite is probably a `CharacterBody2D` shot, both of those properties are probably object properties for the parent already"
 script = SubResource("GDScript_t1lxd")

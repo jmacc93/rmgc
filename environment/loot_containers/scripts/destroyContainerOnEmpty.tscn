@@ -34,4 +34,5 @@ func on_child_exiting(_child: Node):
 "
 
 [node name="containerDestroyOnEmpty" type="Node"]
+editor_description = "When the parent has no `gear`-group node children, then it destroys the parent. For use in loot bags like `res://environment/loot_containers/basicLootBag.tscn`"
 script = SubResource("GDScript_t348g")

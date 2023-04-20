@@ -12,4 +12,7 @@ func _notification(what):
 "
 
 [node name="hideInGame" type="Node"]
+editor_description = "This is primarily used for representing ingame-invisible things like criticle positions in world generation, etc. It just hides its parent when the game starts up
+
+Example of use: put this on the child of a `Sprite2D` which you're using as a landmark to lay out a level, but that won't appear in game"
 script = SubResource("GDScript_q74se")

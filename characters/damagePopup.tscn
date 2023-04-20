@@ -11,6 +11,7 @@ var damage_amount : int = 0
 @export var float_distance = 5.0
 @onready var float_speed : float = 1000 * float_distance / lifespan_msec
 
+
 func set_damage(new_damage):
   var label = $Label
   damage_amount = int(ceil(new_damage))
@@ -20,6 +21,7 @@ func set_damage(new_damage):
   else:
     label.text = str(damage_amount)
     label.modulate = Color.LIGHT_CORAL
+
 
 func _process(delta):
   var current_time = Time.get_ticks_msec()
@@ -31,6 +33,9 @@ func _process(delta):
 "
 
 [node name="damagePopup" type="Node2D"]
+editor_description = "This is used by `res://characters/scripts/makeBasicDamagePopups.tscn`. Its intended to show a number representing damage a character just took. It floats up by `float_distance` over `lifespan_msec` milliseconds then disappears
+
+Use the `set_damage` to set the damage text. It actually takes the change in health values, so \"damage\" is actually just negative numbers given to `set_damage`. For numbers less than 0, the text is reddish (damage / bad), for numbers greater than 0 the text is greenish (healing / good)"
 script = SubResource("GDScript_um228")
 
 [node name="Label" type="Label" parent="."]

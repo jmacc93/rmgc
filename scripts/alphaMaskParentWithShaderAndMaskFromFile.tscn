@@ -18,5 +18,6 @@ func _ready():
 "
 
 [node name="alphaMaskParentWithShaderAndMaskFromFile" type="Node"]
+editor_description = "This loads a random texture resource from the `directory` property directory path, sets its parent's material to the `res://masks/alphaMask.gdshader` material, and sets the material's mask texture to the one selected. In effect, it alpha masks its parent's texture"
 script = SubResource("GDScript_dajsk")
 directory = "res://masks/noise_blob_masks_x64/circle_rough"

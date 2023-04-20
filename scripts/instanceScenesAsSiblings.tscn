@@ -9,9 +9,11 @@ script/source = "extends Node
 
 var bias_list: Array
 
+
 func _notification(what):
   match what:
     NOTIFICATION_PARENTED:
+      add_preloader_scenes_to_pool()
       calculate_bias_list()
       if scene_pool.size() == 0:
         push_error('No scene pool items given')
@@ -20,6 +22,16 @@ func _notification(what):
         make_nodes()
         queue_free()
       ).call_deferred()
+
+
+func add_preloader_scenes_to_pool():
+  var preloader_children = Lib.get_immediate_children_with_class(self, 'ResourcePreloader')
+  for preloader in preloader_children:
+    var resource_name_list = preloader.get_resource_list()
+    for resource_name in resource_name_list:
+      var resource = preloader.get_resource(resource_name)
+      var bias = Comp.get_prop(preloader, 'generation_bias', 0)
+      scene_pool.push_back([resource, bias])
 
 
 func calculate_bias_list():
@@ -72,4 +84,9 @@ func generate_one_node():
 "
 
 [node name="instanceNodesAsSiblings" type="Node"]
+editor_description = "This randomly selects scene resources from `scene_pool` and from any `ResourcePreloader` children, instances them, and adds them to this node's parent. It does this for `count` children
+
+Anything in `object_init_props` is added to the new scene instances
+
+Note: this also supports adding bias in the exact same way that `res://environment/generators/scatterObjectPlacer.tscn` uses bias: via elements like `[scene_resource, bias]` in the `scene_pool` and the `generation_bias` on `ResourcePreloader` children. See the `scatterObjectPlacer.tscn` scene for more details"
 script = SubResource("GDScript_084mp")

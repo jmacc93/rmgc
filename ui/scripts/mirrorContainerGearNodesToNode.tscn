@@ -67,6 +67,7 @@ func make_new_holder_child():
   cell_container.add_child(new_cell_holder)
 
 
+#A new child of the closest parent gear_container group node was added
 func on_added_container_node(new_node: Node):
   if not new_node.is_in_group('gear'):
     return
@@ -92,6 +93,73 @@ func on_added_container_node(new_node: Node):
       return
 
 
+#Check whether given gear container node can fit one more node
+func check_container_has_room(gear_container: Node):
+  var max_gear_count = Comp.get_prop(gear_container, 'ui_gear_cells', 0)
+  var gear_children = Lib.get_immediate_children_in_group(gear_container, 'gear')
+  return gear_children.size() + 1 <= max_gear_count
+
+
+#Call click handlers on gear node, or move gear nodes on shift-click
+func holder_on_direct_mouse_event(event: InputEventMouse, holder_node: Node):
+  get_viewport().set_input_as_handled()
+  if not (event is InputEventMouseButton):
+    return
+  if event.pressed:
+    return
+  if Lib.is_dragging:
+    return
+  
+  var gear_cell_node = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
+  if gear_cell_node == null:
+    return #no gear cell in this holder, ie: its empty
+  
+  #Move gear between first open container and  if shift left-clicked
+  if event.shift_pressed and (event.button_index == MOUSE_BUTTON_LEFT):
+    var gear_node = Comp.call_method_or(gear_cell_node, 'get_gear_node', [], null)
+    if gear_node == null:
+      return #probably no get_gear_node method on cell, otherwise cell's gear node shouldnt be null (an error)
+    
+    #Is clicked gear node not inside the player?
+    if not Lib.is_child_of(Lib.player_character, gear_node):
+      #Does player have room for this item?
+      var has_room = check_container_has_room(Lib.player_character)
+      if not has_room:
+        return #player cant fit the node
+      #move gear node to character
+      gear_node.reparent(Lib.player_character)
+      return
+    #Not a child of player, must be in a loot bag / gear container
+    
+    #trying moving to first open loot bag
+    var loot_display = null
+    for possible_open_loot_display in get_viewport().get_tree().get_nodes_in_group('loot_bag_display_popup'):
+      if possible_open_loot_display.visible == true:
+        loot_display = possible_open_loot_display
+        break
+    if loot_display == null:
+      return #no open loot display found
+    
+    var loot_container = Lib.get_parent_in_group(loot_display, 'gear_container')
+    if loot_container == null:
+      push_error('Loot container popup has no container parent')
+      return
+    
+    #Does container have room for this item?
+    var has_room = check_container_has_room(loot_container)
+    if not has_room:
+      return #loot_container cant fit the node
+    gear_node.reparent(loot_container)
+    return
+  #
+  
+  #shift not pressed, just a regular mouse button release
+  match event.button_index:
+    MOUSE_BUTTON_LEFT: Comp.run_method(gear_cell_node, 'handle_left_clicked', [event])
+    MOUSE_BUTTON_RIGHT: Comp.run_method(gear_cell_node, 'handle_right_clicked', [event])
+
+
+#Try to find the best representation of a gear_cell to show near the mouse when dragging the cell
 func get_gear_cell_drag_texture(gear_cell: Node):
   var cell_drag_texture = Comp.call_method_or(gear_cell, 'get_drag_texture', [], null)
   if cell_drag_texture != null:
@@ -112,54 +180,7 @@ func get_gear_cell_drag_texture(gear_cell: Node):
   return null
 
 
-func holder_on_direct_mouse_event(event: InputEventMouse, holder_node: Node):
-  get_viewport().set_input_as_handled()
-  if not (event is InputEventMouseButton):
-    return
-  if event.pressed:
-    return
-  if Lib.is_dragging:
-    return
-  
-  var gear_cell_node = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
-  if gear_cell_node == null:
-    return #no gear cell in this holder, ie: its empty
-  
-  if event.shift_pressed:
-    var gear_node = Comp.call_method_or(gear_cell_node, 'get_gear_node', [], null)
-    if gear_node == null:
-      return #probably no get_gear_node method on cell, otherwise cell's gear node shouldnt be null (an error)
-    
-    if not Lib.is_child_of(Lib.player_character, gear_node):
-      #move gear node to character
-      gear_node.reparent(Lib.player_character)
-      return
-    #else: gear_node not a child of player
-    
-    #trying moving to first open loot bag
-    var loot_display = null
-    for possible_open_loot_display in get_viewport().get_tree().get_nodes_in_group('loot_bag_display_popup'):
-      if possible_open_loot_display.visible == true:
-        loot_display = possible_open_loot_display
-        break
-    if loot_display == null:
-      return #no open loot display found
-    
-    var loot_container = Lib.get_parent_in_group(loot_display, 'gear_container')
-    if loot_container == null:
-      push_error('Loot container popup has no container parent')
-      return
-    
-    gear_node.reparent(loot_container)
-    return
-  #
-  
-  #shift not pressed, just a regular mouse button release
-  match event.button_index:
-    MOUSE_BUTTON_LEFT: Comp.run_method(gear_cell_node, 'handle_left_clicked', [event])
-    MOUSE_BUTTON_RIGHT: Comp.run_method(gear_cell_node, 'handle_right_clicked', [event])
-
-
+#Set the dragging displayed texture
 func holder_own_dragging_started(holder_node: Node):
   var gear_cell = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
   if gear_cell == null:
@@ -168,15 +189,22 @@ func holder_own_dragging_started(holder_node: Node):
   Lib.dragging_display.texture = cell_drag_texture if (cell_drag_texture != null) else null
 
 
+#At the end of a drag-drop, try to move the holder's gear node to whatever was dropped over
 func holder_own_dragging_ended(_max_z_collider, holder_node: Node):
   var gear_cell = Lib.get_first_immediate_child_in_group(holder_node, 'ui_gear_cell')
   if gear_cell == null:
     return #holder_node is an empty holder
   
-  #query colliders at the mouse
-  var ordered_collider_query = Lib.get_z_ordered_collider_query_at(Lib.player_character.get_global_mouse_position())
+  var gear_node = Comp.call_method_or(gear_cell, 'get_gear_node', [], null)
+  if gear_node == null:
+    return #probably no get_gear_node method on gear_cell
   
-  #see if query results contains a ui_cell_holder
+  #Whats at the dragging end point?
+  #query colliders at the mouse:
+  var mouse_position = Lib.player_character.get_global_mouse_position()
+  var ordered_collider_query = Lib.get_z_ordered_collider_query_at(mouse_position)
+  
+  #Is the drop over a ui_cell_holder? 
   var other_cell_holder = Lib.get_first_nonnull_return(ordered_collider_query, func(collider_result):
     var collider = collider_result.collider
     return Lib.get_parent_in_group(collider, 'ui_cell_holder')
@@ -188,21 +216,22 @@ func holder_own_dragging_ended(_max_z_collider, holder_node: Node):
     else: #is other container's cell holder
       swap_foreign_holders_cells(holder_node, other_cell_holder)
     return
+  #It wasn't over a ui_cell_holder...
   
-  var gear_node = Comp.call_method_or(gear_cell, 'get_gear_node', [], null)
-  if gear_node == null:
-    return #probably no get_gear_node method on gear_cell
-
-  #see if query was over a container body (eg: a loot bag)
+  #Was the drop over a container body (eg: a loot bag)
   var gear_container = Lib.get_first_nonnull_return(ordered_collider_query, func(collider_result):
     var collider = collider_result.collider
     return Lib.get_parent_in_group(collider, 'gear_container')
   )
   if (gear_container != null) and Comp.get_prop(gear_container, 'accepts_gear_drops', false):
+    var has_room = check_container_has_room(gear_container)
+    if not has_room:
+      return #gear_container cant fit the node
     gear_node.reparent(gear_container)
     return
+  #It wasn't over a container body
 
-  #otherwise, dropped over nothing, so spawn a loot bag
+  #Otherwise, dropped over nothing, so spawn a loot bag in the world and put the gear there
   var game_world = Lib.get_parent_in_group(self, 'game_world')
   if game_world == null:
     push_error('No game_world group parent to place loot bag droo')
@@ -213,6 +242,7 @@ func holder_own_dragging_ended(_max_z_collider, holder_node: Node):
   game_world.add_child(new_loot_bag)
   
 
+#Move sibling cell holders around in the same UI (for swapping gear inventory positions)
 func swap_sibling_holders_cells(holder_node_1: Node, holder_node_2: Node):
   var gear_cell_1 = Lib.get_first_immediate_child_in_group(holder_node_1, 'ui_gear_cell')
   var gear_cell_2 = Lib.get_first_immediate_child_in_group(holder_node_2, 'ui_gear_cell')
@@ -222,6 +252,8 @@ func swap_sibling_holders_cells(holder_node_1: Node, holder_node_2: Node):
     gear_cell_2.reparent(holder_node_1, false)
 
 
+#Move gear nodes between two gear cells that aren't in the same container's UI
+#For when drag-dropped over a different container's ui cell holder
 func swap_foreign_holders_cells(holder_node_1: Node, holder_node_2: Node):
   var gear_cell_1 = Lib.get_first_immediate_child_in_group(holder_node_1, 'ui_gear_cell')
   var gear_cell_2 = Lib.get_first_immediate_child_in_group(holder_node_2, 'ui_gear_cell')
@@ -264,4 +296,11 @@ func swap_foreign_holders_cells(holder_node_1: Node, holder_node_2: Node):
 "
 
 [node name="mirrorContainerGearNodesToNode" type="Node"]
+editor_description = "This looks at the closest `gear_container`-group parent node and for each of that node's immediate `gear`-group child nodes it calls those childrens' `make_ui_cell` methods and collect the `Control` nodes they return and adds them as children to the `cell_container` node inside special holder nodes
+In other words, this takes the player's / loot bag's (whichever this is a deep child of) gear group child nodes, gets their ui cells from them (the gear nodes create their own ui cells), and places those ui cells as children of the `cell_container` node's holder nodes
+
+The holder nodes which gear nodes' ui cells go into are generated automatically as children of `cell_container` and are just duplicates of this node's `templateCellHolder` child. So, this node has to have a `templateCellHolder` child. Find and look at the`mirrorContainerGearNodesToNode` in `res://ui/playerUi.tscn` for an example `templateCellHolder`
+Further node about holder node templates: the `templateCellHolder` child of this node must have an `Area2D` which this places its `on_direct_mouse_event`, `own_dragging_started`, and `own_dragging_ended` closures into. These are for clicking and dragging detection in the UI
+
+Cell holders do a lot of stuff, so look at the script on this node to see more details"
 script = SubResource("GDScript_bcx52")

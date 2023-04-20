@@ -19,9 +19,7 @@ func check_and_die():
   var hp = Comp.get_prop(parent, 'hp')
   if hp <= 0:
     Watch.notify(parent, 'die', [])
-    if Comp.run_method(parent, 'die', []):
-      return
-    else:
+    if not Comp.run_method(parent, 'die', []):
       parent.queue_free()
 "
 

@@ -1,47 +1,18 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=7 format=3 uid="uid://bbqcuwcrnem36"]
 
 [ext_resource type="Texture2D" uid="uid://clpocpxfts7x5" path="res://environment/sprites/small_world_portal.png" id="1_wjl8m"]
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/sprites/ui-box-2.png" id="2_wpaav"]
 [ext_resource type="PackedScene" uid="uid://cltmch762lqa4" path="res://ui/scripts/mirrorNodePropToParentLabel.tscn" id="3_7c8na"]
 [ext_resource type="PackedScene" uid="uid://ceomcg1jw817h" path="res://scripts/showGrandparentOnPlayerTouching.tscn" id="3_wtt6d"]
+[ext_resource type="PackedScene" uid="uid://m7puf84wht2" path="res://environment/scripts/goToParentsWorldFileOnInteract.tscn" id="4_4shf2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2x3t2"]
 size = Vector2(12, 8)
 
-[sub_resource type="GDScript" id="GDScript_6dji4"]
-script/source = "extends Node
-
-
-func _notification(what):
-  var parent = get_parent()
-  match what:
-    NOTIFICATION_PARENTED:
-      Comp.set_prop(parent, 'interact', on_interact)
-    NOTIFICATION_UNPARENTED:
-      Comp.remove_prop(parent, 'interact')
-
-
-func on_interact(character: Node):
-  var parent_with_world_file = Comp.get_parent_with_prop(self, 'world_file')
-  if parent_with_world_file == null:
-    push_error('No parent with world_file prop found')
-    return
-  
-  var world_file = Comp.get_prop(parent_with_world_file, 'world_file')
-  
-  var universe = Lib.get_parent_in_group(self, 'game_universe')
-  var world = universe.open_world(world_file)
-  
-  var this_world = Game.get_game_world(self)
-  if Comp.run_method(world, 'move_character_into', [character, this_world]):
-    return
-  
-  character.reparent(world)
-  
-
-"
-
 [node name="mainWorldPortal" type="Sprite2D"]
+editor_description = "This is the prototypical portal between worlds. When the player character is over top of it, it shows a popup with the endpoint of the portal. When the player pushes the interact key, it takes them to that world
+
+Its `world_file` metadata property should be a string path to a scene file which will be loaded as the world the player goes to. The `world_name` is what shows on the popup label when the player is over it"
 z_index = -1
 texture = ExtResource("1_wjl8m")
 metadata/world_file = ""
@@ -86,7 +57,6 @@ collision_mask = 2
 position = Vector2(0, 2)
 shape = SubResource("RectangleShape2D_2x3t2")
 
-[node name="goToParentsWorldFileOnInteract" type="Node" parent="NinePatchRect/Area2D"]
-script = SubResource("GDScript_6dji4")
+[node name="goToParentsWorldFileOnInteract" parent="NinePatchRect/Area2D" instance=ExtResource("4_4shf2")]
 
 [node name="showGrandparentOnPlayerTouching" parent="NinePatchRect/Area2D" instance=ExtResource("3_wtt6d")]

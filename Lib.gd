@@ -137,10 +137,10 @@ func get_children_in_group(start_node: Node, group_name: String, max_depth: floa
   return ret
 
 
-func get_immediate_children_with_class(start_node: Node, classname: String):
+func get_immediate_children_in_group(start_node: Node, group_name: String):
   var ret = []
   for child in start_node.get_children():
-    if child.get_class() == classname:
+    if child.is_in_group(group_name):
       ret.push_back(child)
   return ret
 
@@ -150,6 +150,14 @@ func get_first_immediate_child_in_group(start_node: Node, group_name: String):
     if child.is_in_group(group_name):
       return child
   return null
+  
+
+func get_immediate_children_with_class(start_node: Node, classname: String):
+  var ret = []
+  for child in start_node.get_children():
+    if child.get_class() == classname:
+      ret.push_back(child)
+  return ret
 
 
 func get_first_immediate_child_with_class(start_node: Node, classname: String):

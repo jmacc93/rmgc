@@ -32,6 +32,10 @@ func on_direct_mouse_event(event: InputEventMouse):
 size = Vector2(6, 6)
 
 [node name="toggleLootDisplayVisibilityOnClick" type="Area2D"]
+editor_description = "This is intended for use in loot bags like `res://environment/loot_containers/basicLootBag.tscn`
+
+It toggles the visibility and process mode of the node pointed to by `target_node_path`. Also, if the display was just made visible, this toggles the visibility and process mode of all other displays (ie: nodes in group `loot_bag_display_popup`) in the current viewport  off (ie: turns them not visible, and process mode off)
+So, loot bag displays like this should be in group `loot_bag_display_popup`"
 script = SubResource("GDScript_nqnks")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

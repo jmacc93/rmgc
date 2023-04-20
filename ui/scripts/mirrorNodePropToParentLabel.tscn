@@ -45,4 +45,8 @@ func on_set_prop():
 "
 
 [node name="mirrorParentPropToParentLabel" type="Node"]
+editor_description = "This watches the `prop_name` property of the given node pointed to by `node_with_prop_path`  and sets its parent `Label`'s `text` to that property
+ie: it takes the given property and sets its parent's label as the value of that property
+
+Its intended to be used as the child of a `Label`"
 script = SubResource("GDScript_k1bqe")

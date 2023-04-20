@@ -14,4 +14,6 @@ func _notification(what):
 "
 
 [node name="setAsPlayerCharacter" type="Node2D"]
+editor_description = "This sets `Lib.player_character` to the parent composite
+`Lib.player_character` is pretty important, and is used for a bunch of different things. So, this node should always be present as a child of the player character node"
 script = SubResource("GDScript_wl53u")

@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://d3gksmssny2u7"]
+
+[ext_resource type="Material" uid="uid://on8q1sp20o0w" path="res://outlineMaterial.tres" id="1_5vywj"]
+[ext_resource type="Texture2D" uid="uid://deiq67xnwg5nn" path="res://environment/obstacles/sprites/small-rock-1.png" id="2_044kw"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(8, 8)
+
+[node name="smallRock" type="StaticBody2D"]
+editor_description = "This is the prototypical wall / obstacle. It is just a rock. It blocks movement of characters and shots"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+material = ExtResource("1_5vywj")
+texture = ExtResource("2_044kw")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
+shape = SubResource("1")

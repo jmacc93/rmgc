@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=24 format=3 uid="uid://4niybvy3rrrx"]
 
 [ext_resource type="Texture2D" uid="uid://b3wyngm1q544d" path="res://ui/sprites/ui-box-2.png" id="1_i3w13"]
 [ext_resource type="Texture2D" uid="uid://comd2csjxuaci" path="res://ui/sprites/expander.png" id="2_gtiv0"]
@@ -10,6 +10,7 @@
 [sub_resource type="SystemFont" id="SystemFont_mtb06"]
 font_names = PackedStringArray("Sans-Serif")
 font_weight = 550
+subpixel_positioning = 0
 oversampling = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8yqf6"]
@@ -213,6 +214,8 @@ HScrollBar/styles/scroll = SubResource("StyleBoxEmpty_epkwg")
 HScrollBar/styles/scroll_focus = SubResource("StyleBoxEmpty_rhyut")
 
 [node name="bottomBar" type="HBoxContainer"]
+editor_description = "This is the prototypical player UI. Should be a child of a control (to control the layout for this on the screen) which is a child of the player character (ie: `Lib.player_character`)
+This provides a `hp` and `mp` bar display, a stat ui element popup display, and an inventory which shows the parent character's gear nodes"
 z_index = 1024
 custom_minimum_size = Vector2(0, 13)
 anchors_preset = 12

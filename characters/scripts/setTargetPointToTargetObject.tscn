@@ -4,6 +4,10 @@
 script/source = "extends Node
 
 
+#This section sets `mirror_target_object` which is just a premature optimization so we
+#don't have to get `target_object` each frame in `_process`
+###
+
 func _notification(what):
   match what:
     NOTIFICATION_PARENTED:
@@ -17,7 +21,10 @@ var mirrored_target_object
 func mirror_target_object():
   mirrored_target_object = Comp.get_prop(get_parent(), 'target_object')
 
+###
+#
 
+#Set parent's `target_point` to parent's `target_object.global_position`
 func _process(_delta):
   if (mirrored_target_object != null) and ('global_position' in mirrored_target_object):
     var target_point = mirrored_target_object.global_position
@@ -29,4 +36,7 @@ func _process(_delta):
 "
 
 [node name="setTargetPointToTargetObject" type="Node"]
+editor_description = "Sets the parent composite's `target_point` to parent composite's `target_object.global_position`, if `target_object` has it
+
+`target_point` is generally the point that NPCs attack toward"
 script = SubResource("GDScript_p77ub")
